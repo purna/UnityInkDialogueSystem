@@ -10,22 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76fab668a116f3445b8e0fc9fe82a99f, type: 3}
-  m_Name: SetHealth
+  m_Name: Firewave
   m_EditorClassIdentifier: 
-  _name: SetHealth
+  _name: Firewave
   _text: Dialogue text.
   _choices:
-  - _text: True
-    _nextDialogue: {fileID: 0}
-  - _text: False
-    _nextDialogue: {fileID: 0}
-  _type: 2
-  _isStartingDialogue: 1
+  - _text: Next Dialogue
+    _nextDialogue: {fileID: 11400000, guid: 0bc2ef21258654085bc6337c312a8a45, type: 2}
+  _type: 4
+  _isStartingDialogue: 0
   _character: {fileID: 0}
   _emotion: 0
-  _variablesContainer: {fileID: 11400000, guid: edc01b22b10aa4fffafa3a761ddc0203, type: 2}
-  _variableName: Health
-  _variableType: 1
+  _variablesContainer: {fileID: 0}
+  _variableName: 
+  _variableType: 0
   _modificationType: 0
   _conditionType: 0
   _boolValue: 0

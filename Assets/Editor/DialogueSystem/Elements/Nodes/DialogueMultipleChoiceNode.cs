@@ -52,26 +52,13 @@ public class DialogueMultipleChoiceNode : DialogueBaseNode {
             "ds-node__choice-text-field"
         );
 
-        // Make the text field flexible
-        textChoiceField.style.minWidth = 100;
-        textChoiceField.style.maxWidth = StyleKeyword.None;
-        textChoiceField.style.width = StyleKeyword.Auto;
-        textChoiceField.style.flexGrow = 1;
-        textChoiceField.style.flexShrink = 0;
-        
         // Set initial width based on content
         UpdateTextFieldWidth(textChoiceField);
 
-        // Create a container for better layout control
-        VisualElement choiceContainer = new VisualElement();
-        choiceContainer.style.flexDirection = FlexDirection.Row;
-        choiceContainer.style.flexGrow = 1;
-        choiceContainer.style.alignItems = Align.Center;
-
-        choiceContainer.Add(textChoiceField);
-        choiceContainer.Add(deleteChoiceButton);
-        
-        choicePort.Add(choiceContainer);
+        // Add elements directly to the port (no container wrapper)
+        // This ensures the port connector stays visible
+        choicePort.Add(textChoiceField);
+        choicePort.Add(deleteChoiceButton);
         
         return choicePort;
     }
@@ -80,15 +67,15 @@ public class DialogueMultipleChoiceNode : DialogueBaseNode {
         // Calculate approximate width based on text length
         string text = textField.value;
         if (string.IsNullOrEmpty(text)) {
-            text = textField.label;
+            text = "New Choice"; // Default placeholder
         }
         
         // Approximate character width (adjust multiplier as needed)
-        float charWidth = 7.5f;
-        float calculatedWidth = Mathf.Max(100, text.Length * charWidth + 20); // +20 for padding
+        float charWidth = 8f;
+        float calculatedWidth = text.Length * charWidth + 30; // +30 for padding
         
-        // Cap at a reasonable maximum to prevent extremely wide nodes
-        calculatedWidth = Mathf.Min(calculatedWidth, 400);
+        // Set reasonable bounds
+        calculatedWidth = Mathf.Clamp(calculatedWidth, 120, 300);
         
         textField.style.width = calculatedWidth;
     }

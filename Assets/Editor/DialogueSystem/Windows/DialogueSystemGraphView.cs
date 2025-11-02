@@ -91,8 +91,8 @@ public class DialogueSystemGraphView : GraphView {
     {
 
         this.AddStyleSheets(
-            "Assets/DialogueSystem/Styles/GraphViewStyles.uss",
-            "DialogueSystem/Styles/NodeStyles.uss"
+            "DialogueSystem/Styles/DSGraphViewStyles.uss",
+            "DialogueSystem/Styles/DSNodeStyles.uss"
         );
 
       

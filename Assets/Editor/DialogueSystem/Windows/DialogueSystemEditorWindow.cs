@@ -66,7 +66,7 @@ public class DialogueSystemEditorWindow : EditorWindow {
 
     private void AddToolbar() {
         Toolbar toolbar = new();
-        toolbar.AddStyleSheets("DialogueSystem/Styles/ToolbarStyles.uss");
+        toolbar.AddStyleSheets("DialogueSystem/Styles/DSToolbarStyles.uss");
 
         _fileNameField = UIElementUtility.CreateTextField(_defaultFileName, "File Name: ", callback => {
             _fileNameField.value = callback.newValue.RemoveWhitespaces().RemoveSpecialCharacters();
@@ -120,7 +120,7 @@ public class DialogueSystemEditorWindow : EditorWindow {
     }
 
     private void AddStyles() {
-        rootVisualElement.AddStyleSheets("DialogueSystem/Styles/Variables.uss");
+        rootVisualElement.AddStyleSheets("DialogueSystem/Styles/DSVariables.uss");
     }
 
     public void ChangeSaveButtonState(bool newState) {

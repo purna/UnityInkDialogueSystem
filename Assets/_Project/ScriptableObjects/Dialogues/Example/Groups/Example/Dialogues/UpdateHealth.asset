@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76fab668a116f3445b8e0fc9fe82a99f, type: 3}
-  m_Name: SetHealth
+  m_Name: UpdateHealth
   m_EditorClassIdentifier: 
-  _name: SetHealth
+  _name: UpdateHealth
   _text: Dialogue text.
   _choices:
   - _text: True
-    _nextDialogue: {fileID: 0}
+    _nextDialogue: {fileID: 11400000, guid: d63a35556fff34ac099cc84d741c4b74, type: 2}
   - _text: False
-    _nextDialogue: {fileID: 0}
+    _nextDialogue: {fileID: 11400000, guid: d63a35556fff34ac099cc84d741c4b74, type: 2}
   _type: 2
-  _isStartingDialogue: 1
+  _isStartingDialogue: 0
   _character: {fileID: 0}
   _emotion: 0
   _variablesContainer: {fileID: 11400000, guid: edc01b22b10aa4fffafa3a761ddc0203, type: 2}

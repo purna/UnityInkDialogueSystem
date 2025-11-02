@@ -69,6 +69,7 @@ public class DialogueModifyVariableNode : DialogueBaseNode {
     public override void Initialize(string nodeName, DialogueSystemGraphView graphView, Vector2 position) {
         base.Initialize(nodeName, graphView, position);
         
+        // Only one choice for "Next"
         DialogueChoiceSaveData choice = new("Next");
         _choices.Add(choice);
     }
@@ -134,12 +135,10 @@ public class DialogueModifyVariableNode : DialogueBaseNode {
         // Initial value field based on current type
         UpdateValueField();
 
-        // Draw output port
-        foreach (var choice in _choices) {
-            Port choicePort = CreateChoicePort(choice);
-            choicePort.userData = choice;
-            outputContainer.Add(choicePort);
-        }
+        // Draw output port - ONLY ONE
+        Port outputPort = CreateChoicePort(_choices[0]);
+        outputPort.userData = _choices[0];
+        outputContainer.Add(outputPort);
 
         RefreshExpandedState();
     }
@@ -311,12 +310,12 @@ public class DialogueModifyVariableNode : DialogueBaseNode {
     }
     
     public void RefreshUI() {
-    if (_variableSelectionContainer != null) {
-        UpdateVariableSelection();
-        UpdateModificationOptions();
-        UpdateValueField();
+        if (_variableSelectionContainer != null) {
+            UpdateVariableSelection();
+            UpdateModificationOptions();
+            UpdateValueField();
+        }
     }
-}
 
     protected override Port CreateChoicePort(object userData) {
         Port choicePort = this.CreatePort("Next", direction: NodeDirection.Output, capacity: Port.Capacity.Single);
