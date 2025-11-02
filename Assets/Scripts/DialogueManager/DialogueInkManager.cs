@@ -34,6 +34,12 @@ public class DialogueInkManager : MonoBehaviour
     private TextMeshProUGUI dialogueText; // Cached component
     private TextMeshProUGUI displayNameText; // Cached component
 
+    private bool canProgress = false;
+
+    private bool inputSubmitDetected = false;
+    private bool inputInteractDetected = false;
+    private bool inputMouseDetected = false;
+
     private void Awake()
     {
         if (instance != null)
@@ -84,7 +90,12 @@ private void Update()
             return;
 
         // Cache input - check for BOTH Space and Return
-        bool canProgress = Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return);
+
+        inputSubmitDetected = InputManager.GetInstance().GetSubmitPressed();
+        inputInteractDetected = InputManager.GetInstance().GetInteractPressed();
+        inputMouseDetected = Input.GetMouseButtonDown(0);
+    
+        canProgress = Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || inputMouseDetected || inputSubmitDetected || inputInteractDetected;
 
         // Only progress if we can continue AND there are no choices
         if (canContinueToNextLine && currentStory.currentChoices.Count == 0 && canProgress)
@@ -207,8 +218,8 @@ private void Update()
         {
             char letter = line[i];
 
-            // Check for input to skip typing
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
+           
+            if (canProgress)
             {
                 dialogueText.maxVisibleCharacters = line.Length;
                 break;
@@ -301,8 +312,14 @@ private void Update()
         if (canContinueToNextLine) 
         {
             currentStory.ChooseChoiceIndex(choiceIndex);
-            InputManager.GetInstance().RegisterSubmitPressed();
-            ContinueStory();
+
+            if (canProgress)
+            {
+               ContinueStory();
+
+            } 
+
+
         }
     }
 

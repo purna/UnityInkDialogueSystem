@@ -50,6 +50,10 @@ public class DialogueUI : MonoBehaviour
     private Coroutine displayLineCoroutine;
     private List<Button> activeInkChoiceButtons = new List<Button>();
     private bool inputConsumedThisFrame = false;
+    private bool canProgress = false;
+    private bool inputSubmitDetected = false;
+    private bool inputInteractDetected = false;
+    private bool inputMouseDetected = false;
 
     // Public getters
     public float GetTypingSpeed() => typingSpeed;
@@ -106,68 +110,124 @@ public class DialogueUI : MonoBehaviour
         InitializeAudioSystem();
     }
 
-    private void Update()
+private void Update()
+{
+    // Reset per-frame input guard
+    inputConsumedThisFrame = false;
+
+    // --------------------------
+    // CHOICE SELECTION INPUT
+    // --------------------------
+    if (isWaitingForChoice)
     {
-        // Reset the input consumed flag at the start of each frame
-        inputConsumedThisFrame = false;
+        inputSubmitDetected = InputManager.GetInstance().GetSubmitPressed();
+        inputInteractDetected = InputManager.GetInstance().GetInteractPressed();
+        inputMouseDetected = Input.GetMouseButtonDown(0);
+    
+        canProgress = Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || inputMouseDetected || inputSubmitDetected || inputInteractDetected;
 
-        // Allow Space or Return to activate the currently selected button
-        if (isWaitingForChoice)
+        if (canProgress)
         {
-            bool inputDetected = false;
-            
-            if (useSpaceKey && Input.GetKeyDown(KeyCode.Space))
-            {
-                inputDetected = true;
-                Debug.Log("<color=cyan>[DialogueUI.Update]</color> Space pressed while waiting for choice");
-            }
-            else if (useReturnKey && Input.GetKeyDown(KeyCode.Return))
-            {
-                inputDetected = true;
-                Debug.Log("<color=cyan>[DialogueUI.Update]</color> Return pressed while waiting for choice");
-            }
-            
-            if (inputDetected)
-            {
-                // Get the currently selected button
-                GameObject selectedObject = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+            Debug.Log("<color=cyan>[DialogueUI.Update]</color> Submit input detected while waiting for choice");
 
-                if (selectedObject != null)
+            GameObject selectedObject = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+
+            if (selectedObject != null)
+            {
+                Button selectedButton = selectedObject.GetComponent<Button>();
+                if (selectedButton != null)
                 {
-                    Button selectedButton = selectedObject.GetComponent<Button>();
-                    if (selectedButton != null)
-                    {
-                        Debug.Log("<color=lime>[DialogueUI.Update]</color> Invoking selected button");
-                        selectedButton.onClick.Invoke();
-                        inputConsumedThisFrame = true; // Mark input as consumed
-                        return; // CRITICAL: Exit after invoking to prevent double-processing
-                    }
-                    else
-                    {
-                        Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> Selected object has no Button component");
-                    }
+                    Debug.Log("<color=lime>[DialogueUI.Update]</color> Invoking selected button via Submit");
+                    selectedButton.onClick.Invoke();
+                    inputConsumedThisFrame = true;
+                    return; // Stop here — handled input
                 }
                 else
                 {
-                    Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> No button selected!");
+                    Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> Selected object has no Button component");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> No UI button selected while waiting for choice!");
+            }
+        }
+
+        // Also allow numeric shortcuts (1–9) for quick choice selection
+        for (int i = 0; i < 9; i++)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+            {
+                int index = i;
+                if (index < activeChoiceButtons.Count)
+                {
+                    Button btn = activeChoiceButtons[index];
+                    if (btn != null)
+                    {
+                        Debug.Log($"<color=lime>[DialogueUI.Update]</color> Numeric key selected choice {index + 1}");
+                        btn.onClick.Invoke();
+                        inputConsumedThisFrame = true;
+                        return;
+                    }
+                }
+                else if (index < activeInkChoiceButtons.Count)
+                {
+                    Button btn = activeInkChoiceButtons[index];
+                    if (btn != null)
+                    {
+                        Debug.Log($"<color=lime>[DialogueUI.Update]</color> Numeric key selected Ink choice {index + 1}");
+                        btn.onClick.Invoke();
+                        inputConsumedThisFrame = true;
+                        return;
+                    }
                 }
             }
         }
+
+        // Don’t continue to dialogue progression if we’re waiting for a choice
+        return;
     }
+
+    // --------------------------
+    // DIALOGUE PROGRESSION INPUT
+    // --------------------------
+    if (dialogueManager == null || !dialogueManager.IsDialogueActive)
+        return;
+
+    if (inputConsumedThisFrame)
+        return;
+
+        if (dialogueManager.CurrentDialogue != null && dialogueManager.CurrentDialogue.Type == DialogueType.Ink)
+            return;
+        
+
+    // You can also handle dialogue progression through InputManager if desired:
+    bool progressInput = (useSpaceKey && Input.GetKeyDown(KeyCode.Space)) ||
+                         (useReturnKey && Input.GetKeyDown(KeyCode.Return)) ||
+                         InputManager.GetInstance().GetSubmitPressed() || 
+                         InputManager.GetInstance().GetInteractPressed()  ;
+
+    if (progressInput)
+    {
+        Debug.Log("<color=yellow>[DialogueUI.Update]</color> Progress input detected");
+        inputConsumedThisFrame = true;
+        OnInputPressed();
+    }
+}
 
     private void InitializeAudioSystem()
     {
         audioSource = gameObject.AddComponent<AudioSource>();
-        
+
         if (defaultAudioInfo != null)
             currentAudioInfo = defaultAudioInfo;
-        
+
         // Initialize audio dictionary
         audioInfoDictionary = new Dictionary<string, DialogueAudioInfoSO>();
-        
+
         if (defaultAudioInfo != null)
             audioInfoDictionary.Add(defaultAudioInfo.id, defaultAudioInfo);
-        
+
         if (audioInfos != null)
         {
             foreach (DialogueAudioInfoSO audioInfo in audioInfos)
@@ -273,7 +333,9 @@ public class DialogueUI : MonoBehaviour
         // 1. Check for input to skip typing (Mouse click is included here)
         if (useSpaceKey && Input.GetKeyDown(KeyCode.Space) ||
             useReturnKey && Input.GetKeyDown(KeyCode.Return) ||
-            (useMouseClick && Input.GetMouseButtonDown(0)))
+            (useMouseClick && Input.GetMouseButtonDown(0)) ||
+            (useReturnKey && InputManager.GetInstance().GetSubmitPressed()) ||
+            (useSpaceKey &&InputManager.GetInstance().GetInteractPressed()) )
         {
             // *** FIX 1: Set maxVisibleCharacters to the full length and BREAK the loop ***
             dialogueText.maxVisibleCharacters = line.Length;
@@ -596,62 +658,29 @@ public class DialogueUI : MonoBehaviour
         OnInputPressed();
     }
 
-/// <summary>
-/// Central method for handling input - skips typing or advances dialogue
-/// </summary>
+    /// <summary>
+    /// Central method for handling input - skips typing or advances dialogue
+    /// </summary>
 public void OnInputPressed()
 {
-    
-// 1. If still typing, skip to end
-if (displayLineCoroutine != null)
-{
-    // This input is a 'skip' command. We force the text to fully appear.
-    dialogueText.maxVisibleCharacters = dialogueText.text.Length;
-    Debug.Log("<color=yellow>[DialogueUI.OnInputPressed]</color> Typing skipped.");
-
-    // Stop the coroutine to prevent it from continuing
-    StopCoroutine(displayLineCoroutine);
-    displayLineCoroutine = null;
-
-    // Show buttons immediately after skipping
-    ShowButtons();
-    return;
-}
-
-    // 2. If waiting for choice, block or rely on button invocation.
-    if (isWaitingForChoice)
+    if (displayLineCoroutine != null)
     {
-        Debug.Log("<color=red>[DialogueUI.OnInputPressed]</color> BLOCKED: Waiting for choice selection.");
-        // We let the Update loop handle keyboard/controller choice selection.
-        return;
-    }
-
-    // 3. If DialogueManager exists, let it handle the progression.
-    if (dialogueManager != null)
-    {
-        // This is the correct call for linear progression.
-        Debug.Log("<color=lime>[DialogueUI.OnInputPressed]</color> Calling DialogueManager.ProgressDialogue()");
-        dialogueManager.ProgressDialogue();
-    }
-    // 4. Fallback for systems without a DialogueManager
-    else if (currentDialogue != null)
-    {
-        Dialogue nextDialogue = currentDialogue.GetNextDialogue();
-        if (nextDialogue != null)
-        {
-            Debug.Log("<color=lime>[DialogueUI.OnInputPressed]</color> Showing next dialogue directly (No Manager)");
-            ShowDialogue(nextDialogue);
-        }
-        else
-        {
-            EndDialogue();
-        }
+        StopCoroutine(displayLineCoroutine);
+        dialogueText.maxVisibleCharacters = dialogueText.text.Length;
+        displayLineCoroutine = null;
+        ShowButtons();
+        Debug.Log("<color=green>[DialogueUI]</color> Skipped typewriter and revealed full text");
     }
     else
     {
-        EndDialogue();
+        if (dialogueManager != null)
+        {
+            Debug.Log("<color=green>[DialogueUI]</color> Progressing dialogue");
+            dialogueManager.ProgressDialogue();
+        }
     }
 }
+
     private void OnDialogueEnded()
     {
         EndDialogue();

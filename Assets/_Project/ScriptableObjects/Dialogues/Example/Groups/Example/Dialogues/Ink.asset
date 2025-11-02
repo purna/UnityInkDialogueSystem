@@ -10,17 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76fab668a116f3445b8e0fc9fe82a99f, type: 3}
-  m_Name: Scene1
+  m_Name: Ink
   m_EditorClassIdentifier: 
-  _name: Scene1
-  _text: Dialogue text.1
+  _name: Ink
+  _text: Dialogue text.
   _choices:
-  - _text: Next Dialogue
-    _nextDialogue: {fileID: 11400000, guid: a087c8e8f17fa4a1c868e6f0f5976d81, type: 2}
-  _type: 0
-  _isStartingDialogue: 1
-  _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
-  _emotion: 1
+  - _text: Continue After Ink Story
+    _nextDialogue: {fileID: 11400000, guid: 34794133e5930401184954bd0fc9299f, type: 2}
+  _type: 5
+  _isStartingDialogue: 0
+  _character: {fileID: 0}
+  _emotion: 0
   _variablesContainer: {fileID: 0}
   _variableName: 
   _variableType: 0
@@ -30,8 +30,8 @@ MonoBehaviour:
   _intValue: 0
   _floatValue: 0
   _stringValue: 
-  _inkJsonAsset: {fileID: 0}
+  _inkJsonAsset: {fileID: 4900000, guid: 36ecffd9695efc647b3b7c6c5194a996, type: 3}
   _knotName: 
-  _startFromBeginning: 1
+  _startFromBeginning: 0
   _externalFunctionType: 0
   _functionParameter: 

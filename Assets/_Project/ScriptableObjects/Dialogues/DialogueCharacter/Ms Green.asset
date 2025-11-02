@@ -16,7 +16,7 @@ MonoBehaviour:
   _defaultName: Ms Greem
   _emotionSprites: []
   _voiceInfo:
-    _audio: {fileID: 0}
+    _audio: {fileID: 8300000, guid: 1ba432cb5faf236458621710fed2578f, type: 3}
     _volume: 0.5
     _pitch:
       _min: 0

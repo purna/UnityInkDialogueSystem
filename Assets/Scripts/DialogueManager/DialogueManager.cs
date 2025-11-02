@@ -152,16 +152,7 @@ public class DialogueManager : MonoBehaviour
         if (_nowDialogue.Type == DialogueType.Ink)
             return;
 
-        // SIMPLIFIED: Only check for keyboard input here
-        // Mouse clicks are handled by the Button's onClick event naturally
-        if ((useSpaceKey && Input.GetKeyDown(KeyCode.Space)) ||
-            (useReturnKey && Input.GetKeyDown(KeyCode.Return)))
-        {
-            if (_dialogueUI != null)
-            {
-                _dialogueUI.OnInputPressed();
-            }
-        }
+
     }
 
     public void SelectDialogue(Dialogue dialogue)
