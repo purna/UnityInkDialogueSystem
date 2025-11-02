@@ -16,7 +16,7 @@ MonoBehaviour:
   _groups:
   - _ID: 2bdd4de4-dcb7-484c-ad0d-61948b9892a3
     _name: Example
-    _position: {x: 92.5, y: -23.5}
+    _position: {x: 7, y: -294}
   _nodes:
   - _ID: e87b0b64-18cb-4223-9575-9068275744db
     _name: UpdateHealth
@@ -34,33 +34,6 @@ MonoBehaviour:
     _variablesContainer: {fileID: 11400000, guid: edc01b22b10aa4fffafa3a761ddc0203, type: 2}
     _variableName: Health
     _variableType: 1
-    _modificationType: 0
-    _conditionType: 0
-    _boolValue: 0
-    _intValue: 0
-    _floatValue: 0
-    _stringValue: 
-    _functionType: 0
-    _customFunctionName: 
-    _inkJsonAsset: {fileID: 0}
-    _knotName: 
-    _startFromBeginning: 0
-  - _ID: caaf4759-6fb0-4d89-825a-efd5b3abdc90
-    _name: Scene2
-    _text: Dialogue text2
-    _choices:
-    - _text: 3333
-      _nodeID: 0324cad1-b24e-4041-8f6a-4b1d8f406253
-    - _text: wwww
-      _nodeID: 164259f5-6a2e-4a84-93fa-a6939dd31bdd
-    _groupID: 2bdd4de4-dcb7-484c-ad0d-61948b9892a3
-    _dialogueType: 1
-    _position: {x: 582, y: 35}
-    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
-    _emotion: 1
-    _variablesContainer: {fileID: 0}
-    _variableName: 
-    _variableType: 0
     _modificationType: 0
     _conditionType: 0
     _boolValue: 0
@@ -155,8 +128,85 @@ MonoBehaviour:
       _nodeID: caaf4759-6fb0-4d89-825a-efd5b3abdc90
     _groupID: 2bdd4de4-dcb7-484c-ad0d-61948b9892a3
     _dialogueType: 0
-    _position: {x: 128, y: 57}
+    _position: {x: 32, y: -176}
     _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 1
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: caaf4759-6fb0-4d89-825a-efd5b3abdc90
+    _name: Scene2
+    _text: Dialogue text2
+    _choices:
+    - _text: 3333
+      _nodeID: f65247d6-568d-4377-b0e7-3ae767ba6231
+    - _text: wwww
+      _nodeID: 74f655b6-639a-471c-80d8-345f03ed4237
+    _groupID: 2bdd4de4-dcb7-484c-ad0d-61948b9892a3
+    _dialogueType: 1
+    _position: {x: 487, y: -235.5}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 1
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: f65247d6-568d-4377-b0e7-3ae767ba6231
+    _name: Scene2A
+    _text: Dialogue text.
+    _choices:
+    - _text: Next Dialogue
+      _nodeID: 0324cad1-b24e-4041-8f6a-4b1d8f406253
+    _groupID: 2bdd4de4-dcb7-484c-ad0d-61948b9892a3
+    _dialogueType: 0
+    _position: {x: 901, y: -199}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 0
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: 74f655b6-639a-471c-80d8-345f03ed4237
+    _name: SceneB
+    _text: Dialogue text.
+    _choices:
+    - _text: Next Dialogue
+      _nodeID: 164259f5-6a2e-4a84-93fa-a6939dd31bdd
+    _groupID: 2bdd4de4-dcb7-484c-ad0d-61948b9892a3
+    _dialogueType: 0
+    _position: {x: 576, y: 65}
+    _character: {fileID: 11400000, guid: 3181e6bde02de4a2b937bed835697707, type: 2}
     _emotion: 1
     _variablesContainer: {fileID: 0}
     _variableName: 
@@ -180,8 +230,10 @@ MonoBehaviour:
     - Key: 2bdd4de4-dcb7-484c-ad0d-61948b9892a3
       Value:
       - UpdateHealth
-      - Scene2
       - Firewave
       - SetHealth
       - Scene3
       - Scene1
+      - Scene2
+      - Scene2A
+      - SceneB

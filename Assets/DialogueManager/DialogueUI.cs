@@ -39,16 +39,17 @@ public class DialogueUI : MonoBehaviour
     [Header("Dialogue System")]
     [SerializeField] private DialogueManager dialogueManager;
     
-    // Input settings - can be controlled by DialogueManager
-    private bool useReturnKey = true;
-    private bool useMouseClick = true;
-    private bool useSpaceKey = true;
+    [Header("Input Settings")]
+    [SerializeField] private bool useReturnKey = true;
+    [SerializeField] private bool useMouseClick = true;
+    [SerializeField] private bool useSpaceKey = true;
 
     private Dialogue currentDialogue;
     private List<Button> activeChoiceButtons = new List<Button>();
     private bool isWaitingForChoice = false;
     private Coroutine displayLineCoroutine;
     private List<Button> activeInkChoiceButtons = new List<Button>();
+    private bool inputConsumedThisFrame = false;
 
     // Public getters
     public float GetTypingSpeed() => typingSpeed;
@@ -60,6 +61,11 @@ public class DialogueUI : MonoBehaviour
     public void PlayLayoutAnimation(string stateName) => layoutAnimator?.Play(stateName);
     public void ShowPanel() => dialoguePanel?.SetActive(true);
     public void HidePanel() => dialoguePanel?.SetActive(false);
+    
+    /// <summary>
+    /// Check if input was consumed this frame (prevents double-processing)
+    /// </summary>
+    public bool WasInputConsumedThisFrame() => inputConsumedThisFrame;
     
     /// <summary>
     /// Get the audio source for external use (Ink manager)
@@ -83,6 +89,11 @@ public class DialogueUI : MonoBehaviour
         {
             continueButton.onClick.AddListener(OnContinueClicked);
             continueButton.gameObject.SetActive(false);
+            Debug.Log("<color=green>[DialogueUI.Start]</color> Continue button listener registered");
+        }
+        else
+        {
+            Debug.LogWarning("<color=red>[DialogueUI.Start]</color> Continue button is NULL!");
         }
 
         if (dialogueManager == null)
@@ -97,18 +108,48 @@ public class DialogueUI : MonoBehaviour
 
     private void Update()
     {
+        // Reset the input consumed flag at the start of each frame
+        inputConsumedThisFrame = false;
+
         // Allow Space or Return to activate the currently selected button
-        if (isWaitingForChoice && (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return)))
+        if (isWaitingForChoice)
         {
-            // Get the currently selected button
-            GameObject selectedObject = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+            bool inputDetected = false;
             
-            if (selectedObject != null)
+            if (useSpaceKey && Input.GetKeyDown(KeyCode.Space))
             {
-                Button selectedButton = selectedObject.GetComponent<Button>();
-                if (selectedButton != null)
+                inputDetected = true;
+                Debug.Log("<color=cyan>[DialogueUI.Update]</color> Space pressed while waiting for choice");
+            }
+            else if (useReturnKey && Input.GetKeyDown(KeyCode.Return))
+            {
+                inputDetected = true;
+                Debug.Log("<color=cyan>[DialogueUI.Update]</color> Return pressed while waiting for choice");
+            }
+            
+            if (inputDetected)
+            {
+                // Get the currently selected button
+                GameObject selectedObject = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+
+                if (selectedObject != null)
                 {
-                    selectedButton.onClick.Invoke();
+                    Button selectedButton = selectedObject.GetComponent<Button>();
+                    if (selectedButton != null)
+                    {
+                        Debug.Log("<color=lime>[DialogueUI.Update]</color> Invoking selected button");
+                        selectedButton.onClick.Invoke();
+                        inputConsumedThisFrame = true; // Mark input as consumed
+                        return; // CRITICAL: Exit after invoking to prevent double-processing
+                    }
+                    else
+                    {
+                        Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> Selected object has no Button component");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> No button selected!");
                 }
             }
         }
@@ -203,9 +244,12 @@ public class DialogueUI : MonoBehaviour
             ShowButtons();
 
         ClearInkChoices();
+
+        // Reset audio to default for each new dialogue node
+        ResetAudioToDefault();
     }
 
-    private IEnumerator DisplayLine(string line)
+    public IEnumerator DisplayLine(string line)
     {
         dialogueText.text = line;
         dialogueText.maxVisibleCharacters = 0;
@@ -218,34 +262,70 @@ public class DialogueUI : MonoBehaviour
         
         bool isAddingRichTextTag = false;
 
-        foreach (char letter in line.ToCharArray())
-        {
-            // Check for input to skip typing
-            if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
-            {
-                dialogueText.maxVisibleCharacters = line.Length;
-                break;
-            }
+        // The line below should be changed to use a 'for' loop for better control over the index
+        int i = 0;
+        int totalVisibleCharacters = line.Length;
+    
+    while (i < totalVisibleCharacters)
+    {
+        char letter = line[i];
 
-            if (letter == '<' || isAddingRichTextTag)
-            {
-                isAddingRichTextTag = true;
-                if (letter == '>')
-                    isAddingRichTextTag = false;
-            }
-            else
-            {
-                // Play typing sound before showing character
-                PlayDialogueSound(dialogueText.maxVisibleCharacters, letter);
-                dialogueText.maxVisibleCharacters++;
-                yield return new WaitForSeconds(typingSpeed);
-            }
+        // 1. Check for input to skip typing (Mouse click is included here)
+        if (useSpaceKey && Input.GetKeyDown(KeyCode.Space) ||
+            useReturnKey && Input.GetKeyDown(KeyCode.Return) ||
+            (useMouseClick && Input.GetMouseButtonDown(0)))
+        {
+            // *** FIX 1: Set maxVisibleCharacters to the full length and BREAK the loop ***
+            dialogueText.maxVisibleCharacters = line.Length;
+            inputConsumedThisFrame = true; // Consume input to prevent double-processing
+            break;
         }
 
-        // Ensure all text is visible
-        dialogueText.maxVisibleCharacters = line.Length;
-        displayLineCoroutine = null;
-        ShowButtons();
+            // 2. Handle Rich Text Tags (e.g., <color=red>text</color>)
+            if (line[i] == '<')
+            {
+                // Find the end of the tag (the '>')
+                int tagEndIndex = line.IndexOf('>', i);
+
+                if (tagEndIndex != -1)
+                {
+                    // Calculate how many characters the tag occupies
+                    int tagLength = tagEndIndex - i + 1;
+
+                    // CRITICAL FIX: Advance the internal index past the tag
+                    i = tagEndIndex + 1;
+
+                    // Also advance the visible characters count for the tag itself
+                    dialogueText.maxVisibleCharacters = Mathf.Min(i, totalVisibleCharacters);
+
+                    // Do NOT yield, tags should appear instantly
+                    continue; // Skip the rest of the loop and start the next iteration
+                }
+            }
+        
+        // 3. Handle Normal Character Typing
+        
+        // Play typing sound before showing the character
+        PlayDialogueSound(i, line[i]);
+        
+        // Show the character
+        dialogueText.maxVisibleCharacters++;
+        i++; // Move to the next character
+        
+        // Yield for the typing speed
+        yield return new WaitForSeconds(typingSpeed);
+    }
+
+    // --- The code below runs ONLY after the loop finishes (either by completing or by 'break') ---
+    
+    // Ensure all text is visible (Redundant if break was hit, but safe)
+    dialogueText.maxVisibleCharacters = line.Length; 
+    
+    // *** FIX 2: Set the coroutine to null and show buttons/continue icon ***
+    displayLineCoroutine = null;
+    ShowButtons(); // This will enable the continue button or choices
+
+
     }
 
     private void PlayDialogueSound(int currentDisplayedCharacterCount, char currentCharacter)
@@ -406,6 +486,7 @@ public class DialogueUI : MonoBehaviour
     private void OnChoiceSelected(Dialogue nextDialogue)
     {
         isWaitingForChoice = false;
+        inputConsumedThisFrame = true; // Consume input to prevent DialogueManager from processing it
         
         if (dialogueManager != null)
             dialogueManager.SelectDialogue(nextDialogue);
@@ -511,46 +592,66 @@ public class DialogueUI : MonoBehaviour
 
     private void OnContinueClicked()
     {
+        Debug.Log("<color=magenta>[DialogueUI.OnContinueClicked]</color> Continue button clicked!");
         OnInputPressed();
     }
 
-    /// <summary>
-    /// Central method for handling input - skips typing or advances dialogue
-    /// </summary>
-    public void OnInputPressed()
+/// <summary>
+/// Central method for handling input - skips typing or advances dialogue
+/// </summary>
+public void OnInputPressed()
+{
+    
+// 1. If still typing, skip to end
+if (displayLineCoroutine != null)
+{
+    // This input is a 'skip' command. We force the text to fully appear.
+    dialogueText.maxVisibleCharacters = dialogueText.text.Length;
+    Debug.Log("<color=yellow>[DialogueUI.OnInputPressed]</color> Typing skipped.");
+
+    // Stop the coroutine to prevent it from continuing
+    StopCoroutine(displayLineCoroutine);
+    displayLineCoroutine = null;
+
+    // Show buttons immediately after skipping
+    ShowButtons();
+    return;
+}
+
+    // 2. If waiting for choice, block or rely on button invocation.
+    if (isWaitingForChoice)
     {
-        // 1. If still typing, skip to end
-        if (displayLineCoroutine != null)
-        {
-            StopCoroutine(displayLineCoroutine);
-            dialogueText.maxVisibleCharacters = dialogueText.text.Length;
-            displayLineCoroutine = null;
-            ShowButtons();
-            return;
-        }
+        Debug.Log("<color=red>[DialogueUI.OnInputPressed]</color> BLOCKED: Waiting for choice selection.");
+        // We let the Update loop handle keyboard/controller choice selection.
+        return;
+    }
 
-        // 2. If waiting for choice, do nothing
-        if (isWaitingForChoice)
-            return;
-
-        // 3. Otherwise, advance dialogue
-        if (currentDialogue != null)
+    // 3. If DialogueManager exists, let it handle the progression.
+    if (dialogueManager != null)
+    {
+        // This is the correct call for linear progression.
+        Debug.Log("<color=lime>[DialogueUI.OnInputPressed]</color> Calling DialogueManager.ProgressDialogue()");
+        dialogueManager.ProgressDialogue();
+    }
+    // 4. Fallback for systems without a DialogueManager
+    else if (currentDialogue != null)
+    {
+        Dialogue nextDialogue = currentDialogue.GetNextDialogue();
+        if (nextDialogue != null)
         {
-            Dialogue nextDialogue = currentDialogue.GetNextDialogue();
-            
-            if (dialogueManager != null)
-                dialogueManager.SelectDialogue(nextDialogue);
-            else if (nextDialogue != null)
-                ShowDialogue(nextDialogue);
-            else
-                EndDialogue();
+            Debug.Log("<color=lime>[DialogueUI.OnInputPressed]</color> Showing next dialogue directly (No Manager)");
+            ShowDialogue(nextDialogue);
         }
         else
         {
             EndDialogue();
         }
     }
-
+    else
+    {
+        EndDialogue();
+    }
+}
     private void OnDialogueEnded()
     {
         EndDialogue();

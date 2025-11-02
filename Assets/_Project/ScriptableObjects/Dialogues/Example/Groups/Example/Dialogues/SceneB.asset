@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 76fab668a116f3445b8e0fc9fe82a99f, type: 3}
-  m_Name: updateHealth
+  m_Name: SceneB
   m_EditorClassIdentifier: 
-  _name: updateHealth
+  _name: SceneB
   _text: Dialogue text.
   _choices:
-  - _text: Next
-    _nextDialogue: {fileID: 0}
-  _type: 3
-  _isStartingDialogue: 1
-  _character: {fileID: 0}
-  _emotion: 0
-  _variablesContainer: {fileID: 11400000, guid: edc01b22b10aa4fffafa3a761ddc0203, type: 2}
-  _variableName: Health
-  _variableType: 1
+  - _text: Next Dialogue
+    _nextDialogue: {fileID: 11400000, guid: fc3bd87fe2e7240949e77d09c7f7009d, type: 2}
+  _type: 0
+  _isStartingDialogue: 0
+  _character: {fileID: 11400000, guid: 3181e6bde02de4a2b937bed835697707, type: 2}
+  _emotion: 1
+  _variablesContainer: {fileID: 0}
+  _variableName: 
+  _variableType: 0
   _modificationType: 0
   _conditionType: 0
   _boolValue: 0

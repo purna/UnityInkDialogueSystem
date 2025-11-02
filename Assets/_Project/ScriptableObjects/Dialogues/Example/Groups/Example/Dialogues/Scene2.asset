@@ -16,9 +16,9 @@ MonoBehaviour:
   _text: Dialogue text2
   _choices:
   - _text: 3333
-    _nextDialogue: {fileID: 11400000, guid: 0bc2ef21258654085bc6337c312a8a45, type: 2}
+    _nextDialogue: {fileID: 11400000, guid: ec450a188a7d341c0aa4f4ed98b21fba, type: 2}
   - _text: wwww
-    _nextDialogue: {fileID: 11400000, guid: fc3bd87fe2e7240949e77d09c7f7009d, type: 2}
+    _nextDialogue: {fileID: 11400000, guid: 195618800b1d34fe0829d3b58cd9f4b2, type: 2}
   _type: 1
   _isStartingDialogue: 0
   _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}

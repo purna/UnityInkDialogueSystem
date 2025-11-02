@@ -49,9 +49,14 @@ public class DialogueManager : MonoBehaviour
     {
         if (_dialogueUI == null)
         {
+            _dialogueUI = FindObjectOfType<DialogueUI>();
+        }
+
+        if (_dialogueUI == null)
+        {
             Debug.LogWarning("DialogueUI not found! DialogueManager requires a DialogueUI component.");
         }
-        
+
         _inkManager = DialogueInkManager.GetInstance();
         if (_inkManager == null)
         {
@@ -127,6 +132,7 @@ public class DialogueManager : MonoBehaviour
 
     private void Update()
     {
+        // Handle Ink node completion
         if (_isWaitingForInk)
         {
             if (_inkManager != null && !_inkManager.dialogueIsPlaying)
@@ -134,13 +140,22 @@ public class DialogueManager : MonoBehaviour
                 _isWaitingForInk = false;
                 ProgressDialogue();
             }
-            return;
+            return; // Don't process any other input while Ink is active
         }
-        
+
+        // Don't process input if waiting for choice or no dialogue active
         if (_nowDialogue == null || _isWaitingForChoice)
             return;
 
-        if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
+        // IMPORTANT: Only handle input for non-Ink nodes
+        // Ink nodes handle their own input in DialogueInkManager
+        if (_nowDialogue.Type == DialogueType.Ink)
+            return;
+
+        // SIMPLIFIED: Only check for keyboard input here
+        // Mouse clicks are handled by the Button's onClick event naturally
+        if ((useSpaceKey && Input.GetKeyDown(KeyCode.Space)) ||
+            (useReturnKey && Input.GetKeyDown(KeyCode.Return)))
         {
             if (_dialogueUI != null)
             {
@@ -149,86 +164,119 @@ public class DialogueManager : MonoBehaviour
         }
     }
 
-    private void ProgressDialogue()
-    {
-        if (_nowDialogue == null)
-            return;
-
-        if (_nowDialogue.Type == DialogueType.MultipleChoice)
-        {
-            _isWaitingForChoice = true;
-            return;
-        }
-
-        Dialogue nextDialogue = _nowDialogue.GetNextDialogue();
-        SetDialogue(nextDialogue);
-    }
-    
     public void SelectDialogue(Dialogue dialogue)
     {
+            Debug.Log($"<color=lime>[SelectDialogue]</color> Player selected a choice - Setting _isWaitingForChoice = FALSE");
         _isWaitingForChoice = false;
         SetDialogue(dialogue);
     }
+    
+    public bool IsWaitingForChoice()
+{
+    return _isWaitingForChoice;
+}
 
-    private void SetDialogue(Dialogue dialogue)
+private void SetDialogue(Dialogue dialogue)
+{
+    _nowDialogue = dialogue;
+
+    if (dialogue == null)
     {
-        _nowDialogue = dialogue;
-
-        if (dialogue == null)
-        {
-            StopDialogue();
-            return;
-        }
-
-        LogVariableNodeDebug(dialogue);
-        
-        switch (dialogue.Type)
-        {
-            case DialogueType.ExternalFunction:
-                ProcessExternalFunction(dialogue);
-                SetDialogue(dialogue.GetNextDialogue());
-                return;
-
-            case DialogueType.ModifyVariable:
-                ProcessModifyVariable(dialogue);
-                SetDialogue(dialogue.GetNextDialogue());
-                return;
-
-            case DialogueType.VariableCondition:
-                Dialogue nextNode = ProcessVariableCondition(dialogue);
-                SetDialogue(nextNode);
-                return;
-
-            case DialogueType.Ink:
-                if (_inkManager != null)
-                {
-                    _isWaitingForInk = true;
-                    if (_dialogueUI != null) { _dialogueUI.EndDialogue(); } 
-                    _inkManager.EnterDialogueMode(
-                        dialogue.InkJsonAsset, 
-                        playerEmoteAnimator,
-                        dialogue.KnotName, 
-                        dialogue.StartFromBeginning
-                    );
-                }
-                else
-                {
-                    Debug.LogError("Ink Node hit, but no Ink Manager! Skipping...");
-                    SetDialogue(dialogue.GetNextDialogue());
-                }
-                return;
-
-            case DialogueType.SingleChoice:
-            case DialogueType.MultipleChoice:
-            default:
-                _isWaitingForChoice = (dialogue.Type == DialogueType.MultipleChoice);
-                if (_dialogueUI != null)
-                {
-                    _dialogueUI.ShowDialogue(dialogue);
-                }
-                return;
-        }
+        StopDialogue();
+        return;
     }
+
+    Debug.Log($"<color=orange>[SetDialogue]</color> Setting dialogue: {dialogue.Name}, Type: {dialogue.Type}");
+    
+    LogVariableNodeDebug(dialogue);
+    
+    switch (dialogue.Type)
+    {
+        case DialogueType.ExternalFunction:
+            Debug.Log("<color=yellow>[SetDialogue]</color> Processing External Function - Auto-progressing");
+            ProcessExternalFunction(dialogue);
+            SetDialogue(dialogue.GetNextDialogue());
+            return;
+
+        case DialogueType.ModifyVariable:
+            Debug.Log("<color=yellow>[SetDialogue]</color> Processing Modify Variable - Auto-progressing");
+            ProcessModifyVariable(dialogue);
+            SetDialogue(dialogue.GetNextDialogue());
+            return;
+
+        case DialogueType.VariableCondition:
+            Debug.Log("<color=yellow>[SetDialogue]</color> Processing Variable Condition - Auto-progressing");
+            Dialogue nextNode = ProcessVariableCondition(dialogue);
+            SetDialogue(nextNode);
+            return;
+
+        case DialogueType.Ink:
+            Debug.Log("<color=yellow>[SetDialogue]</color> Processing Ink Node - Waiting for Ink");
+            if (_inkManager != null)
+            {
+                _isWaitingForInk = true;
+                if (_dialogueUI != null) { _dialogueUI.EndDialogue(); } 
+                _inkManager.EnterDialogueMode(
+                    dialogue.InkJsonAsset, 
+                    playerEmoteAnimator,
+                    dialogue.KnotName, 
+                    dialogue.StartFromBeginning
+                );
+            }
+            else
+            {
+                Debug.LogError("Ink Node hit, but no Ink Manager! Skipping...");
+                SetDialogue(dialogue.GetNextDialogue());
+            }
+            return;
+
+        case DialogueType.MultipleChoice:
+            // Set waiting flag BEFORE showing UI
+            _isWaitingForChoice = true;
+            Debug.Log($"<color=cyan>[SetDialogue]</color> Multiple Choice Node - Setting _isWaitingForChoice = TRUE");
+            Debug.Log($"<color=cyan>[SetDialogue]</color> Number of choices: {dialogue.Choices.Count}");
+            
+            // Show the dialogue with choices in UI
+            if (_dialogueUI != null)
+            {
+                _dialogueUI.ShowDialogue(dialogue);
+            }
+            return;
+
+        case DialogueType.SingleChoice:
+        default:
+            // Reset waiting flag for non-choice dialogues
+            _isWaitingForChoice = false;
+            Debug.Log($"<color=green>[SetDialogue]</color> Normal dialogue - Setting _isWaitingForChoice = FALSE");
+            
+            // Show normal dialogue in UI
+            if (_dialogueUI != null)
+            {
+                _dialogueUI.ShowDialogue(dialogue);
+            }
+            break;
+    }
+}
+
+
+public void ProgressDialogue()
+{
+    Debug.Log($"<color=magenta>[ProgressDialogue]</color> Called - _isWaitingForChoice: {_isWaitingForChoice}");
+
+    if (_nowDialogue == null)
+        return;
+
+    if (_nowDialogue.Type == DialogueType.MultipleChoice)
+    {
+        _isWaitingForChoice = true;
+        Debug.Log($"<color=red>[ProgressDialogue]</color> BLOCKED: Multiple choice detected, not progressing");
+        return;
+    }
+
+    Dialogue nextDialogue = _nowDialogue.GetNextDialogue();
+    Debug.Log($"<color=magenta>[ProgressDialogue]</color> Getting next dialogue: {(nextDialogue != null ? nextDialogue.Name : "NULL")}");
+    SetDialogue(nextDialogue);
+}
 
     public void StopDialogue()
     {

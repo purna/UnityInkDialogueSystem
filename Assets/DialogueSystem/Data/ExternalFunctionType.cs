@@ -1,7 +1,15 @@
+using System;
+using UnityEngine;
+
+// ============================================
+// == INDIVIDUAL FUNCTION IMPLEMENTATIONS ==
+// ============================================
+
 /// <summary>
 /// Enum defining all available external functions
 /// </summary>
-public enum ExternalFunctionType {
+public enum ExternalFunctionType
+{
     PlayEmote,
     PausePlayer,
     ResumePlayer,

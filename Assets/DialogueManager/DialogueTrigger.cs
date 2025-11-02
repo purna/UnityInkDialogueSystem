@@ -17,14 +17,15 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private bool requiresInput = true;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
 
-    private bool playerInRange;
+    public bool playerInRange;
     private bool hasTriggered;
 
     private void Awake() 
     {
         playerInRange = false;
         hasTriggered = false;
-        
+
+
         if (visualCue != null)
         {
             visualCue.SetActive(false);

@@ -30,10 +30,11 @@ public class DialogueInkManager : MonoBehaviour
     private DialogueInkVariables dialogueInkVariables;
     private InkExternalFunctions inkExternalFunctions;
     private DialogueUI dialogueUI; // Reference to the one true UI
+
     private TextMeshProUGUI dialogueText; // Cached component
     private TextMeshProUGUI displayNameText; // Cached component
 
-    private void Awake() 
+    private void Awake()
     {
         if (instance != null)
         {
@@ -75,9 +76,10 @@ public class DialogueInkManager : MonoBehaviour
 
     // --- SetCurrentAudioInfo() METHOD REMOVED ---
 
-    private void Update() 
+private void Update()
     {
-        // Return if dialogue isn't playing
+        // ONLY handle input if Ink dialogue is actually playing
+        // This prevents interference with graph-based dialogue nodes
         if (!dialogueIsPlaying || dialogueUI == null)
             return;
 
@@ -170,7 +172,7 @@ public class DialogueInkManager : MonoBehaviour
             {
                 StartCoroutine(ExitDialogueMode());
             }
-            else 
+            else
             {
                 HandleTags(currentStory.currentTags);
                 displayLineCoroutine = StartCoroutine(DisplayLine(nextLine));
@@ -182,24 +184,29 @@ public class DialogueInkManager : MonoBehaviour
         }
     }
 
-    private IEnumerator DisplayLine(string line) 
+    private IEnumerator DisplayLine(string line)
     {
         dialogueText.text = line;
         dialogueText.maxVisibleCharacters = 0;
-        
+
         dialogueUI.HideContinueIcon();
         dialogueUI.ClearInkChoices();
 
         canContinueToNextLine = false;
 
         bool isAddingRichTextTag = false;
-        
+
         // Get shared typing speed from DialogueUI
         float currentTypingSpeed = (dialogueUI != null) ? dialogueUI.GetTypingSpeed() : 0.04f;
 
         // display each letter one at a time
-        foreach (char letter in line.ToCharArray())
+        int i = 0;
+        int totalVisibleCharacters = line.Length;
+
+        while (i < totalVisibleCharacters)
         {
+            char letter = line[i];
+
             // Check for input to skip typing
             if (Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return))
             {
@@ -208,23 +215,35 @@ public class DialogueInkManager : MonoBehaviour
             }
 
             // check for rich text tag
-            if (letter == '<' || isAddingRichTextTag) 
+            if (letter == '<')
             {
-                isAddingRichTextTag = true;
-                if (letter == '>')
+                // Find the end of the tag (the '>')
+                int tagEndIndex = line.IndexOf('>', i);
+
+                if (tagEndIndex != -1)
                 {
-                    isAddingRichTextTag = false;
+                    // Calculate how many characters the tag occupies
+                    int tagLength = tagEndIndex - i + 1;
+
+                    // Advance the internal index past the tag
+                    i = tagEndIndex + 1;
+
+                    // Also advance the visible characters count for the tag itself
+                    dialogueText.maxVisibleCharacters = Mathf.Min(i, totalVisibleCharacters);
+
+                    // Do NOT yield, tags should appear instantly
+                    continue; // Skip the rest of the loop and start the next iteration
                 }
             }
+
             // if not rich text, add the next letter and wait a small time
-            else
-            {
-                // --- UPDATED: Use DialogueUI's audio system ---
-                dialogueUI.PlayTypingSound(dialogueText.maxVisibleCharacters, dialogueText.text[dialogueText.maxVisibleCharacters]);
-                
-                dialogueText.maxVisibleCharacters++;
-                yield return new WaitForSeconds(currentTypingSpeed);
-            }
+            // --- UPDATED: Use DialogueUI's audio system ---
+            dialogueUI.PlayTypingSound(dialogueText.maxVisibleCharacters, line[dialogueText.maxVisibleCharacters]);
+
+            dialogueText.maxVisibleCharacters++;
+            i++; // Move to the next character
+
+            yield return new WaitForSeconds(currentTypingSpeed);
         }
 
         // actions to take after the entire line has finished displaying
