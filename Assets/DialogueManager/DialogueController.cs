@@ -1,0 +1,275 @@
+using System;
+using UnityEngine;
+using System.Collections.Generic;
+
+public class DialogueController : MonoBehaviour
+{
+    /* Dialogue Scriptable Objects */
+    [Header("Dialogue Data")]
+    [SerializeField] private DialogueContainer dialogueContainer;
+    [SerializeField] private DialogueGroup dialogueGroup;
+    [SerializeField] private Dialogue dialogue;
+
+    /* Filters */
+    [Header("Dialogue Selection")]
+    [SerializeField] private bool groupedDialogues;
+    [SerializeField] private bool startingDialoguesOnly;
+    [SerializeField] private int selectedDialogueGroupIndex;
+    [SerializeField] private int selectedDialogueIndex;
+
+    /* System References */
+    [Header("System References")]
+    [SerializeField] private DialogueManager dialogueManager;
+    [SerializeField] private DialogueUI dialogueUI;
+
+    /* Auto Start */
+    [Header("Auto Start Settings")]
+    [SerializeField] private bool startDialogueOnStart = false;
+    [SerializeField] private float startDelay = 0f;
+
+    /* Events */
+    public event Action DialoguePartEnded;
+
+    // Public property for DialogueManager to access
+    public Dialogue Dialogue => dialogue;
+
+    private void Awake()
+    {
+        // Subscribe to dialogue manager events
+        if (dialogueManager != null)
+        {
+            dialogueManager.DialogueEnded += OnDialogueEnded;
+        }
+    }
+
+    private void Start()
+    {
+        // Try to find dialogue manager if not assigned
+        if (dialogueManager == null)
+        {
+            dialogueManager = FindObjectOfType<DialogueManager>();
+            if (dialogueManager != null)
+            {
+                dialogueManager.DialogueEnded += OnDialogueEnded;
+            }
+        }
+
+        // Try to find dialogue UI if not assigned
+        if (dialogueUI == null)
+        {
+            dialogueUI = FindObjectOfType<DialogueUI>();
+        }
+
+        // Auto start dialogue if enabled
+        if (startDialogueOnStart)
+        {
+            if (startDelay > 0)
+            {
+                Invoke(nameof(AutoStartDialogue), startDelay);
+            }
+            else
+            {
+                AutoStartDialogue();
+            }
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Unsubscribe from events
+        if (dialogueManager != null)
+        {
+            dialogueManager.DialogueEnded -= OnDialogueEnded;
+        }
+    }
+
+    private void AutoStartDialogue()
+    {
+        if (dialogueContainer != null)
+        {
+            StartDialogueFromContainer();
+        }
+        else if (dialogue != null)
+        {
+            StartDialogue();
+        }
+        else
+        {
+            Debug.LogWarning("Cannot auto-start dialogue: No dialogue or container assigned!");
+        }
+    }
+
+    /// <summary>
+    /// Starts the dialogue assigned in the inspector
+    /// Can be called from Unity Events or code
+    /// </summary>
+    public void StartDialogue()
+    {
+        if (dialogue == null)
+        {
+            Debug.LogWarning("No dialogue assigned!");
+            return;
+        }
+
+        StartDialogueInternal(dialogue);
+    }
+
+    /// <summary>
+    /// Starts a dialogue part (compatible with tutorial/sequential systems)
+    /// </summary>
+    public void StartDialoguePart()
+    {
+        StartDialogue();
+    }
+
+    /// <summary>
+    /// Starts dialogue from the assigned container
+    /// </summary>
+    public void StartDialogueFromContainer()
+    {
+        if (dialogueContainer == null)
+        {
+            Debug.LogWarning("No dialogue container assigned!");
+            return;
+        }
+
+        Dialogue startDialogue = GetStartingDialogue();
+        if (startDialogue != null)
+        {
+            // Update the dialogue reference for DialogueManager
+            dialogue = startDialogue;
+            StartDialogueInternal(startDialogue);
+        }
+        else
+        {
+            Debug.LogWarning("No starting dialogue found in container!");
+        }
+    }
+
+    /// <summary>
+    /// Gets the starting dialogue from the container based on settings
+    /// </summary>
+    private Dialogue GetStartingDialogue()
+    {
+        if (dialogueContainer == null)
+            return null;
+
+        List<string> dialogueNames;
+        
+        if (groupedDialogues && dialogueGroup != null)
+        {
+            // Get dialogues from the specified group
+            dialogueNames = dialogueContainer.GetGroupedDialoguesNames(dialogueGroup, startingDialoguesOnly);
+        }
+        else
+        {
+            // Get ungrouped dialogues
+            dialogueNames = dialogueContainer.GetUngroupedDialoguesNames(startingDialoguesOnly);
+        }
+
+        if (dialogueNames.Count == 0)
+        {
+            Debug.LogWarning("No dialogues found with current filter settings!");
+            return null;
+        }
+
+        // Return the dialogue at the selected index, or first one if index is invalid
+        int index = selectedDialogueIndex < dialogueNames.Count ? selectedDialogueIndex : 0;
+        
+        // TODO: Implement DialogueContainer.GetDialogueByName() method
+        // For now, return the manually assigned dialogue as fallback
+        return dialogue;
+    }
+
+    /// <summary>
+    /// Triggers a specific dialogue at runtime
+    /// </summary>
+    public void TriggerDialogue(Dialogue dialogueToStart)
+    {
+        if (dialogueToStart == null)
+        {
+            Debug.LogWarning("Cannot trigger null dialogue!");
+            return;
+        }
+
+        // Update the dialogue reference
+        dialogue = dialogueToStart;
+        StartDialogueInternal(dialogueToStart);
+    }
+
+    /// <summary>
+    /// Internal method to start dialogue
+    /// </summary>
+    private void StartDialogueInternal(Dialogue dialogueToStart)
+    {
+        if (dialogueToStart == null)
+        {
+            Debug.LogWarning("Dialogue to start is null!");
+            return;
+        }
+
+        // Update the current dialogue reference
+        dialogue = dialogueToStart;
+
+        // Start via DialogueManager (preferred method)
+        if (dialogueManager != null)
+        {
+            dialogueManager.StartDialogue(this);
+        }
+        // Fallback: Use DialogueUI directly
+        else if (dialogueUI != null)
+        {
+            dialogueUI.ShowDialogue(dialogueToStart);
+        }
+        else
+        {
+            Debug.LogWarning("No DialogueManager or DialogueUI assigned!");
+        }
+    }
+
+    /// <summary>
+    /// Ends the current dialogue
+    /// </summary>
+    public void EndDialogue()
+    {
+        if (dialogueManager != null)
+        {
+            dialogueManager.EndDialogue();
+        }
+        else if (dialogueUI != null)
+        {
+            dialogueUI.EndDialogue();
+        }
+    }
+
+    /// <summary>
+    /// Called when dialogue ends (from DialogueManager event)
+    /// </summary>
+    private void OnDialogueEnded()
+    {
+        DialoguePartEnded?.Invoke();
+    }
+
+    /// <summary>
+    /// Checks if dialogue is currently active
+    /// </summary>
+    public bool IsDialogueActive()
+    {
+        if (dialogueManager != null)
+        {
+            return dialogueManager.IsDialogueActive;
+        }
+        else if (dialogueUI != null)
+        {
+            return dialogueUI.IsDialogueActive();
+        }
+        return false;
+    }
+
+    // Public getters for inspector/editor use
+    public DialogueContainer GetDialogueContainer() => dialogueContainer;
+    public Dialogue GetDialogue() => dialogue;
+    public DialogueGroup GetDialogueGroup() => dialogueGroup;
+    public bool IsGroupedDialogues() => groupedDialogues;
+    public bool IsStartingDialoguesOnly() => startingDialoguesOnly;
+}

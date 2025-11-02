@@ -1,0 +1,213 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 081264c34d65f2b4cbd83781f209391d, type: 3}
+  m_Name: DialogueName
+  m_EditorClassIdentifier: 
+  _fileName: DialogueName
+  _groups:
+  - _ID: 23ba44cc-4f86-476d-b790-f593a2a5ca37
+    _name: Dialogue group
+    _position: {x: 260, y: -315}
+  _nodes:
+  - _ID: 356a3eb5-ff26-4cc1-aa4c-b40912ed2454
+    _name: setHealth
+    _text: Dialogue text.
+    _choices:
+    - _text: True
+      _nodeID: 
+    - _text: False
+      _nodeID: 
+    _groupID: 
+    _dialogueType: 2
+    _position: {x: 1523, y: 30.5}
+    _character: {fileID: 0}
+    _emotion: 0
+    _variablesContainer: {fileID: 11400000, guid: edc01b22b10aa4fffafa3a761ddc0203, type: 2}
+    _variableName: Health
+    _variableType: 1
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: 5a91e203-49e3-4b57-9b9d-87e122bf579d
+    _name: ccc
+    _text: Dialogue text.
+    _choices:
+    - _text: Continue After Ink Story
+      _nodeID: 356a3eb5-ff26-4cc1-aa4c-b40912ed2454
+    _groupID: 
+    _dialogueType: 5
+    _position: {x: 1392, y: -246.5}
+    _character: {fileID: 0}
+    _emotion: 0
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 1
+  - _ID: 22328c30-79db-40c4-9e4d-a26c98e059e1
+    _name: BB
+    _text: Dialogue text.
+    _choices:
+    - _text: Next Dialogue
+      _nodeID: d24ca6b2-cf42-4399-b0a8-b3d2f5c7fc51
+    _groupID: 23ba44cc-4f86-476d-b790-f593a2a5ca37
+    _dialogueType: 0
+    _position: {x: 285, y: -256.5}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 2
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: d24ca6b2-cf42-4399-b0a8-b3d2f5c7fc51
+    _name: DialogueName
+    _text: Dialogue text.
+    _choices:
+    - _text: New Choice
+      _nodeID: 
+    _groupID: 23ba44cc-4f86-476d-b790-f593a2a5ca37
+    _dialogueType: 1
+    _position: {x: 770, y: -225.5}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 1
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: 8ed3e108-5604-4648-b734-93a13eb8d258
+    _name: SceneA
+    _text: Hello
+    _choices:
+    - _text: Next Dialogue
+      _nodeID: a56d32da-5845-4a6e-860e-21c58310703c
+    _groupID: 
+    _dialogueType: 0
+    _position: {x: 73, y: 39.5}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 1
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: e86604a4-c326-4739-bb7e-64832cdda439
+    _name: DialogueName
+    _text: Dialogue text.
+    _choices:
+    - _text: A
+      _nodeID: 
+    - _text: B
+      _nodeID: 
+    _groupID: 
+    _dialogueType: 1
+    _position: {x: 345, y: 281.5}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 0
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: a56d32da-5845-4a6e-860e-21c58310703c
+    _name: SceneB
+    _text: World
+    _choices:
+    - _text: Next Dialogue
+      _nodeID: e86604a4-c326-4739-bb7e-64832cdda439
+    _groupID: 
+    _dialogueType: 0
+    _position: {x: 480.5, y: 27}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 1
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  _oldGroupNames:
+  - Dialogue group
+  _oldUngroupedNodeNames:
+  - setHealth
+  - ccc
+  - SceneA
+  - DialogueName
+  - SceneB
+  _oldGroupedNodeNames:
+    list:
+    - Key: 23ba44cc-4f86-476d-b790-f593a2a5ca37
+      Value:
+      - BB
+      - DialogueName

@@ -9,26 +9,42 @@ using NodeDirection = UnityEditor.Experimental.GraphView.Direction;
 
 public abstract class DialogueBaseNode : Node {
     private string _id;
-    private string _dialogueName;
+    protected string _dialogueName;
     protected List<DialogueChoiceSaveData> _choices;
+
     private string _text;
     private DialogueCharacter _character;
     private DialogueCharacterEmotion _emotion;
+
+
+    public string Text
+    {
+        get => _text;
+        set => _text = value;
+    }
+    
+    public DialogueCharacter Character {
+        get => _character;
+        set => _character = value;
+    }
+    
+    public DialogueCharacterEmotion Emotion {
+        get => _emotion;
+        set => _emotion = value;
+    }
+
 
     protected abstract DialogueType _type { get; }
 
     private Color _defaultBackgroundColor;
     protected DialogueSystemGraphView _graphView;
-    private DialogueSystemGroup _group;
+    protected DialogueSystemGroup _group;
 
     public string DialogueName => _dialogueName;
     public DialogueSystemGroup Group => _group;
     public string ID => _id;
     public IEnumerable<DialogueChoiceSaveData> Choices => _choices;
-    public string Text => _text;
     public DialogueType DialogueType => _type;
-    public DialogueCharacter Character => _character;
-    public DialogueCharacterEmotion Emotion => _emotion;
 
     public virtual void Initialize(string nodeName, DialogueSystemGraphView graphView, Vector2 position) {
         _id = Guid.NewGuid().ToString();

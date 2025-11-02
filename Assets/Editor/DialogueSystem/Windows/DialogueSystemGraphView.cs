@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public class DialogueSystemGraphView : GraphView {
     private readonly DialogueSystemEditorWindow _editorWindow;
-    private DialogueSystemSearhWindow _searhWindow;
+    private DialogueSystemSearchWindow _searhWindow;
     private MiniMap _miniMap;
 
     private readonly SerializableDictionary<string, DialogueNodeErrorData> _ungroupedNodes;
@@ -62,6 +62,10 @@ public class DialogueSystemGraphView : GraphView {
         this.AddManipulator(new SelectionDragger());
         this.AddManipulator(new RectangleSelector());
 
+        this.AddManipulator(CreateNodeContextualMenu("Add Node (Variable Condition)", DialogueType.VariableCondition));
+        this.AddManipulator(CreateNodeContextualMenu("Add Node (Modify Variable)", DialogueType.ModifyVariable));
+        this.AddManipulator(CreateNodeContextualMenu("Add Node (External Function)", DialogueType.ExternalFunction));
+        this.AddManipulator(CreateNodeContextualMenu("Add Node (Ink)", DialogueType.Ink));
         this.AddManipulator(CreateNodeContextualMenu("Add Node (Single Choice)", DialogueType.SingleChoice));
         this.AddManipulator(CreateNodeContextualMenu("Add Node (Multiple Choice)", DialogueType.MultipleChoice));
         this.AddManipulator(CreateGroupContextualMenu());
@@ -83,12 +87,18 @@ public class DialogueSystemGraphView : GraphView {
     #endregion
 
     #region Stylizing
-    private void AddStyles() {
+    private void AddStyles()
+    {
+
         this.AddStyleSheets(
-            "DialogueSystem/GraphViewStyles.uss",
-            "DialogueSystem/NodeStyles.uss"
+            "Assets/DialogueSystem/Styles/GraphViewStyles.uss",
+            "DialogueSystem/Styles/NodeStyles.uss"
         );
+
+      
     }
+    
+    
 
     private void AddGridBackground() {
         GridBackground gridBackground = new();
@@ -211,7 +221,15 @@ public class DialogueSystemGraphView : GraphView {
     #region ElementsCreation
     public DialogueBaseNode CreateNode(string nodeName, DialogueType type, Vector2 globalPosition, bool isDraw = true) {
         DialogueBaseNode node;
-        if (type == DialogueType.SingleChoice)
+        if (type == DialogueType.VariableCondition)
+            node = new DialogueVariableConditionNode();
+        else if (type == DialogueType.ModifyVariable)
+            node = new DialogueModifyVariableNode();
+        else if (type == DialogueType.ExternalFunction)
+            node = new DialogueExternalFunctionNode();
+        else if (type == DialogueType.Ink)
+            node = new DialogueInkNode();
+        else if (type == DialogueType.SingleChoice)
             node = new DialogueSingleChoiceNode();
         else
             node = new DialogueMultipleChoiceNode();
@@ -241,7 +259,7 @@ public class DialogueSystemGraphView : GraphView {
         if (_searhWindow != null)
             return;
 
-        _searhWindow = ScriptableObject.CreateInstance<DialogueSystemSearhWindow>();
+        _searhWindow = ScriptableObject.CreateInstance<DialogueSystemSearchWindow>();
         _searhWindow.Initialize(this);
 
 

@@ -59,4 +59,36 @@ public class DialogueContainer : ScriptableObject {
 
         return dialogues;
     }
+
+    public Dialogue GetDialogueByName(string dialogueName) {
+        // Search in grouped dialogues
+        foreach (var group in _groups) {
+            foreach (var dialogue in group.Value) {
+                if (dialogue.Name == dialogueName) {
+                    return dialogue;
+                }
+            }
+        }
+
+        // Search in ungrouped dialogues
+        foreach (var dialogue in _ungroupedDialogues) {
+            if (dialogue.Name == dialogueName) {
+                return dialogue;
+            }
+        }
+
+        // Dialogue not found
+        return null;
+    }
+
+    public Dialogue GetGroupDialogue(string groupName, string dialogueName) {
+        if (_groups.TryGetValue(_groups.Keys.FirstOrDefault(g => g.name == groupName), out var dialogues)) {
+            return dialogues.FirstOrDefault(d => d.Name == dialogueName);
+        }
+        return null;
+    }
+
+    public Dialogue GetUngroupedDialogue(string dialogueName) {
+        return _ungroupedDialogues.FirstOrDefault(d => d.Name == dialogueName);
+    }
 }

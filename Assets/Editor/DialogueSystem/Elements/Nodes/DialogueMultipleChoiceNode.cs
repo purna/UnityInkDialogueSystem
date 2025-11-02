@@ -41,8 +41,10 @@ public class DialogueMultipleChoiceNode : DialogueBaseNode {
         });
         deleteChoiceButton.AddToClassList("ds-node__button");
 
-        TextField textChoiceField = UIElementUtility.CreateTextField(choiceData.Text, onValueChanged: callback => {
-            choiceData.SetText(callback.newValue);
+        TextField textChoiceField = UIElementUtility.CreateTextField(choiceData.Text);
+        textChoiceField.RegisterValueChangedCallback(evt => {
+            choiceData.SetText(evt.newValue);
+            UpdateTextFieldWidth(textChoiceField);
         });
         textChoiceField.AddClasses(
             "ds-node__text-field",
@@ -50,8 +52,44 @@ public class DialogueMultipleChoiceNode : DialogueBaseNode {
             "ds-node__choice-text-field"
         );
 
-        choicePort.Add(textChoiceField);
-        choicePort.Add(deleteChoiceButton);
+        // Make the text field flexible
+        textChoiceField.style.minWidth = 100;
+        textChoiceField.style.maxWidth = StyleKeyword.None;
+        textChoiceField.style.width = StyleKeyword.Auto;
+        textChoiceField.style.flexGrow = 1;
+        textChoiceField.style.flexShrink = 0;
+        
+        // Set initial width based on content
+        UpdateTextFieldWidth(textChoiceField);
+
+        // Create a container for better layout control
+        VisualElement choiceContainer = new VisualElement();
+        choiceContainer.style.flexDirection = FlexDirection.Row;
+        choiceContainer.style.flexGrow = 1;
+        choiceContainer.style.alignItems = Align.Center;
+
+        choiceContainer.Add(textChoiceField);
+        choiceContainer.Add(deleteChoiceButton);
+        
+        choicePort.Add(choiceContainer);
+        
         return choicePort;
+    }
+
+    private void UpdateTextFieldWidth(TextField textField) {
+        // Calculate approximate width based on text length
+        string text = textField.value;
+        if (string.IsNullOrEmpty(text)) {
+            text = textField.label;
+        }
+        
+        // Approximate character width (adjust multiplier as needed)
+        float charWidth = 7.5f;
+        float calculatedWidth = Mathf.Max(100, text.Length * charWidth + 20); // +20 for padding
+        
+        // Cap at a reasonable maximum to prevent extremely wide nodes
+        calculatedWidth = Mathf.Min(calculatedWidth, 400);
+        
+        textField.style.width = calculatedWidth;
     }
 }

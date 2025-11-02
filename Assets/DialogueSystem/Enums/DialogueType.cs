@@ -1,4 +1,11 @@
-public enum DialogueType {
+public enum DialogueType
+{
     SingleChoice,
-    MultipleChoice
+    MultipleChoice,
+    VariableCondition,
+    ModifyVariable,
+    ExternalFunction,
+    Ink
+
+
 }

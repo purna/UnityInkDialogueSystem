@@ -38,7 +38,6 @@ public static class UIElementUtility {
         return button;
     }
 
-
     public static Port CreatePort(this DialogueBaseNode node, string portName = "", Orientation orientation = Orientation.Horizontal, NodeDirection direction = NodeDirection.Output, Port.Capacity capacity = Port.Capacity.Single) {
         Port port = node.InstantiatePort(orientation, direction, capacity, typeof(object));
         port.portName = portName;
@@ -62,5 +61,49 @@ public static class UIElementUtility {
         if (onValueChanged != null)
             enumField.RegisterValueChangedCallback(onValueChanged);
         return enumField;
+    }
+
+    public static Toggle CreateToggle(string label, bool value = false, EventCallback<ChangeEvent<bool>> onValueChanged = null) {
+        Toggle toggle = new() {
+            label = label,
+            value = value
+        };
+
+        if (onValueChanged != null)
+            toggle.RegisterValueChangedCallback(onValueChanged);
+        return toggle;
+    }
+
+    public static Toggle CreateToggle(bool value, string label = null, EventCallback<ChangeEvent<bool>> onValueChanged = null) {
+        Toggle toggle = new() {
+            label = label,
+            value = value
+        };
+
+        if (onValueChanged != null)
+            toggle.RegisterValueChangedCallback(onValueChanged);
+        return toggle;
+    }
+
+    public static IntegerField CreateIntegerField(int value = 0, string label = null, EventCallback<ChangeEvent<int>> onValueChanged = null) {
+        IntegerField integerField = new() {
+            label = label,
+            value = value
+        };
+
+        if (onValueChanged != null)
+            integerField.RegisterValueChangedCallback(onValueChanged);
+        return integerField;
+    }
+
+    public static FloatField CreateFloatField(float value = 0f, string label = null, EventCallback<ChangeEvent<float>> onValueChanged = null) {
+        FloatField floatField = new() {
+            label = label,
+            value = value
+        };
+
+        if (onValueChanged != null)
+            floatField.RegisterValueChangedCallback(onValueChanged);
+        return floatField;
     }
 }

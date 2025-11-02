@@ -121,8 +121,115 @@ public static class DialogueSystemSaveManager {
 
     private static void SaveNodeToGraph(DialogueBaseNode node, DialogueSystemGraphSaveData graphData) {
         List<DialogueChoiceSaveData> choices = CloneNodeChoices(node.Choices);
+        DialogueNodeSaveData nodeData;
 
-        DialogueNodeSaveData nodeData = new(
+        // Create the appropriate save data based on node type
+        switch (node.DialogueType) {
+            case DialogueType.Ink:
+                if (node is DialogueInkNode inkNode) {
+                    nodeData = new DialogueNodeSaveData(
+                        node.ID,
+                        node.DialogueName,
+                        node.Text,
+                        choices,
+                        node.Group?.ID,
+                        node.DialogueType,
+                        node.GetPosition().position,
+                        node.Character,
+                        node.Emotion,
+                        inkNode.InkJsonAsset,
+                        inkNode.KnotName,
+                        inkNode.StartFromBeginning
+                    );
+                } else {
+                    nodeData = CreateDefaultNodeSaveData(node, choices);
+                }
+                break;
+
+            case DialogueType.ExternalFunction:
+                if (node is DialogueExternalFunctionNode funcNode) {
+                    nodeData = new DialogueNodeSaveData(
+                        node.ID,
+                        node.DialogueName,
+                        node.Text,
+                        choices,
+                        node.Group?.ID,
+                        node.DialogueType,
+                        node.GetPosition().position,
+                        node.Character,
+                        node.Emotion,
+                        funcNode.FunctionType,
+                        funcNode.FunctionParameter
+                    );
+                } else {
+                    nodeData = CreateDefaultNodeSaveData(node, choices);
+                }
+                break;
+
+            case DialogueType.ModifyVariable:
+                if (node is DialogueModifyVariableNode modifyNode) {
+                    nodeData = new DialogueNodeSaveData(
+                        node.ID,
+                        node.DialogueName,
+                        node.Text,
+                        choices,
+                        node.Group?.ID,
+                        node.DialogueType,
+                        node.GetPosition().position,
+                        node.Character,
+                        node.Emotion,
+                        modifyNode.VariablesContainer,
+                        modifyNode.VariableName,
+                        modifyNode.VariableType,
+                        modifyNode.Modification,
+                        ConditionType.Equal, // Not used for modify
+                        modifyNode.BoolValue,
+                        modifyNode.IntValue,
+                        modifyNode.FloatValue,
+                        modifyNode.StringValue
+                    );
+                } else {
+                    nodeData = CreateDefaultNodeSaveData(node, choices);
+                }
+                break;
+
+            case DialogueType.VariableCondition:
+                if (node is DialogueVariableConditionNode conditionNode) {
+                    nodeData = new DialogueNodeSaveData(
+                        node.ID,
+                        node.DialogueName,
+                        node.Text,
+                        choices,
+                        node.Group?.ID,
+                        node.DialogueType,
+                        node.GetPosition().position,
+                        node.Character,
+                        node.Emotion,
+                        conditionNode.VariablesContainer,
+                        conditionNode.VariableName,
+                        conditionNode.VariableType,
+                        ModificationType.Set, // Not used for conditions
+                        conditionNode.Condition,
+                        conditionNode.BoolTargetValue,
+                        conditionNode.IntTargetValue,
+                        conditionNode.FloatTargetValue,
+                        conditionNode.StringTargetValue
+                    );
+                } else {
+                    nodeData = CreateDefaultNodeSaveData(node, choices);
+                }
+                break;
+
+            default:
+                nodeData = CreateDefaultNodeSaveData(node, choices);
+                break;
+        }
+
+        graphData.AddNode(nodeData);
+    }
+
+    private static DialogueNodeSaveData CreateDefaultNodeSaveData(DialogueBaseNode node, List<DialogueChoiceSaveData> choices) {
+        return new DialogueNodeSaveData(
             node.ID,
             node.DialogueName,
             node.Text,
@@ -133,8 +240,6 @@ public static class DialogueSystemSaveManager {
             node.Character,
             node.Emotion
         );
-
-        graphData.AddNode(nodeData);
     }
 
     private static List<DialogueChoiceSaveData> CloneNodeChoices(IEnumerable<DialogueChoiceSaveData> originalChoices) {
@@ -154,17 +259,102 @@ public static class DialogueSystemSaveManager {
             dialogueContainer.AddUngroupDialogue(dialogue);
         }
 
-        dialogue.Initialize(
-            node.DialogueName,
-            node.Text,
-            ConvertNodeChoicesToDialogueChoices(node.Choices),
-            node.DialogueType,
-            node.Character,
-            node.Emotion,
-            node.IsStartingNode()
-        );
-        _createdDialogues.Add(node.ID, dialogue);
+        // Handle different node types with specific initialization
+        switch (node.DialogueType) {
+            case DialogueType.Ink:
+                if (node is DialogueInkNode inkNode) {
+                    dialogue.InitializeWithInkData(
+                        node.DialogueName,
+                        node.Text,
+                        ConvertNodeChoicesToDialogueChoices(node.Choices),
+                        node.DialogueType,
+                        node.Character,
+                        node.Emotion,
+                        node.IsStartingNode(),
+                        inkNode.InkJsonAsset,
+                        inkNode.KnotName,
+                        inkNode.StartFromBeginning
+                    );
+                }
+                break;
 
+            case DialogueType.ExternalFunction:
+                if (node is DialogueExternalFunctionNode funcNode) {
+                    dialogue.InitializeWithFunctionData(
+                        node.DialogueName,
+                        node.Text,
+                        ConvertNodeChoicesToDialogueChoices(node.Choices),
+                        node.DialogueType,
+                        node.Character,
+                        node.Emotion,
+                        node.IsStartingNode(),
+                        funcNode.FunctionType,
+                        funcNode.FunctionParameter
+                    );
+                }
+                break;
+
+            case DialogueType.ModifyVariable:
+                if (node is DialogueModifyVariableNode modifyNode) {
+                    dialogue.InitializeWithVariableData(
+                        node.DialogueName,
+                        node.Text,
+                        ConvertNodeChoicesToDialogueChoices(node.Choices),
+                        node.DialogueType,
+                        node.Character,
+                        node.Emotion,
+                        node.IsStartingNode(),
+                        modifyNode.VariablesContainer,
+                        modifyNode.VariableName,
+                        modifyNode.VariableType,
+                        modifyNode.Modification,
+                        ConditionType.Equal, // Not used for modify
+                        modifyNode.BoolValue,
+                        modifyNode.IntValue,
+                        modifyNode.FloatValue,
+                        modifyNode.StringValue
+                    );
+                }
+                break;
+
+            case DialogueType.VariableCondition:
+                if (node is DialogueVariableConditionNode conditionNode) {
+                    dialogue.InitializeWithVariableData(
+                        node.DialogueName,
+                        node.Text,
+                        ConvertNodeChoicesToDialogueChoices(node.Choices),
+                        node.DialogueType,
+                        node.Character,
+                        node.Emotion,
+                        node.IsStartingNode(),
+                        conditionNode.VariablesContainer,
+                        conditionNode.VariableName,
+                        conditionNode.VariableType,
+                        ModificationType.Set, // Not used for conditions
+                        conditionNode.Condition,
+                        conditionNode.BoolTargetValue,
+                        conditionNode.IntTargetValue,
+                        conditionNode.FloatTargetValue,
+                        conditionNode.StringTargetValue
+                    );
+                }
+                break;
+
+            default:
+                // Standard dialogue node
+                dialogue.Initialize(
+                    node.DialogueName,
+                    node.Text,
+                    ConvertNodeChoicesToDialogueChoices(node.Choices),
+                    node.DialogueType,
+                    node.Character,
+                    node.Emotion,
+                    node.IsStartingNode()
+                );
+                break;
+        }
+
+        _createdDialogues.Add(node.ID, dialogue);
         dialogue.Save();
     }
 
@@ -210,7 +400,7 @@ public static class DialogueSystemSaveManager {
                 if (currentGroupedNodeNames[oldGroupedNode.Key].Contains(groupedNode))
                     continue;
 
-                AssetsUtility.RemoveAsset($"{_graphFolderPath}/Global/{oldGroupedNode.Key}/Dialogues", groupedNode);
+                AssetsUtility.RemoveAsset($"{_graphFolderPath}/Groups/{oldGroupedNode.Key}/Dialogues", groupedNode);
             }
         }
 
@@ -228,6 +418,7 @@ public static class DialogueSystemSaveManager {
     }
     #endregion
 
+
     #region Load
     public static void Load() {
         DialogueSystemGraphSaveData graphData = AssetsUtility.LoadAsset<DialogueSystemGraphSaveData>("Assets/_Project/Editor/DialogueSystem/Graphs", _graphFileName);
@@ -240,27 +431,59 @@ public static class DialogueSystemSaveManager {
             return;
         }
 
+        DialogueContainer dialogueContainer = AssetsUtility.LoadAsset<DialogueContainer>(_graphFolderPath, _graphFileName);
+        if (dialogueContainer == null) {
+            EditorUtility.DisplayDialog(
+                "Cannot load the dialogue container!",
+                $"File {_graphFileName}.asset cannot be found in {_graphFolderPath}.",
+                "Ok"
+            );
+            return;
+        }
+
         DialogueSystemEditorWindow.UpdateFileName(graphData.FileName);
 
         LoadGroups(graphData);
-        LoadNodes(graphData);
+        LoadNodes(graphData, dialogueContainer);
         LoadNodesConnections();
     }
 
-    private static void LoadGroups(DialogueSystemGraphSaveData graphData) {
-        foreach (var groupData in graphData.Groups) {
-            DialogueSystemGroup group = _graphView.CreateGroup(groupData.Name, groupData.Position);
-            group.SetID(groupData.ID);
-            _loadedGroups.Add(groupData.ID, group);
-        }
-    }
-
-    private static void LoadNodes(DialogueSystemGraphSaveData graphData) {
-        foreach (var nodeData in graphData.Nodes) {
+    private static void LoadNodes(DialogueSystemGraphSaveData graphData, DialogueContainer dialogueContainer)
+    {
+        foreach (var nodeData in graphData.Nodes)
+        {
             List<DialogueChoiceSaveData> choices = CloneNodeChoices(nodeData.Choices);
             DialogueBaseNode node = _graphView.CreateNode(nodeData.Name, nodeData.DialogueType, nodeData.Position, false);
             node.Setup(nodeData, choices);
+
+            // Load and apply Dialogue data to the node BEFORE drawing
+            Dialogue dialogue = null;
+            if (!string.IsNullOrEmpty(nodeData.GroupID))
+            {
+                dialogue = dialogueContainer.GetGroupDialogue(_loadedGroups[nodeData.GroupID].title, nodeData.Name);
+            }
+            else
+            {
+                dialogue = dialogueContainer.GetUngroupedDialogue(nodeData.Name);
+            }
+
+            if (dialogue != null)
+            {
+                ApplyDialogueDataToNode(node, dialogue);
+            }
+
+            // Draw AFTER applying the data
             node.Draw();
+
+            // Refresh UI for variable nodes after drawing
+            if (node is DialogueModifyVariableNode modifyNode)
+            {
+                modifyNode.RefreshUI();
+            }
+            else if (node is DialogueVariableConditionNode conditionNode)
+            {
+                conditionNode.RefreshUI();
+            }
 
             _loadedNodes.Add(node.ID, node);
 
@@ -270,6 +493,67 @@ public static class DialogueSystemSaveManager {
             DialogueSystemGroup group = _loadedGroups[nodeData.GroupID];
             node.ChangeGroup(group);
             group.AddElement(node);
+        }
+    }
+
+    private static void ApplyDialogueDataToNode(DialogueBaseNode node, Dialogue dialogue)
+    {
+        // Apply common data to ALL node types first
+        node.Text = dialogue.Text;
+        node.Character = dialogue.Character;
+        node.Emotion = dialogue.Emotion;
+
+        // Then apply type-specific data
+        switch (dialogue.Type)
+        {
+            case DialogueType.Ink:
+                if (node is DialogueInkNode inkNode)
+                {
+                    inkNode.InkJsonAsset = dialogue.InkJsonAsset;
+                    inkNode.KnotName = dialogue.KnotName;
+                    inkNode.StartFromBeginning = dialogue.StartFromBeginning;
+                }
+                break;
+
+            case DialogueType.ExternalFunction:
+                if (node is DialogueExternalFunctionNode funcNode)
+                {
+                    funcNode.FunctionType = dialogue.ExternalFunctionType;
+                    funcNode.FunctionParameter = dialogue.FunctionParameter;
+                }
+                break;
+
+            case DialogueType.ModifyVariable:
+                if (node is DialogueModifyVariableNode modifyNode)
+                {
+                    modifyNode.VariablesContainer = dialogue.VariablesContainer;
+                    modifyNode.VariableName = dialogue.VariableName;
+                    modifyNode.Modification = dialogue.ModificationType;
+                    modifyNode.BoolValue = dialogue.BoolValue;
+                    modifyNode.IntValue = dialogue.IntValue;
+                    modifyNode.FloatValue = dialogue.FloatValue;
+                    modifyNode.StringValue = dialogue.StringValue;
+                }
+                break;
+
+            case DialogueType.VariableCondition:
+                if (node is DialogueVariableConditionNode conditionNode)
+                {
+                    conditionNode.VariablesContainer = dialogue.VariablesContainer;
+                    conditionNode.VariableName = dialogue.VariableName;
+                    conditionNode.Condition = dialogue.ConditionType;
+                    conditionNode.BoolTargetValue = dialogue.BoolValue;
+                    conditionNode.IntTargetValue = dialogue.IntValue;
+                    conditionNode.FloatTargetValue = dialogue.FloatValue;
+                    conditionNode.StringTargetValue = dialogue.StringValue;
+                }
+                break;
+        }
+    }    private static void LoadGroups(DialogueSystemGraphSaveData graphData) {
+        foreach (var groupData in graphData.Groups) {
+            DialogueSystemGroup group = _graphView.CreateGroup(groupData.Name, groupData.Position);
+            group.SetID(groupData.ID);
+            _loadedGroups.Add(groupData.ID, group);
         }
     }
 
@@ -295,8 +579,8 @@ public static class DialogueSystemSaveManager {
     private static void CreateStaticFolders() {
         FoldersUtility.CreateEditorFolder("Assets/_Project/Editor/DialogueSystem", "Graphs");
         FoldersUtility.CreateEditorFolder("Assets", "ScriptableObjects");
-        FoldersUtility.CreateEditorFolder("Assets/_Project/ScriptableObjects", "Dialogues"); ;
-        FoldersUtility.CreateEditorFolder("Assets/_Project/ScriptableObjects/Dialogues", _graphFileName); ;
+        FoldersUtility.CreateEditorFolder("Assets/_Project/ScriptableObjects", "Dialogues");
+        FoldersUtility.CreateEditorFolder("Assets/_Project/ScriptableObjects/Dialogues", _graphFileName);
 
         FoldersUtility.CreateEditorFolder(_graphFolderPath, "Global");
         FoldersUtility.CreateEditorFolder(_graphFolderPath, "Groups");

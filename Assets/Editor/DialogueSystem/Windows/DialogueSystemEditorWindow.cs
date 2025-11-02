@@ -1,3 +1,5 @@
+using System;
+using UnityEngine;
 using System.IO;
 using UnityEditor;
 using UnityEditor.UIElements;
@@ -15,11 +17,45 @@ public class DialogueSystemEditorWindow : EditorWindow {
         GetWindow<DialogueSystemEditorWindow>("Dialogue Graph");
     }
 
+    /// <summary>
+    /// Opens the Dialogue System window with a specific container
+    /// </summary>
+    public static void OpenWithContainer(DialogueContainer container) {
+        DialogueSystemEditorWindow window = GetWindow<DialogueSystemEditorWindow>("Dialogue Graph");
+        window.LoadContainer(container);
+    }
+
     private void CreateGUI() {
         AddGraphView();
         AddToolbar();
-
         AddStyles();
+    }
+
+    /// <summary>
+    /// Loads a dialogue container into the graph view
+    /// </summary>
+    public void LoadContainer(DialogueContainer container) {
+        if (container == null) {
+            Debug.LogWarning("Cannot load null container!");
+            return;
+        }
+
+        // Clear current graph
+        if (_graphView != null) {
+            _graphView.ClearGraph();
+        }
+
+        // Update filename to match container
+        UpdateFileName(container.FileName);
+
+        // Load using the existing save manager system
+        DialogueSystemSaveManager.Initialize(_graphView, container.FileName);
+        DialogueSystemSaveManager.Load();
+
+        // Update the window title
+        titleContent = new GUIContent($"Dialogue Graph - {container.name}");
+
+        Debug.Log($"Loaded container: {container.name}");
     }
 
     private void AddGraphView() {
@@ -30,7 +66,7 @@ public class DialogueSystemEditorWindow : EditorWindow {
 
     private void AddToolbar() {
         Toolbar toolbar = new();
-        toolbar.AddStyleSheets("DialogueSystem/ToolbarStyles.uss");
+        toolbar.AddStyleSheets("DialogueSystem/Styles/ToolbarStyles.uss");
 
         _fileNameField = UIElementUtility.CreateTextField(_defaultFileName, "File Name: ", callback => {
             _fileNameField.value = callback.newValue.RemoveWhitespaces().RemoveSpecialCharacters();
@@ -58,6 +94,7 @@ public class DialogueSystemEditorWindow : EditorWindow {
     private void ResetGraph() {
         _graphView.ClearGraph();
         UpdateFileName(_defaultFileName);
+        titleContent = new GUIContent("Dialogue Graph");
     }
 
     private void Save() {
@@ -65,7 +102,6 @@ public class DialogueSystemEditorWindow : EditorWindow {
             EditorUtility.DisplayDialog("Invalid file name", "Change it and try again", "Ok");
             return;
         }
-
 
         DialogueSystemSaveManager.Initialize(_graphView, _fileNameField.value);
         DialogueSystemSaveManager.Save();
@@ -77,16 +113,18 @@ public class DialogueSystemEditorWindow : EditorWindow {
             return;
 
         _graphView.ClearGraph();
-        DialogueSystemSaveManager.Initialize(_graphView, Path.GetFileNameWithoutExtension(filePath));
+        string fileName = Path.GetFileNameWithoutExtension(filePath);
+        UpdateFileName(fileName);
+        DialogueSystemSaveManager.Initialize(_graphView, fileName);
         DialogueSystemSaveManager.Load();
     }
 
     private void AddStyles() {
-        rootVisualElement.AddStyleSheets("DialogueSystem/Variables.uss");
+        rootVisualElement.AddStyleSheets("DialogueSystem/Styles/Variables.uss");
     }
 
-    public void ChangeSaveButtonState(bool newStae) {
-        _saveButton.SetEnabled(newStae);
+    public void ChangeSaveButtonState(bool newState) {
+        _saveButton.SetEnabled(newState);
     }
 
     private void ChangeMinimapState() {

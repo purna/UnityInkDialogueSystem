@@ -104,3 +104,55 @@ TextField {
 .unity-toggle__text {
 	margin-left: var(--ds-color-window-very-dark-grey);
 }
+
+/* Choice text field - flexible width */
+.ds-node__choice-text-field {
+    min-width: 100px;
+    max-width: none;
+    width: auto;
+    flex-grow: 1;
+    flex-shrink: 0;
+}
+
+/* Make sure the text field input is flexible too */
+.ds-node__choice-text-field > .unity-text-field__input {
+    min-width: 100px;
+    max-width: none;
+    width: auto;
+    white-space: nowrap;
+    overflow: visible;
+}
+
+/* Port container should also be flexible */
+Port {
+    flex-direction: row;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Output container should allow growth */
+#output {
+    flex-shrink: 0;
+    min-width: fit-content;
+}
+
+/* Node should expand to fit content */
+.ds-node__main-container {
+    min-width: 200px;
+    width: auto;
+    max-width: none;
+}
+
+/* Choice container layout */
+.ds-choice-container {
+    flex-direction: row;
+    flex-grow: 1;
+    align-items: center;
+    min-width: fit-content;
+}
+
+/* Delete button should stay at the end */
+.ds-node__button {
+    flex-shrink: 0;
+    margin-left: 5px;
+}

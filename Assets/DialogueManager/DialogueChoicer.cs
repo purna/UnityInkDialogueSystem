@@ -22,7 +22,7 @@ public class DialogueChoicer : MonoBehaviour {
     }
 
     public void StartTutorialPart() {
-        _dialogueManager.StartDialogue(this);
+        _dialogueManager.StartDialogue(this.Dialogue);
     }
 
     private void EndTutorialPart() {
