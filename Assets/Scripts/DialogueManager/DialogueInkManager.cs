@@ -31,6 +31,8 @@ public class DialogueInkManager : MonoBehaviour
     private InkExternalFunctions inkExternalFunctions;
     private DialogueUI dialogueUI; // Reference to the one true UI
 
+    private TypewriterEffect typewriterEffect;
+
     private TextMeshProUGUI dialogueText; // Cached component
     private TextMeshProUGUI displayNameText; // Cached component
 
@@ -65,10 +67,17 @@ public class DialogueInkManager : MonoBehaviour
 
         // Find the DialogueUI to get the shared typing speed
         dialogueUI = FindObjectOfType<DialogueUI>();
-        if (dialogueUI == null) 
+        if (dialogueUI == null)
         {
             Debug.LogError("DialogueInkManager could not find DialogueUI! Ink dialogue will not work.");
             return;
+        }
+        
+        typewriterEffect = dialogueUI.GetComponent<TypewriterEffect>();
+        if (typewriterEffect == null)
+        {
+            typewriterEffect = dialogueUI.gameObject.AddComponent<TypewriterEffect>();
+            typewriterEffect.Initialize(dialogueText);
         }
 
         // Cache components for performance
@@ -94,9 +103,16 @@ private void Update()
         inputSubmitDetected = InputManager.GetInstance().GetSubmitPressed();
         inputInteractDetected = InputManager.GetInstance().GetInteractPressed();
         inputMouseDetected = Input.GetMouseButtonDown(0);
-    
+
         canProgress = Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || inputMouseDetected || inputSubmitDetected || inputInteractDetected;
 
+        // Skip typing if in progress
+        if (typewriterEffect != null && typewriterEffect.IsTyping && canProgress)
+        {
+            typewriterEffect.Skip();
+            return;
+        }
+    
         // Only progress if we can continue AND there are no choices
         if (canContinueToNextLine && currentStory.currentChoices.Count == 0 && canProgress)
         {
@@ -170,97 +186,51 @@ private void Update()
     private void ContinueStory() 
     {
         if (currentStory.canContinue) 
-        {
-            if (displayLineCoroutine != null) 
             {
-                StopCoroutine(displayLineCoroutine);
+                string nextLine = currentStory.Continue();
+                
+                if (nextLine.Equals("") && !currentStory.canContinue)
+                {
+                    StartCoroutine(ExitDialogueMode());
+                }
+                else
+                {
+                    HandleTags(currentStory.currentTags);
+                    DisplayLine(nextLine); // No longer a coroutine
+                }
             }
-            
-            string nextLine = currentStory.Continue();
-            
-            // handle case where the last line is an external function
-            if (nextLine.Equals("") && !currentStory.canContinue)
+            else 
             {
                 StartCoroutine(ExitDialogueMode());
             }
-            else
-            {
-                HandleTags(currentStory.currentTags);
-                displayLineCoroutine = StartCoroutine(DisplayLine(nextLine));
-            }
-        }
-        else 
-        {
-            StartCoroutine(ExitDialogueMode());
-        }
     }
 
-    private IEnumerator DisplayLine(string line)
+    private void DisplayLine(string line)
     {
-        dialogueText.text = line;
-        dialogueText.maxVisibleCharacters = 0;
-
         dialogueUI.HideContinueIcon();
         dialogueUI.ClearInkChoices();
-
         canContinueToNextLine = false;
 
-        bool isAddingRichTextTag = false;
-
-        // Get shared typing speed from DialogueUI
-        float currentTypingSpeed = (dialogueUI != null) ? dialogueUI.GetTypingSpeed() : 0.04f;
-
-        // display each letter one at a time
-        int i = 0;
-        int totalVisibleCharacters = line.Length;
-
-        while (i < totalVisibleCharacters)
+        if (typewriterEffect != null)
         {
-            char letter = line[i];
-
-           
-            if (canProgress)
-            {
-                dialogueText.maxVisibleCharacters = line.Length;
-                break;
-            }
-
-            // check for rich text tag
-            if (letter == '<')
-            {
-                // Find the end of the tag (the '>')
-                int tagEndIndex = line.IndexOf('>', i);
-
-                if (tagEndIndex != -1)
-                {
-                    // Calculate how many characters the tag occupies
-                    int tagLength = tagEndIndex - i + 1;
-
-                    // Advance the internal index past the tag
-                    i = tagEndIndex + 1;
-
-                    // Also advance the visible characters count for the tag itself
-                    dialogueText.maxVisibleCharacters = Mathf.Min(i, totalVisibleCharacters);
-
-                    // Do NOT yield, tags should appear instantly
-                    continue; // Skip the rest of the loop and start the next iteration
-                }
-            }
-
-            // if not rich text, add the next letter and wait a small time
-            // --- UPDATED: Use DialogueUI's audio system ---
-            dialogueUI.PlayTypingSound(dialogueText.maxVisibleCharacters, line[dialogueText.maxVisibleCharacters]);
-
-            dialogueText.maxVisibleCharacters++;
-            i++; // Move to the next character
-
-            yield return new WaitForSeconds(currentTypingSpeed);
+            typewriterEffect.TypeText(
+                line,
+                onCharTyped: (index, character) => dialogueUI.PlayTypingSound(index, character),
+                onComplete: () => OnTypingComplete()
+            );
+        }
+        else
+        {
+            dialogueText.text = line;
+            OnTypingComplete();
         }
 
-        // actions to take after the entire line has finished displaying
+    }
+
+    private void OnTypingComplete()
+    {
         dialogueUI.ShowContinueIcon();
         dialogueUI.DisplayInkChoices(currentStory.currentChoices, MakeChoice);
-
         canContinueToNextLine = true;
     }
 

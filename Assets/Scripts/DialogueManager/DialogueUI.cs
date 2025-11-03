@@ -22,7 +22,8 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private Button continueButton;
 
     [Header("Typewriter Effect")]
-    [SerializeField] private float typingSpeed = 0.04f;
+    [SerializeField] private TypewriterEffect typewriterEffect;
+    //[SerializeField] private float typingSpeed = 0.04f;
     
     [Header("Audio")]
     [SerializeField] private DialogueAudioInfoSO defaultAudioInfo;
@@ -56,7 +57,7 @@ public class DialogueUI : MonoBehaviour
     private bool inputMouseDetected = false;
 
     // Public getters
-    public float GetTypingSpeed() => typingSpeed;
+    //public float GetTypingSpeed() => typingSpeed;
     public TextMeshProUGUI GetDialogueTextComponent() => dialogueText;
     public TextMeshProUGUI GetSpeakerNameComponent() => speakerNameText;
     public void ShowContinueIcon() => continueButton?.gameObject.SetActive(true);
@@ -295,20 +296,33 @@ private void Update()
             characterIcon.gameObject.SetActive(true);
         }
 
-        if (displayLineCoroutine != null)
-            StopCoroutine(displayLineCoroutine);
+        // UPDATED: Use TypewriterEffect
+        if (typewriterEffect != null && dialogueText != null)
+        {
+            HideContinueIcon();
+            ClearChoices();
+            isWaitingForChoice = false;
 
-        if (dialogueText != null)
-            displayLineCoroutine = StartCoroutine(DisplayLine(dialogue.Text));
+            typewriterEffect.TypeText(
+                dialogue.Text,
+                onCharTyped: (index, character) => PlayDialogueSound(index, character),
+                onComplete: () => ShowButtons()
+            );
+        }
         else
+        {
             ShowButtons();
+        }
 
         ClearInkChoices();
 
         // Reset audio to default for each new dialogue node
         ResetAudioToDefault();
     }
-
+        /*  
+        ///
+        /// Orginal Typewritter effect
+        /// 
     public IEnumerator DisplayLine(string line)
     {
         dialogueText.text = line;
@@ -389,7 +403,7 @@ private void Update()
 
 
     }
-
+        */
     private void PlayDialogueSound(int currentDisplayedCharacterCount, char currentCharacter)
     {
         // Safety checks
@@ -663,16 +677,15 @@ private void Update()
     /// </summary>
 public void OnInputPressed()
 {
-    if (displayLineCoroutine != null)
+    if (typewriterEffect != null && typewriterEffect.IsTyping)
     {
-        StopCoroutine(displayLineCoroutine);
-        dialogueText.maxVisibleCharacters = dialogueText.text.Length;
-        displayLineCoroutine = null;
-        ShowButtons();
-        Debug.Log("<color=green>[DialogueUI]</color> Skipped typewriter and revealed full text");
+        // Skip typewriter effect
+        typewriterEffect.Skip();
+        Debug.Log("<color=green>[DialogueUI]</color> Skipped typewriter");
     }
     else
     {
+        // Progress to next dialogue
         if (dialogueManager != null)
         {
             Debug.Log("<color=green>[DialogueUI]</color> Progressing dialogue");

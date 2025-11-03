@@ -27,6 +27,7 @@ public class DialogueManager : MonoBehaviour
     private bool _isWaitingForInk = false;
 
     // Events for external systems to subscribe to
+    public event Action DialogueStarted;
     public event Action DialogueEnded;
     public event Action<ExternalFunctionType> OnExternalFunction;
     public event Action<string> OnCustomFunction;
@@ -171,11 +172,18 @@ private void SetDialogue(Dialogue dialogue)
 {
     _nowDialogue = dialogue;
 
-    if (dialogue == null)
+        if (dialogue == null)
+        {
+            StopDialogue();
+            return;
+        }
+    
+     // AInvoke DialogueStarted when setting first dialogue
+    if (DialogueStarted != null && !IsDialogueActive)
     {
-        StopDialogue();
-        return;
+        DialogueStarted?.Invoke();
     }
+
 
     Debug.Log($"<color=orange>[SetDialogue]</color> Setting dialogue: {dialogue.Name}, Type: {dialogue.Type}");
     
