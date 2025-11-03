@@ -10,6 +10,10 @@ public class DialogueController : MonoBehaviour
     [SerializeField] private DialogueGroup dialogueGroup;
     [SerializeField] private Dialogue dialogue;
 
+    // Events for external systems (like DialoguePlayerController)
+    public event Action OnDialogueStarted;
+    public event Action OnDialogueEnded;
+
     /* Filters */
     [Header("Dialogue Selection")]
     [SerializeField] private bool groupedDialogues;
@@ -33,12 +37,12 @@ public class DialogueController : MonoBehaviour
     // Public property for DialogueManager to access
     public Dialogue Dialogue => dialogue;
 
-    private void Awake()
+    private void Awake() 
     {
         // Subscribe to dialogue manager events
         if (dialogueManager != null)
         {
-            dialogueManager.DialogueEnded += OnDialogueEnded;
+            dialogueManager.DialogueEnded += HandleDialogueManagerEnded;
         }
     }
 
@@ -50,7 +54,7 @@ public class DialogueController : MonoBehaviour
             dialogueManager = FindObjectOfType<DialogueManager>();
             if (dialogueManager != null)
             {
-                dialogueManager.DialogueEnded += OnDialogueEnded;
+                dialogueManager.DialogueEnded += HandleDialogueManagerEnded;
             }
         }
 
@@ -79,7 +83,7 @@ public class DialogueController : MonoBehaviour
         // Unsubscribe from events
         if (dialogueManager != null)
         {
-            dialogueManager.DialogueEnded -= OnDialogueEnded;
+            dialogueManager.DialogueEnded -= HandleDialogueManagerEnded;
         }
     }
 
@@ -211,6 +215,10 @@ public class DialogueController : MonoBehaviour
         // Update the current dialogue reference
         dialogue = dialogueToStart;
 
+        // Invoke the event BEFORE starting dialogue (so player gets disabled first)
+        OnDialogueStarted?.Invoke();
+        Debug.Log("<color=orange>[DialogueController]</color> OnDialogueStarted event invoked!");
+
         // Start via DialogueManager (preferred method)
         if (dialogueManager != null)
         {
@@ -232,6 +240,10 @@ public class DialogueController : MonoBehaviour
     /// </summary>
     public void EndDialogue()
     {
+        // Invoke the event to notify subscribers (like DialoguePlayerController)
+        OnDialogueEnded?.Invoke();
+        Debug.Log("<color=orange>[DialogueController]</color> OnDialogueEnded event invoked!");
+ 
         if (dialogueManager != null)
         {
             dialogueManager.EndDialogue();
@@ -244,10 +256,17 @@ public class DialogueController : MonoBehaviour
 
     /// <summary>
     /// Called when dialogue ends (from DialogueManager event)
+    /// This is the EVENT HANDLER, not the event itself
     /// </summary>
-    private void OnDialogueEnded()
+    private void HandleDialogueManagerEnded()
     {
+        Debug.Log("<color=orange>[DialogueController]</color> DialogueManager ended event received");
+        
+        // Invoke DialoguePartEnded for any tutorial/sequential systems
         DialoguePartEnded?.Invoke();
+        
+        // Also invoke OnDialogueEnded for external systems
+        OnDialogueEnded?.Invoke();
     }
 
     /// <summary>

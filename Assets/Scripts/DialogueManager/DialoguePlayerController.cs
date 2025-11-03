@@ -1,7 +1,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Manages player state during dialogue from GameManager.
+/// Manages player state during dialogue.
 /// Attach this to your GameManager or as a standalone manager.
 /// </summary>
 public class DialoguePlayerController : MonoBehaviour
@@ -69,6 +69,11 @@ public class DialoguePlayerController : MonoBehaviour
             if (movementScript == null)
             {
                 Debug.LogWarning($"[DialoguePlayerController] Movement script '{movementScriptName}' not found on player!");
+            } else
+            {
+                
+                Debug.LogWarning($"[DialoguePlayerController] Movement script '{movementScriptName}' found on player!");
+
             }
         }
 
@@ -101,8 +106,15 @@ public class DialoguePlayerController : MonoBehaviour
     {
         if (dialogueManager != null)
         {
+            // Subscribe to DialogueManager events (not DialogueController)
             dialogueManager.DialogueStarted += OnDialogueStarted;
             dialogueManager.DialogueEnded += OnDialogueEnded;
+            
+            Debug.Log("<color=green>[DialoguePlayerController]</color> Subscribed to DialogueManager events");
+        }
+        else
+        {
+            Debug.LogError("[DialoguePlayerController] DialogueManager is null in OnEnable!");
         }
     }
 
@@ -117,7 +129,18 @@ public class DialoguePlayerController : MonoBehaviour
 
     private void OnDialogueStarted()
     {
+        Debug.Log("<color=yellow>[DialoguePlayerController]</color> OnDialogueStarted event received!");
         DisablePlayer();
+    }
+
+    private void OnDialogueEnded()
+    {
+        Debug.Log("<color=yellow>[DialoguePlayerController]</color> OnDialogueEnded event received!");
+        // Ensure player is enabled when dialogue ends
+        if (isPlayerDisabled)
+        {
+            EnablePlayer();
+        }
     }
 
     private void DisablePlayer()
@@ -135,6 +158,11 @@ public class DialoguePlayerController : MonoBehaviour
         if (movementScript != null && movementScript.enabled)
         {
             movementScript.enabled = false;
+            Debug.Log($"<color=cyan>[DialoguePlayerController]</color> Disabled {movementScriptName}");
+        }
+        else if (movementScript == null)
+        {
+            Debug.LogWarning($"[DialoguePlayerController] Movement script '{movementScriptName}' is null!");
         }
 
         // Stop velocity
@@ -142,12 +170,14 @@ public class DialoguePlayerController : MonoBehaviour
         {
             rb2D.velocity = Vector2.zero;
             rb2D.angularVelocity = 0f;
+            Debug.Log("<color=cyan>[DialoguePlayerController]</color> Stopped rigidbody velocity");
         }
 
         // Freeze rigidbody
         if (rb2D != null && freezeRigidbody)
         {
             rb2D.constraints = RigidbodyConstraints2D.FreezeAll;
+            Debug.Log("<color=cyan>[DialoguePlayerController]</color> Froze rigidbody");
         }
 
         // Disable additional scripts
@@ -158,6 +188,7 @@ public class DialoguePlayerController : MonoBehaviour
                 if (script != null && script.enabled)
                 {
                     script.enabled = false;
+                    Debug.Log($"<color=cyan>[DialoguePlayerController]</color> Disabled {script.GetType().Name}");
                 }
             }
         }
@@ -178,12 +209,14 @@ public class DialoguePlayerController : MonoBehaviour
         if (movementScript != null && !movementScript.enabled)
         {
             movementScript.enabled = true;
+            Debug.Log($"<color=green>[DialoguePlayerController]</color> Enabled {movementScriptName}");
         }
 
         // Restore rigidbody constraints
         if (rb2D != null && freezeRigidbody)
         {
             rb2D.constraints = originalConstraints;
+            Debug.Log("<color=green>[DialoguePlayerController]</color> Restored rigidbody constraints");
         }
 
         // Re-enable additional scripts
@@ -194,17 +227,9 @@ public class DialoguePlayerController : MonoBehaviour
                 if (script != null && !script.enabled)
                 {
                     script.enabled = true;
+                    Debug.Log($"<color=green>[DialoguePlayerController]</color> Enabled {script.GetType().Name}");
                 }
             }
-        }
-    }
-
-    private void OnDialogueEnded()
-    {
-        // Ensure player is enabled when dialogue ends
-        if (isPlayerDisabled)
-        {
-            EnablePlayer();
         }
     }
 

@@ -170,13 +170,26 @@ public class DialogueManager : MonoBehaviour
 
 private void SetDialogue(Dialogue dialogue)
 {
+    // Store previous state BEFORE updating _nowDialogue
+    bool wasDialogueActive = _nowDialogue != null;
+    
     _nowDialogue = dialogue;
 
-        if (dialogue == null)
-        {
-            StopDialogue();
-            return;
-        }
+    if (dialogue == null)
+    {
+        StopDialogue();
+        return;
+    }
+
+    // Invoke DialogueStarted when starting NEW dialogue (not progressing existing)
+    if (!wasDialogueActive)
+    {
+        Debug.Log("<color=green>[DialogueManager]</color> First dialogue set - invoking DialogueStarted event!");
+        DialogueStarted?.Invoke();
+    }
+
+    Debug.Log($"<color=orange>[SetDialogue]</color> Setting dialogue: {dialogue.Name}, Type: {dialogue.Type}");
+    
     
      // AInvoke DialogueStarted when setting first dialogue
     if (DialogueStarted != null && !IsDialogueActive)

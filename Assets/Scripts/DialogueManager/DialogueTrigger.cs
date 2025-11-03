@@ -9,8 +9,9 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private Animator emoteAnimator;
 
     [Header("Dialogue Settings")]
-    [SerializeField] private DialogueController dialogueController;
-    [SerializeField] private Dialogue dialogueToStart;
+    [SerializeField] private DialogueContainer dialogueContainer;
+    [SerializeField] private string selectedGroupName;
+    [SerializeField] private string selectedDialogueName;
 
     [Header("Trigger Settings")]
     [SerializeField] private bool triggerOnEnter = false;
@@ -19,22 +20,42 @@ public class DialogueTrigger : MonoBehaviour
 
     public bool playerInRange;
     private bool hasTriggered;
+    private Dialogue cachedDialogue;
 
     private void Awake() 
     {
         playerInRange = false;
         hasTriggered = false;
 
-
         if (visualCue != null)
         {
             visualCue.SetActive(false);
         }
 
-        // Try to find DialogueController if not assigned
-        if (dialogueController == null)
+        // Cache the dialogue reference
+        CacheDialogue();
+    }
+
+    private void CacheDialogue()
+    {
+        if (dialogueContainer == null)
         {
-            dialogueController = FindObjectOfType<DialogueController>();
+            Debug.LogWarning("DialogueContainer is not assigned!");
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(selectedGroupName) && !string.IsNullOrEmpty(selectedDialogueName))
+        {
+            cachedDialogue = dialogueContainer.GetGroupDialogue(selectedGroupName, selectedDialogueName);
+        }
+        else if (!string.IsNullOrEmpty(selectedDialogueName))
+        {
+            cachedDialogue = dialogueContainer.GetUngroupedDialogue(selectedDialogueName);
+        }
+
+        if (cachedDialogue == null)
+        {
+            Debug.LogWarning($"Could not find dialogue: {selectedDialogueName} in group: {selectedGroupName}");
         }
     }
 
@@ -69,26 +90,28 @@ public class DialogueTrigger : MonoBehaviour
 
     private void TriggerDialogue()
     {
-        if (dialogueController == null)
+        if (cachedDialogue == null)
         {
-            Debug.LogWarning("DialogueController is not assigned!");
+            Debug.LogWarning("No dialogue cached or assigned!");
             return;
         }
 
-        if (dialogueToStart == null)
+        // Find DialogueController in the scene
+        DialogueController dialogueController = FindObjectOfType<DialogueController>();
+        if (dialogueController == null)
         {
-            Debug.LogWarning("No dialogue assigned to trigger!");
+            Debug.LogWarning("DialogueController not found in scene!");
             return;
         }
 
         // Trigger the dialogue
-        dialogueController.TriggerDialogue(dialogueToStart);
+        dialogueController.TriggerDialogue(cachedDialogue);
         hasTriggered = true;
 
         // Optional: Play emote animation
         if (emoteAnimator != null)
         {
-            emoteAnimator.SetTrigger("Talk"); // Adjust trigger name as needed
+            emoteAnimator.SetTrigger("Talk");
         }
 
         // Hide visual cue after triggering
@@ -133,5 +156,12 @@ public class DialogueTrigger : MonoBehaviour
     public void ManualTrigger()
     {
         TriggerDialogue();
+    }
+
+    // Validation in editor
+    private void OnValidate()
+    {
+        if (Application.isPlaying) return;
+        CacheDialogue();
     }
 }

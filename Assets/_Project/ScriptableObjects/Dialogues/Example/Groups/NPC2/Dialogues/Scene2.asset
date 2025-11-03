@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76fab668a116f3445b8e0fc9fe82a99f, type: 3}
+  m_Name: Scene2
+  m_EditorClassIdentifier: 
+  _name: Scene2
+  _text: Dialogue text2
+  _choices:
+  - _text: 3333
+    _nextDialogue: {fileID: 11400000, guid: b699346c65c0f41849e7bdddd9c47c58, type: 2}
+  - _text: wwww
+    _nextDialogue: {fileID: 11400000, guid: 0bba5d7e420324fbe8bbf1615a7ca5ce, type: 2}
+  _type: 1
+  _isStartingDialogue: 0
+  _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+  _emotion: 1
+  _variablesContainer: {fileID: 0}
+  _variableName: 
+  _variableType: 0
+  _modificationType: 0
+  _conditionType: 0
+  _boolValue: 0
+  _intValue: 0
+  _floatValue: 0
+  _stringValue: 
+  _inkJsonAsset: {fileID: 0}
+  _knotName: 
+  _startFromBeginning: 1
+  _externalFunctionType: 0
+  _functionParameter: 
