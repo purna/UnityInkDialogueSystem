@@ -111,6 +111,140 @@ public class DialogueUI : MonoBehaviour
         InitializeAudioSystem();
     }
 
+
+    // REPLACE the Update() method in DialogueUI.cs with this:
+
+private void Update()
+{
+    // Reset per-frame input guard
+    inputConsumedThisFrame = false;
+
+    // Get input state
+    inputSubmitDetected = InputManager.GetInstance().GetSubmitPressed();
+    inputInteractDetected = InputManager.GetInstance().GetInteractPressed();
+    inputMouseDetected = Input.GetMouseButtonDown(0);
+    
+    canProgress = Input.GetKeyDown(KeyCode.Space) || 
+                  Input.GetKeyDown(KeyCode.Return) || 
+                  inputMouseDetected || 
+                  inputSubmitDetected || 
+                  inputInteractDetected;
+
+    // --------------------------
+    // CHOICE SELECTION INPUT (Both Graph and Ink)
+    // --------------------------
+    
+    // Check if we have ANY active choices (graph-based OR Ink)
+    bool hasGraphChoices = activeChoiceButtons != null && activeChoiceButtons.Count > 0;
+    bool hasInkChoices = activeInkChoiceButtons != null && activeInkChoiceButtons.Count > 0;
+    bool hasAnyChoices = hasGraphChoices || hasInkChoices;
+
+    if (isWaitingForChoice || hasAnyChoices)
+    {
+        if (canProgress)
+        {
+            Debug.Log("<color=cyan>[DialogueUI.Update]</color> Submit input detected while waiting for choice");
+
+            GameObject selectedObject = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+
+            if (selectedObject != null)
+            {
+                Button selectedButton = selectedObject.GetComponent<Button>();
+                if (selectedButton != null)
+                {
+                    Debug.Log("<color=lime>[DialogueUI.Update]</color> Invoking selected button via Submit");
+                    selectedButton.onClick.Invoke();
+                    inputConsumedThisFrame = true;
+                    return; // Stop here — handled input
+                }
+                else
+                {
+                    Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> Selected object has no Button component");
+                }
+            }
+            else
+            {
+                // No button selected - try to select the first available choice
+                Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> No UI button selected, attempting to select first choice");
+                
+                if (hasGraphChoices && activeChoiceButtons[0] != null)
+                {
+                    UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(activeChoiceButtons[0].gameObject);
+                }
+                else if (hasInkChoices && activeInkChoiceButtons[0] != null)
+                {
+                    UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(activeInkChoiceButtons[0].gameObject);
+                }
+                return;
+            }
+        }
+
+        // Numeric shortcuts (1–9) for quick choice selection
+        for (int i = 0; i < 9; i++)
+        {
+            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+            {
+                int index = i;
+                
+                // Try graph choices first
+                if (hasGraphChoices && index < activeChoiceButtons.Count)
+                {
+                    Button btn = activeChoiceButtons[index];
+                    if (btn != null)
+                    {
+                        Debug.Log($"<color=lime>[DialogueUI.Update]</color> Numeric key selected graph choice {index + 1}");
+                        btn.onClick.Invoke();
+                        inputConsumedThisFrame = true;
+                        return;
+                    }
+                }
+                // Then try Ink choices
+                else if (hasInkChoices && index < activeInkChoiceButtons.Count)
+                {
+                    Button btn = activeInkChoiceButtons[index];
+                    if (btn != null)
+                    {
+                        Debug.Log($"<color=lime>[DialogueUI.Update]</color> Numeric key selected Ink choice {index + 1}");
+                        btn.onClick.Invoke();
+                        inputConsumedThisFrame = true;
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Don't continue to dialogue progression if we have choices
+        if (hasAnyChoices)
+            return;
+    }
+
+    // --------------------------
+    // DIALOGUE PROGRESSION INPUT
+    // --------------------------
+    if (dialogueManager == null || !dialogueManager.IsDialogueActive)
+        return;
+
+    if (inputConsumedThisFrame)
+        return;
+
+    // Don't handle progression if we're in Ink mode (Ink handles its own progression)
+    if (dialogueManager.CurrentDialogue != null && dialogueManager.CurrentDialogue.Type == DialogueType.Ink)
+        return;
+        
+    // Handle dialogue progression for graph-based system
+    bool progressInput = (useSpaceKey && Input.GetKeyDown(KeyCode.Space)) ||
+                         (useReturnKey && Input.GetKeyDown(KeyCode.Return)) ||
+                         InputManager.GetInstance().GetSubmitPressed() || 
+                         InputManager.GetInstance().GetInteractPressed();
+
+    if (progressInput)
+    {
+        Debug.Log("<color=yellow>[DialogueUI.Update]</color> Progress input detected");
+        inputConsumedThisFrame = true;
+        OnInputPressed();
+    }
+}
+/*
 private void Update()
 {
     // Reset per-frame input guard
@@ -215,7 +349,7 @@ private void Update()
         OnInputPressed();
     }
 }
-
+*/
     private void InitializeAudioSystem()
     {
         audioSource = gameObject.AddComponent<AudioSource>();

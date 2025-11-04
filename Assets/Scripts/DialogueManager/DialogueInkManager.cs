@@ -89,8 +89,47 @@ public class DialogueInkManager : MonoBehaviour
         // --- AUDIO DICTIONARY INITIALIZATION REMOVED ---
     }
 
-    // --- SetCurrentAudioInfo() METHOD REMOVED ---
+ // UPDATE the Update() method in DialogueInkManager.cs:
 
+private void Update()
+{
+    // ONLY handle input if Ink dialogue is actually playing
+    if (!dialogueIsPlaying || dialogueUI == null)
+        return;
+
+    // Get input state
+    inputSubmitDetected = InputManager.GetInstance().GetSubmitPressed();
+    inputInteractDetected = InputManager.GetInstance().GetInteractPressed();
+    inputMouseDetected = Input.GetMouseButtonDown(0);
+
+    canProgress = Input.GetKeyDown(KeyCode.Space) || 
+                  Input.GetKeyDown(KeyCode.Return) || 
+                  inputMouseDetected || 
+                  inputSubmitDetected || 
+                  inputInteractDetected;
+
+    // Skip typing if in progress
+    if (typewriterEffect != null && typewriterEffect.IsTyping && canProgress)
+    {
+        typewriterEffect.Skip();
+        return;
+    }
+
+    // CRITICAL: Don't progress if DialogueUI is handling choices
+    // The UI manages choice selection for both systems
+    if (currentStory.currentChoices.Count > 0)
+    {
+        // Choices are displayed - let DialogueUI handle input
+        return;
+    }
+
+    // Only progress if we can continue and there are no choices
+    if (canContinueToNextLine && canProgress)
+    {
+        ContinueStory();
+    }
+}
+/*
 private void Update()
     {
         // ONLY handle input if Ink dialogue is actually playing
@@ -119,7 +158,7 @@ private void Update()
             ContinueStory();
         }
     }
-
+*/
     public void EnterDialogueMode(TextAsset inkJSON, Animator emoteAnimator) 
     {
         EnterDialogueMode(inkJSON, emoteAnimator, null, true);

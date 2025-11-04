@@ -21,6 +21,10 @@ MonoBehaviour:
     _sprite: {fileID: 21300000, guid: 88b0c7bc2ca3021448b83589cde897a2, type: 3}
   - _emotion: 2
     _sprite: {fileID: 21300000, guid: 126ab8abe0ad94e4bb462edf16a5d9d7, type: 3}
+  - _emotion: 4
+    _sprite: {fileID: 21300000, guid: 7225b7bb6ac02ad4dbc0f4815c6f883e, type: 3}
+  - _emotion: 6
+    _sprite: {fileID: 21300000, guid: 88b0c7bc2ca3021448b83589cde897a2, type: 3}
   _portraitAnimatorController: {fileID: 9100000, guid: ad354730b29ce6d4a836392741d263f0, type: 2}
   _emotionAnimationMappings:
   - emotion: 1
@@ -29,6 +33,10 @@ MonoBehaviour:
     animationStateName: dr_green_sad
   - emotion: 2
     animationStateName: dr_green_happy
+  - emotion: 4
+    animationStateName: dr_green_tense
+  - emotion: 6
+    animationStateName: dr_green_angry
   _availableAnimationStates:
   - default
   - dr_green_happy
@@ -37,6 +45,10 @@ MonoBehaviour:
   - ms_yellow_happy
   - ms_yellow_neutral
   - ms_yellow_sad
+  - dr_green_angry
+  - ms_yellow_angry
+  - dr_green_tense
+  - ms_yellow_tense
   _defaultLayout: 0
   _voiceInfo:
     _audio: {fileID: 8300000, guid: 1ba432cb5faf236458621710fed2578f, type: 3}
