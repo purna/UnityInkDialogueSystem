@@ -19,8 +19,8 @@ MonoBehaviour:
     _nextDialogue: {fileID: 11400000, guid: 2e7849530a7fc4e73b9a1ec9099fe457, type: 2}
   _type: 0
   _isStartingDialogue: 1
-  _character: {fileID: 0}
-  _emotion: 0
+  _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+  _emotion: 2
   _variablesContainer: {fileID: 0}
   _variableName: 
   _variableType: 0

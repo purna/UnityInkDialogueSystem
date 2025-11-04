@@ -12,9 +12,32 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6961946ab875ae54ead7af22c108978c, type: 3}
   m_Name: Ms Yellow
   m_EditorClassIdentifier: 
-  _defaultSprite: {fileID: 21300000, guid: 7225b7bb6ac02ad4dbc0f4815c6f883e, type: 3}
+  _defaultSprite: {fileID: 21300000, guid: a27ebbd47c81fb84a999ec380221a9e6, type: 3}
   _defaultName: Ms Yellow
-  _emotionSprites: []
+  _emotionSprites:
+  - _emotion: 1
+    _sprite: {fileID: 21300000, guid: a27ebbd47c81fb84a999ec380221a9e6, type: 3}
+  - _emotion: 3
+    _sprite: {fileID: 21300000, guid: 2d5a62d3a70f245408e1d3f3eb5cbc68, type: 3}
+  - _emotion: 2
+    _sprite: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+  _portraitAnimatorController: {fileID: 9100000, guid: ad354730b29ce6d4a836392741d263f0, type: 2}
+  _emotionAnimationMappings:
+  - emotion: 1
+    animationStateName: ms_yellow_neutral
+  - emotion: 3
+    animationStateName: ms_yellow_sad
+  - emotion: 2
+    animationStateName: ms_yellow_happy
+  _availableAnimationStates:
+  - default
+  - dr_green_happy
+  - dr_green_neutral
+  - dr_green_sad
+  - ms_yellow_happy
+  - ms_yellow_neutral
+  - ms_yellow_sad
+  _defaultLayout: 1
   _voiceInfo:
     _audio: {fileID: 8300000, guid: 1ba432cb5faf236458621710fed2578f, type: 3}
     _volume: 0.5

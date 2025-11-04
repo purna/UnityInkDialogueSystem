@@ -19,10 +19,10 @@ MonoBehaviour:
     _position: {x: -88, y: -294}
   - _ID: b30f59eb-a82d-4d2d-8843-44db1a0891b5
     _name: NPC1
-    _position: {x: -1881.4999, y: -851.5}
+    _position: {x: -1881.5, y: -851.5}
   - _ID: d80fdfde-c896-4bcb-9bcd-12e49efc4a3b
     _name: NPC3
-    _position: {x: -2042.4999, y: -224.5}
+    _position: {x: -2042.5, y: -224.5}
   _nodes:
   - _ID: e87b0b64-18cb-4223-9575-9068275744db
     _name: UpdateHealth
@@ -138,7 +138,7 @@ MonoBehaviour:
     _dialogueType: 1
     _position: {x: 487, y: -235.5}
     _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
-    _emotion: 1
+    _emotion: 3
     _variablesContainer: {fileID: 0}
     _variableName: 
     _variableType: 0
@@ -163,7 +163,7 @@ MonoBehaviour:
     _dialogueType: 0
     _position: {x: 901, y: -199}
     _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
-    _emotion: 0
+    _emotion: 1
     _variablesContainer: {fileID: 0}
     _variableName: 
     _variableType: 0
@@ -188,7 +188,7 @@ MonoBehaviour:
     _dialogueType: 0
     _position: {x: 576, y: 65}
     _character: {fileID: 11400000, guid: 3181e6bde02de4a2b937bed835697707, type: 2}
-    _emotion: 1
+    _emotion: 2
     _variablesContainer: {fileID: 0}
     _variableName: 
     _variableType: 0
@@ -253,56 +253,6 @@ MonoBehaviour:
     _inkJsonAsset: {fileID: 4900000, guid: 36ecffd9695efc647b3b7c6c5194a996, type: 3}
     _knotName: 
     _startFromBeginning: 0
-  - _ID: ed9d693b-5520-48a7-b717-cf3f9f5a738a
-    _name: npc1a
-    _text: Hello
-    _choices:
-    - _text: Next Dialogue
-      _nodeID: 484db6bf-9e99-48c7-b7e3-7c400ea9592e
-    _groupID: b30f59eb-a82d-4d2d-8843-44db1a0891b5
-    _dialogueType: 0
-    _position: {x: -1856.5, y: -793}
-    _character: {fileID: 0}
-    _emotion: 0
-    _variablesContainer: {fileID: 0}
-    _variableName: 
-    _variableType: 0
-    _modificationType: 0
-    _conditionType: 0
-    _boolValue: 0
-    _intValue: 0
-    _floatValue: 0
-    _stringValue: 
-    _functionType: 0
-    _customFunctionName: 
-    _inkJsonAsset: {fileID: 0}
-    _knotName: 
-    _startFromBeginning: 0
-  - _ID: 484db6bf-9e99-48c7-b7e3-7c400ea9592e
-    _name: npc1b
-    _text: World
-    _choices:
-    - _text: Next Dialogue
-      _nodeID: 
-    _groupID: b30f59eb-a82d-4d2d-8843-44db1a0891b5
-    _dialogueType: 0
-    _position: {x: -1463, y: -776}
-    _character: {fileID: 0}
-    _emotion: 0
-    _variablesContainer: {fileID: 0}
-    _variableName: 
-    _variableType: 0
-    _modificationType: 0
-    _conditionType: 0
-    _boolValue: 0
-    _intValue: 0
-    _floatValue: 0
-    _stringValue: 
-    _functionType: 0
-    _customFunctionName: 
-    _inkJsonAsset: {fileID: 0}
-    _knotName: 
-    _startFromBeginning: 0
   - _ID: ffca6ab8-aa21-4726-9e78-c453e014a485
     _name: npc3ReadHealth
     _text: Dialogue text.
@@ -341,31 +291,6 @@ MonoBehaviour:
     _position: {x: -2017.5, y: -148}
     _character: {fileID: 11400000, guid: 3181e6bde02de4a2b937bed835697707, type: 2}
     _emotion: 2
-    _variablesContainer: {fileID: 0}
-    _variableName: 
-    _variableType: 0
-    _modificationType: 0
-    _conditionType: 0
-    _boolValue: 0
-    _intValue: 0
-    _floatValue: 0
-    _stringValue: 
-    _functionType: 0
-    _customFunctionName: 
-    _inkJsonAsset: {fileID: 0}
-    _knotName: 
-    _startFromBeginning: 0
-  - _ID: dcca31f1-ed4a-42d9-8f23-1c705044dc62
-    _name: npc3b1
-    _text: hi again
-    _choices:
-    - _text: Next Dialogue
-      _nodeID: ffca6ab8-aa21-4726-9e78-c453e014a485
-    _groupID: d80fdfde-c896-4bcb-9bcd-12e49efc4a3b
-    _dialogueType: 0
-    _position: {x: -1926.5, y: 151}
-    _character: {fileID: 0}
-    _emotion: 0
     _variablesContainer: {fileID: 0}
     _variableName: 
     _variableType: 0
@@ -457,6 +382,81 @@ MonoBehaviour:
     _inkJsonAsset: {fileID: 0}
     _knotName: 
     _startFromBeginning: 0
+  - _ID: dcca31f1-ed4a-42d9-8f23-1c705044dc62
+    _name: npc3b1
+    _text: hi again
+    _choices:
+    - _text: Next Dialogue
+      _nodeID: ffca6ab8-aa21-4726-9e78-c453e014a485
+    _groupID: d80fdfde-c896-4bcb-9bcd-12e49efc4a3b
+    _dialogueType: 0
+    _position: {x: -1926.5, y: 151}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 1
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: ed9d693b-5520-48a7-b717-cf3f9f5a738a
+    _name: npc1a
+    _text: Hello
+    _choices:
+    - _text: Next Dialogue
+      _nodeID: 484db6bf-9e99-48c7-b7e3-7c400ea9592e
+    _groupID: b30f59eb-a82d-4d2d-8843-44db1a0891b5
+    _dialogueType: 0
+    _position: {x: -1856.5, y: -793}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 2
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
+  - _ID: 484db6bf-9e99-48c7-b7e3-7c400ea9592e
+    _name: npc1b
+    _text: World
+    _choices:
+    - _text: Next Dialogue
+      _nodeID: 
+    _groupID: b30f59eb-a82d-4d2d-8843-44db1a0891b5
+    _dialogueType: 0
+    _position: {x: -1463, y: -776}
+    _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
+    _emotion: 3
+    _variablesContainer: {fileID: 0}
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+    _boolValue: 0
+    _intValue: 0
+    _floatValue: 0
+    _stringValue: 
+    _functionType: 0
+    _customFunctionName: 
+    _inkJsonAsset: {fileID: 0}
+    _knotName: 
+    _startFromBeginning: 0
   _oldGroupNames:
   - NPC2
   - NPC1
@@ -475,15 +475,15 @@ MonoBehaviour:
       - SceneB
       - Scene1
       - Ink
-    - Key: b30f59eb-a82d-4d2d-8843-44db1a0891b5
-      Value:
-      - npc1a
-      - npc1b
     - Key: d80fdfde-c896-4bcb-9bcd-12e49efc4a3b
       Value:
       - npc3ReadHealth
       - npc3a
-      - npc3b1
       - npc3d
       - npc3b
       - npc3SetHealth
+      - npc3b1
+    - Key: b30f59eb-a82d-4d2d-8843-44db1a0891b5
+      Value:
+      - npc1a
+      - npc1b

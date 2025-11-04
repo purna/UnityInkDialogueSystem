@@ -22,7 +22,7 @@ MonoBehaviour:
   _type: 1
   _isStartingDialogue: 0
   _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
-  _emotion: 1
+  _emotion: 3
   _variablesContainer: {fileID: 0}
   _variableName: 
   _variableType: 0

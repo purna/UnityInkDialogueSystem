@@ -287,14 +287,36 @@ private void Update()
         if (dialoguePanel != null)
             dialoguePanel.SetActive(true);
 
-        if (speakerNameText != null && dialogue.Character != null)
-            speakerNameText.text = dialogue.Character.Name;
 
-        if (characterIcon != null && dialogue.Character != null)
-        {
-            characterIcon.sprite = dialogue.Character.GetEmotionSprite(dialogue.Emotion);
-            characterIcon.gameObject.SetActive(true);
-        }
+   // Apply character settings
+if (dialogue.Character != null)
+{
+    // Set speaker name
+    if (speakerNameText != null)
+        speakerNameText.text = dialogue.Character.Name;
+
+    // Get the animation state for this emotion
+    string animationState = dialogue.Character.GetAnimationStateForEmotion(dialogue.Emotion);
+    
+    // Play the portrait animation
+    if (!string.IsNullOrEmpty(animationState) && portraitAnimator != null)
+    {
+        PlayPortraitAnimation(animationState);
+    }
+    
+    // Apply default layout
+    if (layoutAnimator != null)
+    {
+        PlayLayoutAnimation(dialogue.Character.DefaultLayoutString);
+    }
+
+    // Set character icon (graph-based system uses sprites)
+    if (characterIcon != null)
+    {
+        characterIcon.sprite = dialogue.Character.GetEmotionSprite(dialogue.Emotion);
+        characterIcon.gameObject.SetActive(true);
+    }
+}
 
         // UPDATED: Use TypewriterEffect
         if (typewriterEffect != null && dialogueText != null)

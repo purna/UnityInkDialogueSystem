@@ -20,7 +20,7 @@ MonoBehaviour:
   _type: 0
   _isStartingDialogue: 0
   _character: {fileID: 11400000, guid: b18d481bfa2744c60a3a94e53b912578, type: 2}
-  _emotion: 0
+  _emotion: 1
   _variablesContainer: {fileID: 0}
   _variableName: 
   _variableType: 0

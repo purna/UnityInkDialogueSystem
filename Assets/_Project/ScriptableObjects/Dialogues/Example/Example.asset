@@ -34,8 +34,8 @@ MonoBehaviour:
       Value:
       - {fileID: 11400000, guid: a6b848c43048348e9b70767292400709, type: 2}
       - {fileID: 11400000, guid: ae6ca2bd475494f5486fe586f4d749a2, type: 2}
-      - {fileID: 11400000, guid: 9912ec6796f0944e89e3c7f20337f87b, type: 2}
       - {fileID: 11400000, guid: 07d8c20c29d7b4cfc8d9fdfce6d01934, type: 2}
       - {fileID: 11400000, guid: aff8fed1e4b8b443db93a1bf601f5c0e, type: 2}
       - {fileID: 11400000, guid: 4a009fea0cdde468e957cb08a6f64ab6, type: 2}
+      - {fileID: 11400000, guid: 9912ec6796f0944e89e3c7f20337f87b, type: 2}
   _ungroupedDialogues: []
