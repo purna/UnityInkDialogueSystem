@@ -55,6 +55,15 @@ public static class UIElementUtility {
     }
     
 
+      // Extension method for LevelBaseNode
+    public static Port CreatePort(this LevelBaseNode node, string portName = "", Orientation orientation = Orientation.Horizontal, NodeDirection direction = NodeDirection.Output, Port.Capacity capacity = Port.Capacity.Single)
+    {
+        Port port = node.InstantiatePort(orientation, direction, capacity, typeof(object));
+        port.portName = portName;
+        return port;
+    }
+    
+
     public static ObjectField CreateObjectField(string title, Type type, UnityEngine.Object value = null, EventCallback<ChangeEvent<UnityEngine.Object>> onValueChanged = null) {
         ObjectField objectField = new() {
             objectType = type,

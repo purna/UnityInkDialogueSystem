@@ -738,6 +738,36 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!1 &1210276667 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4037660505584872609, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+  m_PrefabInstance: {fileID: 4037660505768148771}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1210276671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1210276667}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9ec9fa17fceb4439995a0e69f67cdf4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  visualCue: {fileID: 2019395892}
+  emoteAnimator: {fileID: 0}
+  skillsTreeController: {fileID: 0}
+  skillsTreeContainer: {fileID: 11400000, guid: ff03035f20eee4f1e8d2b882fb7c361e, type: 2}
+  selectedGroup: {fileID: 11400000, guid: 73c32b41d925e46ff8d8e858c89c4bdc, type: 2}
+  selectedSkillName: 
+  triggerOnEnter: 0
+  requiresInput: 1
+  interactKey: 101
+  canTriggerMultipleTimes: 1
+  interactPrompt: {fileID: 0}
+  promptText: Press E to view Skills
+  playerInRange: 0
 --- !u!1 &1261581312
 GameObject:
   m_ObjectHideFlags: 0
@@ -1645,6 +1675,11 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!1 &2019395892 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4037660505693481885, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+  m_PrefabInstance: {fileID: 4037660505768148771}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &2027815311 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2759132271096101637, guid: c64640d9fa72c4d0d943dce1b26670b1, type: 3}
@@ -1690,7 +1725,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &2062698337
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2443,10 +2478,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC (3)
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4037660505584872609, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1210276671}
   m_SourcePrefab: {fileID: 100100000, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
 --- !u!1001 &5772669922762208546
 PrefabInstance:

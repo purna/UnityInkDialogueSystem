@@ -859,7 +859,7 @@ public class SkillsTreeController : MonoBehaviour
             }
         }
     }
-    
+
     /// <summary>
     /// Get the node GameObject for a specific skill
     /// </summary>
@@ -871,8 +871,136 @@ public class SkillsTreeController : MonoBehaviour
         }
         return null;
     }
-    
+
     #endregion
+
+    #region Public UI Control Methods
+
+    /// <summary>
+    /// Show/Open the skill tree UI
+    /// </summary>
+    public void ShowSkillTree()
+    {
+        if (skillstreeUI != null)
+        {
+            skillstreeUI.SetActive(true);
+            Debug.Log("[SkillsTreeController] Skill tree UI opened");
+        }
+        else
+        {
+            Debug.LogWarning("[SkillsTreeController] Skill tree UI reference not set!");
+        }
+
+        // Refresh the display
+        UpdateAllNodeStates();
+        UpdateSkillPointsDisplay();
+    }
+
+
+    /// <summary>
+    /// Hide/Close the skill tree UI
+    /// </summary>
+    public void HideSkillTree()
+    {
+        if (skillstreeUI != null)
+        {
+            skillstreeUI.SetActive(false);
+            Debug.Log("[SkillsTreeController] Skill tree UI closed");
+        }
+
+        // Also hide the details panel
+        HideSkillDetails();
+    }
+
+/// <summary>
+/// Toggle the skill tree UI visibility
+/// </summary>
+public void ToggleSkillTree()
+{
+    if (skillstreeUI != null)
+    {
+        if (skillstreeUI.activeSelf)
+        {
+            HideSkillTree();
+        }
+        else
+        {
+            ShowSkillTree();
+        }
+    }
+}
+
+/// <summary>
+/// Set the skill group to display (filters the tree to only show skills from this group)
+/// </summary>
+public void SetSkillGroup(SkillsTreeGroup group)
+{
+    skillstreeGroup = group;
+    
+    // Regenerate the skill tree with the new group
+    InitializeSkillTree();
+    
+    Debug.Log($"[SkillsTreeController] Filtered to group: {group?.GroupName ?? "None"}");
+}
+
+/// <summary>
+/// Filter the skill tree by group name
+/// </summary>
+public void FilterByGroup(string groupName)
+{
+    if (skillstreeContainer == null)
+    {
+        Debug.LogWarning("[SkillsTreeController] No container assigned to filter by group!");
+        return;
+    }
+    
+    // Find the group by name
+    foreach (var kvp in skillstreeContainer.Groups)
+    {
+        if (kvp.Key.GroupName == groupName)
+        {
+            SetSkillGroup(kvp.Key);
+            return;
+        }
+    }
+    
+    Debug.LogWarning($"[SkillsTreeController] Could not find group with name: {groupName}");
+}
+
+/// <summary>
+/// Get a skill group by name from the current container
+/// </summary>
+public SkillsTreeGroup GetSkillGroup(string groupName)
+{
+    if (skillstreeContainer == null)
+    {
+        Debug.LogWarning("[SkillsTreeController] No container assigned!");
+        return null;
+    }
+    
+    foreach (var kvp in skillstreeContainer.Groups)
+    {
+        if (kvp.Key.GroupName == groupName)
+        {
+            return kvp.Key;
+        }
+    }
+    
+    return null;
+}
+
+/// <summary>
+/// Clear any group filter and show all skills
+/// </summary>
+public void ClearGroupFilter()
+{
+    skillstreeGroup = null;
+    InitializeSkillTree();
+    Debug.Log("[SkillsTreeController] Group filter cleared - showing all skills");
+}
+
+#endregion
+
 }
 
 /// <summary>
