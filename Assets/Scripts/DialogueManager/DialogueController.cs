@@ -10,6 +10,11 @@ public class DialogueController : MonoBehaviour
     [SerializeField] private DialogueGroup dialogueGroup;
     [SerializeField] private Dialogue dialogue;
 
+    /* Emote Animator */
+    [Header("Emote Animator")]
+    [Tooltip("Animator used for emote animations during dialogue (especially for Ink nodes)")]
+    [SerializeField] private Animator emoteAnimator;
+
     // Events for external systems (like DialoguePlayerController)
     public event Action OnDialogueStarted;
     public event Action OnDialogueEnded;
@@ -115,7 +120,21 @@ public class DialogueController : MonoBehaviour
             return;
         }
 
-        StartDialogueInternal(dialogue);
+        StartDialogueInternal(dialogue, emoteAnimator);
+    }
+
+    /// <summary>
+    /// Starts dialogue with a custom animator
+    /// </summary>
+    public void StartDialogue(Animator customEmoteAnimator)
+    {
+        if (dialogue == null)
+        {
+            Debug.LogWarning("No dialogue assigned!");
+            return;
+        }
+
+        StartDialogueInternal(dialogue, customEmoteAnimator);
     }
 
     /// <summary>
@@ -142,7 +161,7 @@ public class DialogueController : MonoBehaviour
         {
             // Update the dialogue reference for DialogueManager
             dialogue = startDialogue;
-            StartDialogueInternal(startDialogue);
+            StartDialogueInternal(startDialogue, emoteAnimator);
         }
         else
         {
@@ -180,15 +199,23 @@ public class DialogueController : MonoBehaviour
         // Return the dialogue at the selected index, or first one if index is invalid
         int index = selectedDialogueIndex < dialogueNames.Count ? selectedDialogueIndex : 0;
         
-        // TODO: Implement DialogueContainer.GetDialogueByName() method
-        // For now, return the manually assigned dialogue as fallback
-        return dialogue;
+        // Get dialogue by name from container
+        string dialogueName = dialogueNames[index];
+        return dialogueContainer.GetDialogueByName(dialogueName);
     }
 
     /// <summary>
     /// Triggers a specific dialogue at runtime
     /// </summary>
     public void TriggerDialogue(Dialogue dialogueToStart)
+    {
+        TriggerDialogue(dialogueToStart, emoteAnimator);
+    }
+
+    /// <summary>
+    /// Triggers a specific dialogue with custom animator at runtime
+    /// </summary>
+    public void TriggerDialogue(Dialogue dialogueToStart, Animator customEmoteAnimator)
     {
         if (dialogueToStart == null)
         {
@@ -198,13 +225,13 @@ public class DialogueController : MonoBehaviour
 
         // Update the dialogue reference
         dialogue = dialogueToStart;
-        StartDialogueInternal(dialogueToStart);
+        StartDialogueInternal(dialogueToStart, customEmoteAnimator);
     }
 
     /// <summary>
-    /// Internal method to start dialogue
+    /// Internal method to start dialogue with animator support
     /// </summary>
-    private void StartDialogueInternal(Dialogue dialogueToStart)
+    private void StartDialogueInternal(Dialogue dialogueToStart, Animator customEmoteAnimator)
     {
         if (dialogueToStart == null)
         {
@@ -219,14 +246,15 @@ public class DialogueController : MonoBehaviour
         OnDialogueStarted?.Invoke();
         Debug.Log("<color=orange>[DialogueController]</color> OnDialogueStarted event invoked!");
 
-        // Start via DialogueManager (preferred method)
+        // Start via DialogueManager (preferred method) with animator
         if (dialogueManager != null)
         {
-            dialogueManager.StartDialogue(this);
+            dialogueManager.StartDialogue(this, customEmoteAnimator);
         }
-        // Fallback: Use DialogueUI directly
+        // Fallback: Use DialogueUI directly (no animator support in this path)
         else if (dialogueUI != null)
         {
+            Debug.LogWarning("[DialogueController] Starting via DialogueUI fallback - Ink nodes may not work correctly!");
             dialogueUI.ShowDialogue(dialogueToStart);
         }
         else
@@ -284,6 +312,19 @@ public class DialogueController : MonoBehaviour
         }
         return false;
     }
+
+    /// <summary>
+    /// Set a custom emote animator at runtime
+    /// </summary>
+    public void SetEmoteAnimator(Animator animator)
+    {
+        emoteAnimator = animator;
+    }
+
+    /// <summary>
+    /// Get the current emote animator
+    /// </summary>
+    public Animator GetEmoteAnimator() => emoteAnimator;
 
     // Public getters for inspector/editor use
     public DialogueContainer GetDialogueContainer() => dialogueContainer;

@@ -85,7 +85,7 @@ public class DialogueNodeSaveData {
         _variableName = "";
         _variableType = VariableDataType.Bool;
         _modificationType = ModificationType.Set;
-        _conditionType = ConditionType.Equal;
+        _conditionType = ConditionType.Equals;
         _boolValue = false;
         _intValue = 0;
         _floatValue = 0f;

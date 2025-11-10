@@ -8,10 +8,8 @@ using UnityEngine.EventSystems;
 
 public class DialogueInkManager : MonoBehaviour
 {
-    [Header("Load Globals JSON")]
-    [SerializeField] private TextAsset loadGlobalsJSON;
-
-    // --- AUDIO REMOVED - Now handled by DialogueUI ---
+    // --- REMOVED: [SerializeField] private TextAsset loadGlobalsJSON; ---
+    // Now using DialogueVariableManager.Instance for global variables
 
     private Story currentStory;
     public bool dialogueIsPlaying { get; private set; }
@@ -50,10 +48,10 @@ public class DialogueInkManager : MonoBehaviour
         }
         instance = this;
 
-        dialogueInkVariables = new DialogueInkVariables(loadGlobalsJSON);
+        // UPDATED: No longer passing loadGlobalsJSON
+        // DialogueInkVariables will sync with DialogueVariableManager instead
+        dialogueInkVariables = new DialogueInkVariables();
         inkExternalFunctions = new InkExternalFunctions();
-
-        // --- AUDIO INITIALIZATION REMOVED ---
     }
 
     public static DialogueInkManager GetInstance() 
@@ -85,65 +83,24 @@ public class DialogueInkManager : MonoBehaviour
         displayNameText = dialogueUI.GetSpeakerNameComponent();
 
         dialogueUI.HidePanel(); // Start with panel hidden
-        
-        // --- AUDIO DICTIONARY INITIALIZATION REMOVED ---
     }
 
- // UPDATE the Update() method in DialogueInkManager.cs:
-
-private void Update()
-{
-    // ONLY handle input if Ink dialogue is actually playing
-    if (!dialogueIsPlaying || dialogueUI == null)
-        return;
-
-    // Get input state
-    inputSubmitDetected = InputManager.GetInstance().GetSubmitPressed();
-    inputInteractDetected = InputManager.GetInstance().GetInteractPressed();
-    inputMouseDetected = Input.GetMouseButtonDown(0);
-
-    canProgress = Input.GetKeyDown(KeyCode.Space) || 
-                  Input.GetKeyDown(KeyCode.Return) || 
-                  inputMouseDetected || 
-                  inputSubmitDetected || 
-                  inputInteractDetected;
-
-    // Skip typing if in progress
-    if (typewriterEffect != null && typewriterEffect.IsTyping && canProgress)
-    {
-        typewriterEffect.Skip();
-        return;
-    }
-
-    // CRITICAL: Don't progress if DialogueUI is handling choices
-    // The UI manages choice selection for both systems
-    if (currentStory.currentChoices.Count > 0)
-    {
-        // Choices are displayed - let DialogueUI handle input
-        return;
-    }
-
-    // Only progress if we can continue and there are no choices
-    if (canContinueToNextLine && canProgress)
-    {
-        ContinueStory();
-    }
-}
-/*
-private void Update()
+    private void Update()
     {
         // ONLY handle input if Ink dialogue is actually playing
-        // This prevents interference with graph-based dialogue nodes
         if (!dialogueIsPlaying || dialogueUI == null)
             return;
 
-        // Cache input - check for BOTH Space and Return
-
+        // Get input state
         inputSubmitDetected = InputManager.GetInstance().GetSubmitPressed();
         inputInteractDetected = InputManager.GetInstance().GetInteractPressed();
         inputMouseDetected = Input.GetMouseButtonDown(0);
 
-        canProgress = Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || inputMouseDetected || inputSubmitDetected || inputInteractDetected;
+        canProgress = Input.GetKeyDown(KeyCode.Space) || 
+                      Input.GetKeyDown(KeyCode.Return) || 
+                      inputMouseDetected || 
+                      inputSubmitDetected || 
+                      inputInteractDetected;
 
         // Skip typing if in progress
         if (typewriterEffect != null && typewriterEffect.IsTyping && canProgress)
@@ -151,14 +108,22 @@ private void Update()
             typewriterEffect.Skip();
             return;
         }
-    
-        // Only progress if we can continue AND there are no choices
-        if (canContinueToNextLine && currentStory.currentChoices.Count == 0 && canProgress)
+
+        // CRITICAL: Don't progress if DialogueUI is handling choices
+        // The UI manages choice selection for both systems
+        if (currentStory.currentChoices.Count > 0)
+        {
+            // Choices are displayed - let DialogueUI handle input
+            return;
+        }
+
+        // Only progress if we can continue and there are no choices
+        if (canContinueToNextLine && canProgress)
         {
             ContinueStory();
         }
     }
-*/
+
     public void EnterDialogueMode(TextAsset inkJSON, Animator emoteAnimator) 
     {
         EnterDialogueMode(inkJSON, emoteAnimator, null, true);
@@ -179,6 +144,12 @@ private void Update()
         currentStory = new Story(inkJSON.text);
         dialogueIsPlaying = true;
         dialogueUI.ShowPanel();
+
+        // UPDATED: Sync variables from DialogueVariableManager to this Ink story
+        if (DialogueVariableManager.Instance != null)
+        {
+            DialogueVariableManager.Instance.SyncToInkStory(currentStory);
+        }
 
         dialogueInkVariables.StartListening(currentStory);
         inkExternalFunctions.Bind(currentStory, emoteAnimator);
@@ -209,6 +180,12 @@ private void Update()
     {
         yield return new WaitForSeconds(0.2f);
 
+        // UPDATED: Sync variables back to DialogueVariableManager before exiting
+        if (DialogueVariableManager.Instance != null && currentStory != null)
+        {
+            DialogueVariableManager.Instance.SyncFromInkStory(currentStory);
+        }
+
         dialogueInkVariables.StopListening(currentStory);
         inkExternalFunctions.Unbind(currentStory);
 
@@ -218,30 +195,30 @@ private void Update()
         {
             dialogueText.text = "";
             dialogueUI.ClearInkChoices();
-            dialogueUI.ResetAudioToDefault(); // --- ADDED: Reset audio ---
+            dialogueUI.ResetAudioToDefault();
         }
     }
 
     private void ContinueStory() 
     {
         if (currentStory.canContinue) 
-            {
-                string nextLine = currentStory.Continue();
-                
-                if (nextLine.Equals("") && !currentStory.canContinue)
-                {
-                    StartCoroutine(ExitDialogueMode());
-                }
-                else
-                {
-                    HandleTags(currentStory.currentTags);
-                    DisplayLine(nextLine); // No longer a coroutine
-                }
-            }
-            else 
+        {
+            string nextLine = currentStory.Continue();
+            
+            if (nextLine.Equals("") && !currentStory.canContinue)
             {
                 StartCoroutine(ExitDialogueMode());
             }
+            else
+            {
+                HandleTags(currentStory.currentTags);
+                DisplayLine(nextLine);
+            }
+        }
+        else 
+        {
+            StartCoroutine(ExitDialogueMode());
+        }
     }
 
     private void DisplayLine(string line)
@@ -263,17 +240,22 @@ private void Update()
             dialogueText.text = line;
             OnTypingComplete();
         }
-
     }
 
     private void OnTypingComplete()
     {
-        dialogueUI.ShowContinueIcon();
+        // CRITICAL: Only show continue icon if there are no choices
+        if (currentStory.currentChoices.Count == 0)
+        {
+            dialogueUI.ShowContinueIcon();
+        }
+        else
+        {
+            dialogueUI.HideContinueIcon();
+        }
         dialogueUI.DisplayInkChoices(currentStory.currentChoices, MakeChoice);
         canContinueToNextLine = true;
     }
-
-    // --- PlayDialogueSound() METHOD REMOVED - Now in DialogueUI ---
 
     private void HandleTags(List<string> currentTags)
     {
@@ -306,7 +288,6 @@ private void Update()
                     dialogueUI.PlayLayoutAnimation(tagValue);
                     break;
                 case AUDIO_TAG:
-                    // --- UPDATED: Use DialogueUI's audio system ---
                     dialogueUI.SetCurrentAudioInfo(tagValue);
                     break;
                 default:
@@ -314,23 +295,52 @@ private void Update()
                     break;
             }
         }
-    }   
-   
+    }
+
     public void MakeChoice(int choiceIndex)
     {
-        if (canContinueToNextLine) 
+        if (canContinueToNextLine)
         {
             currentStory.ChooseChoiceIndex(choiceIndex);
 
             if (canProgress)
             {
-               ContinueStory();
-
-            } 
-
-
+                ContinueStory();
+            }
         }
     }
+    
+    /*
+    public void MakeChoice(int choiceIndex)
+    {
+        // CRITICAL FIX: Don't check canProgress here
+        // This method is called directly from button onClick events
+        if (!canContinueToNextLine) 
+        {
+            Debug.LogWarning("[DialogueInkManager] MakeChoice called but cannot continue to next line");
+            return;
+        }
+
+        if (currentStory == null)
+        {
+            Debug.LogError("[DialogueInkManager] MakeChoice called but currentStory is null");
+            return;
+        }
+
+        Debug.Log($"[DialogueInkManager] Making choice {choiceIndex} out of {currentStory.currentChoices.Count} choices");
+        
+        try
+        {
+            currentStory.ChooseChoiceIndex(choiceIndex);
+            ContinueStory();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[DialogueInkManager] Error making choice {choiceIndex}: {e.Message}");
+        }
+    }
+
+    */
 
     public Ink.Runtime.Object GetVariableState(string variableName) 
     {
@@ -345,6 +355,12 @@ private void Update()
 
     public void OnApplicationQuit() 
     {
-        dialogueInkVariables.SaveVariables();
+        // UPDATED: DialogueVariableManager handles saving now
+        // dialogueInkVariables.SaveVariables(); // REMOVED
+        
+        if (DialogueVariableManager.Instance != null && currentStory != null)
+        {
+            DialogueVariableManager.Instance.SyncFromInkStory(currentStory);
+        }
     }
 }

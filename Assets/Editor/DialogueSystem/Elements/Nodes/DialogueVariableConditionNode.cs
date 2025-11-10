@@ -16,7 +16,7 @@ public class DialogueVariableConditionNode : DialogueBaseNode {
 
     private DialogueVariablesContainer _variablesContainer;
     private string _variableName = "";
-    private ConditionType _conditionType = ConditionType.Equal;
+    private ConditionType _conditionType = ConditionType.Equals;
     
     private bool _boolTargetValue;
     private int _intTargetValue;
@@ -223,18 +223,18 @@ public class DialogueVariableConditionNode : DialogueBaseNode {
         switch (variable.Type) {
             case VariableDataType.Bool:
             case VariableDataType.String:
-                validConditions.Add(ConditionType.Equal);
-                validConditions.Add(ConditionType.NotEqual);
+                validConditions.Add(ConditionType.Equals);
+                validConditions.Add(ConditionType.NotEquals);
                 break;
 
             case VariableDataType.Int:
             case VariableDataType.Float:
-                validConditions.Add(ConditionType.Equal);
-                validConditions.Add(ConditionType.NotEqual);
-                validConditions.Add(ConditionType.Greater);
-                validConditions.Add(ConditionType.GreaterOrEqual);
-                validConditions.Add(ConditionType.Less);
-                validConditions.Add(ConditionType.LessOrEqual);
+                validConditions.Add(ConditionType.Equals);
+                validConditions.Add(ConditionType.NotEquals);
+                validConditions.Add(ConditionType.GreaterThan);
+                validConditions.Add(ConditionType.GreaterThanOrEqual);
+                validConditions.Add(ConditionType.LessThan);
+                validConditions.Add(ConditionType.LessThanOrEqual);
                 break;
         }
 

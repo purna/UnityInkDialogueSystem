@@ -229,8 +229,8 @@ public class DialogueVariableRuntime : MonoBehaviour {
         bool currentValue = GetVariable<bool>(node.VariableName);
 
         return node.Condition switch {
-            ConditionType.Equal => currentValue == node.BoolTargetValue,
-            ConditionType.NotEqual => currentValue != node.BoolTargetValue,
+            ConditionType.Equals => currentValue == node.BoolTargetValue,
+            ConditionType.NotEquals => currentValue != node.BoolTargetValue,
             _ => false
         };
     }
@@ -239,12 +239,12 @@ public class DialogueVariableRuntime : MonoBehaviour {
         int currentValue = GetVariable<int>(node.VariableName);
 
         return node.Condition switch {
-            ConditionType.Equal => currentValue == node.IntTargetValue,
-            ConditionType.NotEqual => currentValue != node.IntTargetValue,
-            ConditionType.Greater => currentValue > node.IntTargetValue,
-            ConditionType.GreaterOrEqual => currentValue >= node.IntTargetValue,
-            ConditionType.Less => currentValue < node.IntTargetValue,
-            ConditionType.LessOrEqual => currentValue <= node.IntTargetValue,
+            ConditionType.Equals => currentValue == node.IntTargetValue,
+            ConditionType.NotEquals => currentValue != node.IntTargetValue,
+            ConditionType.GreaterThan => currentValue > node.IntTargetValue,
+            ConditionType.GreaterThanOrEqual => currentValue >= node.IntTargetValue,
+            ConditionType.LessThan => currentValue < node.IntTargetValue,
+            ConditionType.LessThanOrEqual => currentValue <= node.IntTargetValue,
             _ => false
         };
     }
@@ -253,12 +253,12 @@ public class DialogueVariableRuntime : MonoBehaviour {
         float currentValue = GetVariable<float>(node.VariableName);
 
         return node.Condition switch {
-            ConditionType.Equal => Mathf.Approximately(currentValue, node.FloatTargetValue),
-            ConditionType.NotEqual => !Mathf.Approximately(currentValue, node.FloatTargetValue),
-            ConditionType.Greater => currentValue > node.FloatTargetValue,
-            ConditionType.GreaterOrEqual => currentValue >= node.FloatTargetValue,
-            ConditionType.Less => currentValue < node.FloatTargetValue,
-            ConditionType.LessOrEqual => currentValue <= node.FloatTargetValue,
+            ConditionType.Equals => Mathf.Approximately(currentValue, node.FloatTargetValue),
+            ConditionType.NotEquals => !Mathf.Approximately(currentValue, node.FloatTargetValue),
+            ConditionType.GreaterThan => currentValue > node.FloatTargetValue,
+            ConditionType.GreaterThanOrEqual => currentValue >= node.FloatTargetValue,
+            ConditionType.LessThan => currentValue < node.FloatTargetValue,
+            ConditionType.LessThanOrEqual => currentValue <= node.FloatTargetValue,
             _ => false
         };
     }
@@ -267,8 +267,8 @@ public class DialogueVariableRuntime : MonoBehaviour {
         string currentValue = GetVariable<string>(node.VariableName);
 
         return node.Condition switch {
-            ConditionType.Equal => currentValue == node.StringTargetValue,
-            ConditionType.NotEqual => currentValue != node.StringTargetValue,
+            ConditionType.Equals => currentValue == node.StringTargetValue,
+            ConditionType.NotEquals => currentValue != node.StringTargetValue,
             _ => false
         };
     }

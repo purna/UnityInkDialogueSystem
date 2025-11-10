@@ -182,7 +182,7 @@ public static class DialogueSystemSaveManager {
                         modifyNode.VariableName,
                         modifyNode.VariableType,
                         modifyNode.Modification,
-                        ConditionType.Equal, // Not used for modify
+                        ConditionType.Equals, // Not used for modify
                         modifyNode.BoolValue,
                         modifyNode.IntValue,
                         modifyNode.FloatValue,
@@ -308,7 +308,7 @@ public static class DialogueSystemSaveManager {
                         modifyNode.VariableName,
                         modifyNode.VariableType,
                         modifyNode.Modification,
-                        ConditionType.Equal, // Not used for modify
+                        ConditionType.Equals, // Not used for modify
                         modifyNode.BoolValue,
                         modifyNode.IntValue,
                         modifyNode.FloatValue,

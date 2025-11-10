@@ -12,7 +12,7 @@ public class DialogueSystemEditorWindow : EditorWindow {
     private Button _saveButton;
     private Button _minimapButton;
 
-    [MenuItem("Window/Dialogue System/Dialogue Graph")]
+    [MenuItem("Window/Game Systems/Dialogue Graph")]
     public static void ShowExample() {
         GetWindow<DialogueSystemEditorWindow>("Dialogue Graph");
     }

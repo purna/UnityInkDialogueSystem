@@ -766,15 +766,19 @@ if (dialogue.Character != null)
             return;
         }
 
-        foreach (Ink.Runtime.Choice choice in choices)
+        for (int i = 0; i < choices.Count; i++)
         {
+            Ink.Runtime.Choice choice = choices[i];
             Button btn = Instantiate(choiceButtonPrefab, choicesContainer);
 
             TextMeshProUGUI btnText = btn.GetComponentInChildren<TextMeshProUGUI>();
             if (btnText != null)
                 btnText.text = choice.text;
 
-            int choiceIndex = choice.index;
+            // CRITICAL FIX: Use the index from the choices list (i), not choice.index
+            // choice.index is the filtered index from story.currentChoices
+            // but we need the actual choice index for story.ChooseChoiceIndex()
+            int choiceIndex = i;
             btn.onClick.AddListener(() => onChoiceSelected(choiceIndex));
 
             activeInkChoiceButtons.Add(btn);

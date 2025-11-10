@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30131ca3e3edc42f5bb6b449a5208156, type: 3}
+  m_Name: BBB
+  m_EditorClassIdentifier: 
+  _skillName: BBB
+  _description: BBB Test
+  _icon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+  _lockedIcon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+  _unlockedIcon: {fileID: 21300000, guid: 7225b7bb6ac02ad4dbc0f4815c6f883e, type: 3}
+  _tier: 2
+  _unlockCost: 0
+  _skillType: 3
+  _value: 0
+  _maxLevel: 1
+  _prerequisites:
+  - {fileID: 11400000, guid: 3ef6de88d60f04decaa66a0151572a16, type: 2}
+  _children:
+  - {fileID: 11400000, guid: f4b3b016a3e834e498e213d77181c67e, type: 2}
+  _unlockFunctions: []
+  _position: {x: 748, y: -13.5}

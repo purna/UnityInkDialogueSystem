@@ -11,20 +11,15 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] private bool useReturnKey = true;
     [SerializeField] private bool useMouseClick = true;
     [SerializeField] private bool useSpaceKey = true;
-        
-    [Header("External System References")]
-    [Tooltip("Animator used for external Ink functions (e.g., player emotes). Required for Ink nodes.")]
-    [SerializeField] private Animator playerEmoteAnimator;
     
-    [Tooltip("Audio Source for playing dialogue sounds")]
-    [SerializeField] private AudioSource audioSource;
-    
-    [Tooltip("Player GameObject for pause/resume functionality")]
-    [SerializeField] private GameObject player;
+    // REMOVED: playerEmoteAnimator - now passed via DialogueTrigger
+    // REMOVED: audioSource - DialogueUI handles all audio
+    // REMOVED: player - external systems handle via events
 
     private Dialogue _nowDialogue;
     private bool _isWaitingForChoice = false;
     private bool _isWaitingForInk = false;
+    private Animator _currentEmoteAnimator; // Stored when dialogue starts
 
     // Events for external systems to subscribe to
     public event Action DialogueStarted;
@@ -42,6 +37,8 @@ public class DialogueManager : MonoBehaviour
     public event Action<string> OnHideUI; // uiName
     public event Action<string, object> OnSetVariable; // variableName, value
     public event Action<string> OnTriggerEvent; // eventName
+    public event Action OnPausePlayer;
+    public event Action OnResumePlayer;
 
     public bool IsDialogueActive => _nowDialogue != null;
     public Dialogue CurrentDialogue => _nowDialogue;
@@ -63,46 +60,55 @@ public class DialogueManager : MonoBehaviour
         {
             Debug.LogWarning("DialogueInkManager.GetInstance() returned null. Ink nodes will not function.");
         }
-
-        if (audioSource == null)
-        {
-            audioSource = GetComponent<AudioSource>();
-        }
     }
 
-    // ... (Keep all existing methods: StartDialogue, Update, ProgressDialogue, SelectDialogue, SetDialogue, StopDialogue, EndDialogue)
+    // ============================================
+    // == PUBLIC START DIALOGUE METHODS ==
+    // ============================================
 
-    public void StartDialogue(DialogueController dialogueController)
+    /// <summary>
+    /// Start dialogue from a DialogueController with optional emote animator
+    /// </summary>
+    public void StartDialogue(DialogueController dialogueController, Animator emoteAnimator = null)
     {
         if (dialogueController == null || dialogueController.Dialogue == null)
         {
             Debug.LogWarning("DialogueController or its Dialogue is null!");
             return;
         }
-        StartDialogue(dialogueController.Dialogue);
+        StartDialogue(dialogueController.Dialogue, emoteAnimator);
     }
 
-    public void StartDialogue(Dialogue dialogue)
+    /// <summary>
+    /// Start dialogue with optional emote animator (for Ink nodes)
+    /// </summary>
+    public void StartDialogue(Dialogue dialogue, Animator emoteAnimator = null)
     {
         if (dialogue == null)
         {
             Debug.LogWarning("Cannot start null dialogue!");
             return;
         }
+        
+        _currentEmoteAnimator = emoteAnimator;
         SetDialogue(dialogue);
     }
 
-    public void StartDialogueFromContainer(DialogueContainer container, DialogueGroup group = null, bool startingOnly = true)
+    /// <summary>
+    /// Start dialogue from a container with optional emote animator
+    /// </summary>
+    public void StartDialogueFromContainer(DialogueContainer container, DialogueGroup group = null, bool startingOnly = true, Animator emoteAnimator = null)
     {
         if (container == null)
         {
             Debug.LogWarning("DialogueContainer is null!");
             return;
         }
+        
         Dialogue startDialogue = GetStartingDialogueFromContainer(container, group, startingOnly);
         if (startDialogue != null)
         {
-            StartDialogue(startDialogue);
+            StartDialogue(startDialogue, emoteAnimator);
         }
         else
         {
@@ -131,6 +137,10 @@ public class DialogueManager : MonoBehaviour
         return container.GetDialogueByName(dialogueNames[0]);
     }
 
+    // ============================================
+    // == UPDATE & INPUT HANDLING ==
+    // ============================================
+
     private void Update()
     {
         // Handle Ink node completion
@@ -152,149 +162,143 @@ public class DialogueManager : MonoBehaviour
         // Ink nodes handle their own input in DialogueInkManager
         if (_nowDialogue.Type == DialogueType.Ink)
             return;
-
-
     }
+
+    // ============================================
+    // == DIALOGUE FLOW CONTROL ==
+    // ============================================
 
     public void SelectDialogue(Dialogue dialogue)
     {
-            Debug.Log($"<color=lime>[SelectDialogue]</color> Player selected a choice - Setting _isWaitingForChoice = FALSE");
+        Debug.Log($"<color=lime>[SelectDialogue]</color> Player selected a choice - Setting _isWaitingForChoice = FALSE");
         _isWaitingForChoice = false;
         SetDialogue(dialogue);
     }
     
     public bool IsWaitingForChoice()
-{
-    return _isWaitingForChoice;
-}
-
-private void SetDialogue(Dialogue dialogue)
-{
-    // Store previous state BEFORE updating _nowDialogue
-    bool wasDialogueActive = _nowDialogue != null;
-    
-    _nowDialogue = dialogue;
-
-    if (dialogue == null)
     {
-        StopDialogue();
-        return;
+        return _isWaitingForChoice;
     }
 
-    // Invoke DialogueStarted when starting NEW dialogue (not progressing existing)
-    if (!wasDialogueActive)
+    private void SetDialogue(Dialogue dialogue)
     {
-        Debug.Log("<color=green>[DialogueManager]</color> First dialogue set - invoking DialogueStarted event!");
-        DialogueStarted?.Invoke();
-    }
+        // Store previous state BEFORE updating _nowDialogue
+        bool wasDialogueActive = _nowDialogue != null;
+        
+        _nowDialogue = dialogue;
 
-    Debug.Log($"<color=orange>[SetDialogue]</color> Setting dialogue: {dialogue.Name}, Type: {dialogue.Type}");
-    
-    
-     // AInvoke DialogueStarted when setting first dialogue
-    if (DialogueStarted != null && !IsDialogueActive)
-    {
-        DialogueStarted?.Invoke();
-    }
-
-
-    Debug.Log($"<color=orange>[SetDialogue]</color> Setting dialogue: {dialogue.Name}, Type: {dialogue.Type}");
-    
-    LogVariableNodeDebug(dialogue);
-    
-    switch (dialogue.Type)
-    {
-        case DialogueType.ExternalFunction:
-            Debug.Log("<color=yellow>[SetDialogue]</color> Processing External Function - Auto-progressing");
-            ProcessExternalFunction(dialogue);
-            SetDialogue(dialogue.GetNextDialogue());
+        if (dialogue == null)
+        {
+            StopDialogue();
             return;
+        }
 
-        case DialogueType.ModifyVariable:
-            Debug.Log("<color=yellow>[SetDialogue]</color> Processing Modify Variable - Auto-progressing");
-            ProcessModifyVariable(dialogue);
-            SetDialogue(dialogue.GetNextDialogue());
-            return;
+        // Invoke DialogueStarted when starting NEW dialogue (not progressing existing)
+        if (!wasDialogueActive)
+        {
+            Debug.Log("<color=green>[DialogueManager]</color> First dialogue set - invoking DialogueStarted event!");
+            DialogueStarted?.Invoke();
+        }
 
-        case DialogueType.VariableCondition:
-            Debug.Log("<color=yellow>[SetDialogue]</color> Processing Variable Condition - Auto-progressing");
-            Dialogue nextNode = ProcessVariableCondition(dialogue);
-            SetDialogue(nextNode);
-            return;
-
-        case DialogueType.Ink:
-            Debug.Log("<color=yellow>[SetDialogue]</color> Processing Ink Node - Waiting for Ink");
-            if (_inkManager != null)
-            {
-                _isWaitingForInk = true;
-                if (_dialogueUI != null) { _dialogueUI.EndDialogue(); } 
-                _inkManager.EnterDialogueMode(
-                    dialogue.InkJsonAsset, 
-                    playerEmoteAnimator,
-                    dialogue.KnotName, 
-                    dialogue.StartFromBeginning
-                );
-            }
-            else
-            {
-                Debug.LogError("Ink Node hit, but no Ink Manager! Skipping...");
+        Debug.Log($"<color=orange>[SetDialogue]</color> Setting dialogue: {dialogue.Name}, Type: {dialogue.Type}");
+        
+        LogVariableNodeDebug(dialogue);
+        
+        switch (dialogue.Type)
+        {
+            case DialogueType.ExternalFunction:
+                Debug.Log("<color=yellow>[SetDialogue]</color> Processing External Function - Auto-progressing");
+                ProcessExternalFunction(dialogue);
                 SetDialogue(dialogue.GetNextDialogue());
-            }
-            return;
+                return;
 
-        case DialogueType.MultipleChoice:
-            // Set waiting flag BEFORE showing UI
-            _isWaitingForChoice = true;
-            Debug.Log($"<color=cyan>[SetDialogue]</color> Multiple Choice Node - Setting _isWaitingForChoice = TRUE");
-            Debug.Log($"<color=cyan>[SetDialogue]</color> Number of choices: {dialogue.Choices.Count}");
-            
-            // Show the dialogue with choices in UI
-            if (_dialogueUI != null)
-            {
-                _dialogueUI.ShowDialogue(dialogue);
-            }
-            return;
+            case DialogueType.ModifyVariable:
+                Debug.Log("<color=yellow>[SetDialogue]</color> Processing Modify Variable - Auto-progressing");
+                ProcessModifyVariable(dialogue);
+                SetDialogue(dialogue.GetNextDialogue());
+                return;
 
-        case DialogueType.SingleChoice:
-        default:
-            // Reset waiting flag for non-choice dialogues
-            _isWaitingForChoice = false;
-            Debug.Log($"<color=green>[SetDialogue]</color> Normal dialogue - Setting _isWaitingForChoice = FALSE");
-            
-            // Show normal dialogue in UI
-            if (_dialogueUI != null)
-            {
-                _dialogueUI.ShowDialogue(dialogue);
-            }
-            break;
+            case DialogueType.VariableCondition:
+                Debug.Log("<color=yellow>[SetDialogue]</color> Processing Variable Condition - Auto-progressing");
+                Dialogue nextNode = ProcessVariableCondition(dialogue);
+                SetDialogue(nextNode);
+                return;
+
+            case DialogueType.Ink:
+                Debug.Log("<color=yellow>[SetDialogue]</color> Processing Ink Node - Waiting for Ink");
+                if (_inkManager != null)
+                {
+                    _isWaitingForInk = true;
+                    if (_dialogueUI != null) { _dialogueUI.EndDialogue(); } 
+                    
+                    // Use stored emote animator
+                    _inkManager.EnterDialogueMode(
+                        dialogue.InkJsonAsset, 
+                        _currentEmoteAnimator,
+                        dialogue.KnotName, 
+                        dialogue.StartFromBeginning
+                    );
+                }
+                else
+                {
+                    Debug.LogError("Ink Node hit, but no Ink Manager! Skipping...");
+                    SetDialogue(dialogue.GetNextDialogue());
+                }
+                return;
+
+            case DialogueType.MultipleChoice:
+                // Set waiting flag BEFORE showing UI
+                _isWaitingForChoice = true;
+                Debug.Log($"<color=cyan>[SetDialogue]</color> Multiple Choice Node - Setting _isWaitingForChoice = TRUE");
+                Debug.Log($"<color=cyan>[SetDialogue]</color> Number of choices: {dialogue.Choices.Count}");
+                
+                // Show the dialogue with choices in UI
+                if (_dialogueUI != null)
+                {
+                    _dialogueUI.ShowDialogue(dialogue);
+                }
+                return;
+
+            case DialogueType.SingleChoice:
+            default:
+                // Reset waiting flag for non-choice dialogues
+                _isWaitingForChoice = false;
+                Debug.Log($"<color=green>[SetDialogue]</color> Normal dialogue - Setting _isWaitingForChoice = FALSE");
+                
+                // Show normal dialogue in UI
+                if (_dialogueUI != null)
+                {
+                    _dialogueUI.ShowDialogue(dialogue);
+                }
+                break;
+        }
     }
-}
 
-
-public void ProgressDialogue()
-{
-    Debug.Log($"<color=magenta>[ProgressDialogue]</color> Called - _isWaitingForChoice: {_isWaitingForChoice}");
-
-    if (_nowDialogue == null)
-        return;
-
-    if (_nowDialogue.Type == DialogueType.MultipleChoice)
+    public void ProgressDialogue()
     {
-        _isWaitingForChoice = true;
-        Debug.Log($"<color=red>[ProgressDialogue]</color> BLOCKED: Multiple choice detected, not progressing");
-        return;
-    }
+        Debug.Log($"<color=magenta>[ProgressDialogue]</color> Called - _isWaitingForChoice: {_isWaitingForChoice}");
 
-    Dialogue nextDialogue = _nowDialogue.GetNextDialogue();
-    Debug.Log($"<color=magenta>[ProgressDialogue]</color> Getting next dialogue: {(nextDialogue != null ? nextDialogue.Name : "NULL")}");
-    SetDialogue(nextDialogue);
-}
+        if (_nowDialogue == null)
+            return;
+
+        if (_nowDialogue.Type == DialogueType.MultipleChoice)
+        {
+            _isWaitingForChoice = true;
+            Debug.Log($"<color=red>[ProgressDialogue]</color> BLOCKED: Multiple choice detected, not progressing");
+            return;
+        }
+
+        Dialogue nextDialogue = _nowDialogue.GetNextDialogue();
+        Debug.Log($"<color=magenta>[ProgressDialogue]</color> Getting next dialogue: {(nextDialogue != null ? nextDialogue.Name : "NULL")}");
+        SetDialogue(nextDialogue);
+    }
 
     public void StopDialogue()
     {
         _nowDialogue = null;
         _isWaitingForChoice = false;
         _isWaitingForInk = false;
+        _currentEmoteAnimator = null;
 
         if (_dialogueUI != null)
         {
@@ -360,7 +364,6 @@ public void ProgressDialogue()
                 break;
                 
             case ExternalFunctionType.PlayAnimation:
-                // Parse animation data from customFunctionName (format: "AnimatorName:AnimationName")
                 PlayAnimation(customFunctionName);
                 break;
                 
@@ -369,17 +372,14 @@ public void ProgressDialogue()
                 break;
                 
             case ExternalFunctionType.UpdateQuest:
-                // Parse quest data from customFunctionName (format: "QuestName:Progress")
                 UpdateQuest(customFunctionName);
                 break;
                 
             case ExternalFunctionType.TeleportPlayer:
-                // Parse position from customFunctionName (format: "x,y,z")
                 TeleportPlayer(customFunctionName);
                 break;
                 
             case ExternalFunctionType.SpawnNPC:
-                // Parse NPC data from customFunctionName (format: "NPCName:x,y,z")
                 SpawnNPC(customFunctionName);
                 break;
                 
@@ -392,7 +392,6 @@ public void ProgressDialogue()
                 break;
                 
             case ExternalFunctionType.SetVariable:
-                // Parse variable data from customFunctionName (format: "VarName:Value")
                 SetVariable(customFunctionName);
                 break;
                 
@@ -418,68 +417,38 @@ public void ProgressDialogue()
     {
         Debug.Log($"<color=magenta>[External Function]</color> Play Emote: {emoteName}");
         
-        if (playerEmoteAnimator != null && !string.IsNullOrEmpty(emoteName))
+        if (_currentEmoteAnimator != null && !string.IsNullOrEmpty(emoteName))
         {
-            playerEmoteAnimator.SetTrigger(emoteName);
+            _currentEmoteAnimator.SetTrigger(emoteName);
         }
         else
         {
-            Debug.LogWarning("Player Emote Animator not assigned or emote name is empty!");
+            Debug.LogWarning("Emote Animator not available or emote name is empty!");
         }
     }
 
     private void PausePlayer()
     {
         Debug.Log($"<color=magenta>[External Function]</color> Pause Player");
-        
-        if (player != null)
-        {
-            // Disable player movement scripts
-            var playerController = player.GetComponent<MonoBehaviour>();
-            if (playerController != null)
-            {
-                playerController.enabled = false;
-            }
-            
-            // Or use Time.timeScale for global pause
-            // Time.timeScale = 0f;
-        }
+        OnPausePlayer?.Invoke();
     }
 
     private void ResumePlayer()
     {
         Debug.Log($"<color=magenta>[External Function]</color> Resume Player");
-        
-        if (player != null)
-        {
-            // Enable player movement scripts
-            var playerController = player.GetComponent<MonoBehaviour>();
-            if (playerController != null)
-            {
-                playerController.enabled = true;
-            }
-            
-            // Or restore time scale
-            // Time.timeScale = 1f;
-        }
+        OnResumePlayer?.Invoke();
     }
 
     private void GiveItem(string itemName)
     {
         Debug.Log($"<color=magenta>[External Function]</color> Give Item: {itemName}");
         OnGiveItem?.Invoke(itemName);
-        
-        // TODO: Integrate with your inventory system
-        // Example: InventoryManager.Instance.AddItem(itemName);
     }
 
     private void RemoveItem(string itemName)
     {
         Debug.Log($"<color=magenta>[External Function]</color> Remove Item: {itemName}");
         OnRemoveItem?.Invoke(itemName);
-        
-        // TODO: Integrate with your inventory system
-        // Example: InventoryManager.Instance.RemoveItem(itemName);
     }
 
     private void PlayAnimation(string animationData)
@@ -494,14 +463,6 @@ public void ProgressDialogue()
             string animationName = parts[1].Trim();
             
             OnPlayAnimation?.Invoke(animatorName, animationName);
-            
-            // TODO: Find animator by name and play animation
-            // GameObject animatorObject = GameObject.Find(animatorName);
-            // if (animatorObject != null)
-            // {
-            //     Animator animator = animatorObject.GetComponent<Animator>();
-            //     animator?.SetTrigger(animationName);
-            // }
         }
         else
         {
@@ -513,16 +474,6 @@ public void ProgressDialogue()
     {
         Debug.Log($"<color=magenta>[External Function]</color> Play Sound: {soundName}");
         OnPlaySound?.Invoke(soundName);
-        
-        if (audioSource != null)
-        {
-            // TODO: Load audio clip by name and play
-            // AudioClip clip = Resources.Load<AudioClip>($"Sounds/{soundName}");
-            // if (clip != null)
-            // {
-            //     audioSource.PlayOneShot(clip);
-            // }
-        }
     }
 
     private void UpdateQuest(string questData)
@@ -537,9 +488,6 @@ public void ProgressDialogue()
             if (int.TryParse(parts[1].Trim(), out int progress))
             {
                 OnUpdateQuest?.Invoke(questName, progress);
-                
-                // TODO: Integrate with your quest system
-                // Example: QuestManager.Instance.UpdateQuest(questName, progress);
             }
         }
         else
@@ -562,11 +510,6 @@ public void ProgressDialogue()
             {
                 Vector3 targetPosition = new Vector3(x, y, z);
                 OnTeleportPlayer?.Invoke(targetPosition);
-                
-                if (player != null)
-                {
-                    player.transform.position = targetPosition;
-                }
             }
         }
         else
@@ -593,9 +536,6 @@ public void ProgressDialogue()
             {
                 Vector3 spawnPosition = new Vector3(x, y, z);
                 OnSpawnNPC?.Invoke(npcName, spawnPosition);
-                
-                // TODO: Integrate with your NPC spawning system
-                // Example: NPCManager.Instance.SpawnNPC(npcName, spawnPosition);
             }
         }
         else
@@ -608,18 +548,12 @@ public void ProgressDialogue()
     {
         Debug.Log($"<color=magenta>[External Function]</color> Show UI: {uiName}");
         OnShowUI?.Invoke(uiName);
-        
-        // TODO: Integrate with your UI system
-        // Example: UIManager.Instance.ShowPanel(uiName);
     }
 
     private void HideUI(string uiName)
     {
         Debug.Log($"<color=magenta>[External Function]</color> Hide UI: {uiName}");
         OnHideUI?.Invoke(uiName);
-        
-        // TODO: Integrate with your UI system
-        // Example: UIManager.Instance.HidePanel(uiName);
     }
 
     private void SetVariable(string variableData)
@@ -635,8 +569,11 @@ public void ProgressDialogue()
             
             OnSetVariable?.Invoke(varName, varValue);
             
-            // TODO: Integrate with your variable system
-            // Example: DialogueVariableManager.Instance.SetVariable(varName, varValue);
+            // Integrate with DialogueVariableManager
+            if (DialogueVariableManager.Instance != null)
+            {
+                DialogueVariableManager.Instance.SetVariable(varName, varValue);
+            }
         }
         else
         {
@@ -648,18 +585,11 @@ public void ProgressDialogue()
     {
         Debug.Log($"<color=magenta>[External Function]</color> Trigger Event: {eventName}");
         OnTriggerEvent?.Invoke(eventName);
-        
-        // TODO: Integrate with your event system
-        // Example: EventManager.Instance.TriggerEvent(eventName);
     }
 
     private void ExecuteCustomFunction(string functionName)
     {
         Debug.Log($"<color=magenta>[External Function]</color> Custom Function: {functionName}");
-        
-        // This allows for completely custom functionality
-        // You can implement your own function routing here
-        // Example: CustomFunctionRouter.Instance.Execute(functionName);
     }
 
     // ============================================
@@ -674,23 +604,21 @@ public void ProgressDialogue()
         }
         else
         {
-            Debug.LogWarning("[DialogueManager] DialogueVariableManager not found! Variable modification skipped.");
+            Debug.LogWarning("[DialogueManager] DialogueVariableManager not found!");
         }
-        
-        Debug.Log($"<color=orange>VAR MODIFY:</color> '{dialogue.VariableName}' {dialogue.ModificationType} {GetVariableValueString(dialogue, dialogue.VariableType)}");
     }
 
     private Dialogue ProcessVariableCondition(Dialogue dialogue)
     {
         bool conditionMet = false;
-        
+       
         if (DialogueVariableManager.Instance != null)
         {
             conditionMet = DialogueVariableManager.Instance.CheckCondition(dialogue);
         }
         else
         {
-            Debug.LogWarning("[DialogueManager] DialogueVariableManager not found! Condition check defaulting to false.");
+            Debug.LogWarning("[DialogueManager] DialogueVariableManager not found!");
         }
         
         Debug.Log($"<color=lightblue>VAR CONDITION:</color> '{dialogue.VariableName}' {dialogue.ConditionType} {GetVariableValueString(dialogue, dialogue.VariableType)} -> {conditionMet}");
