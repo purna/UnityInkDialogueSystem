@@ -148,7 +148,7 @@ public class LevelNodeEditor : Editor
         
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField("Name:", level.LevelName, EditorStyles.boldLabel);
-        EditorGUILayout.LabelField("Type:", level.LevelType.ToString());
+        EditorGUILayout.LabelField("Type:", level.LevelSceneType.ToString());
         EditorGUILayout.LabelField("Tier:", level.Tier.ToString());
         EditorGUILayout.EndVertical();
         

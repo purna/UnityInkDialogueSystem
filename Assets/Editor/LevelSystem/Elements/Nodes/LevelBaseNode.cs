@@ -19,9 +19,11 @@ public abstract class LevelBaseNode : Node
     private Label _descriptionLabel;
     private VisualElement _iconContainer;
     private Label _statusLabel;
-    
+
     // Reference to the Level ScriptableObject
     private Level _level;
+
+    private SceneField _gameScene;
     
     // Level properties (cached from ScriptableObject)
     private Sprite _icon;
@@ -30,6 +32,7 @@ public abstract class LevelBaseNode : Node
     private Sprite _completedIcon;
     private string _description;
     private int _tier;
+    private LevelSceneType _levelSceneType;
     private int _levelIndex;
     private float _completionThreshold;
     private int _maxAttempts;
@@ -69,14 +72,18 @@ public abstract class LevelBaseNode : Node
     public string ID => _id;
     public IEnumerable<LevelChoiceSaveData> Choices => _choices;
     public LevelType LevelType => _type;
-    
+
     // Expose Level properties for saving
+
+    public SceneField GameScene => _gameScene;
+    
     public Sprite Icon => _icon;
     public Sprite LockedIcon => _lockedIcon;
     public Sprite UnlockedIcon => _unlockedIcon;
     public Sprite CompletedIcon => _completedIcon;
     public string Description => _description;
     public int Tier => _tier;
+    public LevelSceneType LevelSceneType => _levelSceneType;
     public int LevelIndex => _levelIndex;
     public float CompletionThreshold => _completionThreshold;
     public int MaxAttempts => _maxAttempts;
@@ -93,6 +100,7 @@ public abstract class LevelBaseNode : Node
         
         // Initialize default Level properties
         _tier = 0;
+        _levelSceneType = LevelSceneType.Normal;
         _levelIndex = 0;
         _completionThreshold = 100f;
         _maxAttempts = -1; // Unlimited
@@ -271,6 +279,8 @@ public abstract class LevelBaseNode : Node
         _completedIcon = _level.CompletedIcon;
         _description = _level.Description;
         _tier = _level.Tier;
+        _gameScene = _level.GameScene;
+        _levelSceneType = _level.LevelSceneType;
         _levelIndex = _level.LevelIndex;
         _completionThreshold = _level.CompletionThreshold;
         _maxAttempts = _level.MaxAttempts;
@@ -290,7 +300,10 @@ public abstract class LevelBaseNode : Node
         _level.UpdateName(_levelName);
         _level.UpdateDescription(_description);
         _level.UpdateIcons(_icon, _lockedIcon, _unlockedIcon, _completedIcon);
+        _level.UpdateLevelSceneType(_levelSceneType);
         _level.UpdateProperties(_tier, _levelIndex, _completionThreshold, _maxAttempts);
+        _level.UpdateGameScene(_gameScene); // ADD THIS LINE
+
         
         UnityEditor.EditorUtility.SetDirty(_level);
         Debug.Log($"[LevelBaseNode] Applied to Level asset: {_levelName}");
@@ -473,9 +486,19 @@ public abstract class LevelBaseNode : Node
         _completedIcon = data.CompletedIcon;
         _description = data.Description;
         _tier = data.Tier;
+        _levelSceneType = data.LevelSceneType;
         _levelIndex = data.LevelIndex;
         _completionThreshold = data.CompletionThreshold;
         _maxAttempts = data.MaxAttempts;
+
+        // Load scene data
+        if (!string.IsNullOrEmpty(data.GameSceneName))
+        {
+            // Create a SceneField from the saved data
+            _gameScene = new SceneField();
+            // Note: You may need to use reflection or a custom method to set the SceneName
+            // This depends on your SceneField implementation
+        }
         
         UpdateVisualDisplay();
     }
@@ -496,6 +519,8 @@ public abstract class LevelBaseNode : Node
         
         saveData.UpdateVisualData(_icon, _lockedIcon, _unlockedIcon, _completedIcon, _description);
         saveData.UpdateLevelProperties(_tier, _levelIndex, _completionThreshold, _maxAttempts);
+        saveData.UpdateLevelSceneType(_levelSceneType);
+       saveData.UpdateSceneData(_gameScene); 
         
         return saveData;
     }

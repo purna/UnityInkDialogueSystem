@@ -19,8 +19,7 @@ public class LevelManager : MonoBehaviour
     [Header("Player Stats")]
     [SerializeField] private Dictionary<StatType, float> _statModifiers = new Dictionary<StatType, float>();
 
-    [Header("Unlocked Abilities")]
-    [SerializeField] private List<string> _unlockedAbilities = new List<string>();
+
 
     // Events
     public event Action<Level> OnLevelUnlocked;
@@ -136,20 +135,7 @@ public class LevelManager : MonoBehaviour
         return _statModifiers.ContainsKey(statType) ? _statModifiers[statType] : 0f;
     }
 
-    public void UnlockAbility(string abilityID)
-    {
-        if (!_unlockedAbilities.Contains(abilityID))
-        {
-            _unlockedAbilities.Add(abilityID);
-            Debug.Log($"[LevelManager] Unlocked ability: {abilityID}");
-            OnAbilityUnlocked?.Invoke(abilityID);
-        }
-    }
-
-    public bool IsAbilityUnlocked(string abilityID)
-    {
-        return _unlockedAbilities.Contains(abilityID);
-    }
+  
 
     public void TriggerCustomEvent(string eventName, string eventParameter, object level)
     {
@@ -170,9 +156,6 @@ public class LevelManager : MonoBehaviour
 
         // Clear stat modifiers
         InitializeStatModifiers();
-
-        // Clear unlocked abilities
-        _unlockedAbilities.Clear();
 
         Debug.Log("[LevelManager] Level reset");
 

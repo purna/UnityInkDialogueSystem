@@ -8,8 +8,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "SkillsTreeContainer", menuName = "Skill Tree/Container")]
 public class SkillsTreeContainer : ScriptableObject
 {
+    [Header("Skill Tree Details")]
     [SerializeField] private string _treeName;
     [SerializeField, TextArea] private string _description;
+    
+    [Header("Skill Tree Groups")]
     [SerializeField] private SerializableDictionary<SkillsTreeGroup, List<Skill>> _groups;
     [SerializeField] private List<Skill> _ungroupedSkills;
     

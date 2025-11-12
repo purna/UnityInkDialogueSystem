@@ -67,6 +67,7 @@ public class LevelNodeSaveData
         _groupID = groupID;
         _levelType = levelType;
         _position = position;
+
         
         // Initialize defaults
         _tier = 0;
@@ -101,6 +102,43 @@ public class LevelNodeSaveData
     }
 
     /// <summary>
+/// Update scene data from node
+/// </summary>
+public void UpdateSceneData(SceneField sceneField)
+{
+    if (sceneField != null)
+    {
+        _gameSceneName = sceneField.SceneName;
+        
+        // Try to get the scene path
+        #if UNITY_EDITOR
+        if (!string.IsNullOrEmpty(sceneField.SceneName))
+        {
+            string[] guids = UnityEditor.AssetDatabase.FindAssets($"t:SceneAsset {sceneField.SceneName}");
+            if (guids.Length > 0)
+            {
+                _gameScenePath = UnityEditor.AssetDatabase.GUIDToAssetPath(guids[0]);
+            }
+        }
+        #endif
+    }
+    else
+    {
+        _gameScenePath = null;
+        _gameSceneName = null;
+    }
+}
+
+
+    /// <summary>
+    /// Update level scene type from node
+    /// </summary>
+    public void UpdateLevelSceneType(LevelSceneType levelSceneType)
+    {
+        _levelSceneType = levelSceneType;
+    }
+
+    /// <summary>
     /// Update scene data from node
     /// </summary>
     public void UpdateSceneData(string scenePath, string sceneName)
@@ -128,7 +166,7 @@ public class LevelNodeSaveData
         _levelIndex = level.LevelIndex;
         _completionThreshold = level.CompletionThreshold;
         _maxAttempts = level.MaxAttempts;
-        _levelSceneType = level.LevelType;
+        _levelSceneType = level.LevelSceneType;
         
         // Scene data
         if (level.GameScene != null)

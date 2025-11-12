@@ -10,23 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7ea2de8a161ad49c5bb19296191396d1, type: 3}
-  m_Name: Level1
+  m_Name: Level3
   m_EditorClassIdentifier: 
-  _levelName: Level1
+  _levelName: Level3
   _description: Level description.
-  _icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
+  _icon: {fileID: 21300000, guid: 126ab8abe0ad94e4bb462edf16a5d9d7, type: 3}
   _lockedIcon: {fileID: 0}
   _unlockedIcon: {fileID: 0}
   _completedIcon: {fileID: 0}
   _tier: 0
   _levelIndex: 0
-  _levelSceneType: 1
+  _levelSceneType: 0
   _gameScene:
-    m_SceneAsset: {fileID: 102900000, guid: 8af1c5cbac5094782904447c9410b35d, type: 3}
-    m_SceneName: Basic Demo
+    m_SceneAsset: {fileID: 0}
+    m_SceneName: 
   _completionThreshold: 100
   _maxAttempts: -1
-  _prerequisiteLevels: []
+  _prerequisiteLevels:
+  - {fileID: 11400000, guid: e749583441cd84812a32baade06c0032, type: 2}
   _nextLevels:
-  - {fileID: 11400000, guid: 3f29f0f0a44af428683e9141cc82b5f1, type: 2}
-  _position: {x: 530, y: 194}
+  - {fileID: 11400000, guid: f06b9c0de9a864c5c8a4218ccfc641c9, type: 2}
+  _position: {x: 710, y: 59}

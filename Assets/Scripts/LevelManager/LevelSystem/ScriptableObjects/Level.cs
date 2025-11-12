@@ -11,9 +11,10 @@ public class Level : ScriptableObject
     [Header("Level Identity")]
     [Tooltip("Unique name for this level (used for identification and display)")]
     [SerializeField] private string _levelName;
-    
+
     [Tooltip("Detailed description of the level (displayed in UI menus)")]
     [SerializeField, TextArea] private string _description;
+    
     
     [Tooltip("Main icon representing this level")]
     [SerializeField] private Sprite _icon;
@@ -75,7 +76,7 @@ public class Level : ScriptableObject
     public Sprite CompletedIcon => _completedIcon;
     public int Tier => _tier;
     public int LevelIndex => _levelIndex;
-    public LevelSceneType LevelType => _levelSceneType;
+    public LevelSceneType LevelSceneType => _levelSceneType;
     public SceneField GameScene => _gameScene;
     public string GameSceneName => _gameScene?.SceneName ?? string.Empty;
     public float CompletionThreshold => _completionThreshold;
@@ -107,7 +108,7 @@ public class Level : ScriptableObject
     
     public void Initialize(string levelName, string description, 
                           Sprite icon, Sprite lockedIcon, Sprite unlockedIcon, Sprite completedIcon,
-                          int tier, int levelIndex, float completionThreshold, int maxAttempts,
+                          int tier, LevelSceneType levelSceneType, int levelIndex, float completionThreshold, int maxAttempts,
                           List<Level> prerequisiteLevels, List<Level> nextLevels, 
                           Vector2 position)
     {
@@ -118,6 +119,7 @@ public class Level : ScriptableObject
         _unlockedIcon = unlockedIcon;
         _completedIcon = completedIcon;
         _tier = tier;
+        _levelSceneType = levelSceneType;
         _levelIndex = levelIndex;
         _completionThreshold = completionThreshold;
         _maxAttempts = maxAttempts;
@@ -348,7 +350,7 @@ public class Level : ScriptableObject
     {
         _position = newPosition;
     }
-    
+
     /// <summary>
     /// Update game scene (editor only)
     /// </summary>
@@ -357,6 +359,109 @@ public class Level : ScriptableObject
         _gameScene = newScene;
     }
     
+    // <summary>
+/// Update the level's icon (editor only)
+/// </summary>
+public void UpdateIcon(Sprite icon)
+{
+    _icon = icon;
+}
+
+
+
+    // <summary>
+    /// Update the level's icon (editor only)
+    /// </summary>
+    public void UpdateLevelSceneType(LevelSceneType levelSceneType)
+    {
+        _levelSceneType = levelSceneType;
+    }
+
+    /// <summary>
+    /// Update the level's locked icon (editor only)
+    /// </summary>
+    public void UpdateLockedIcon(Sprite lockedIcon)
+    {
+        _lockedIcon = lockedIcon;
+    }
+
+    public void UpdateVisualData(
+        Sprite icon,
+        Sprite lockedIcon,
+        Sprite unlockedIcon,
+        Sprite completedIcon
+    )
+    {
+        _icon = icon;
+        _lockedIcon = lockedIcon;
+        _unlockedIcon = unlockedIcon;
+        _completedIcon = completedIcon;
+    }
+    
+
+    public void UpdateLevelProperties(
+        int tier,
+        int levelIndex,
+        float completionThreshold,
+        int maxAttempts
+    )
+    {
+        _tier = tier;
+        _levelIndex = levelIndex;
+        _completionThreshold = completionThreshold;
+        _maxAttempts = maxAttempts;
+    }
+        
+
+/// <summary>
+/// Update the level's unlocked icon (editor only)
+/// </summary>
+public void UpdateUnlockedIcon(Sprite unlockedIcon)
+{
+    _unlockedIcon = unlockedIcon;
+}
+
+/// <summary>
+/// Update the level's completed icon (editor only)
+/// </summary>
+public void UpdateCompletedIcon(Sprite completedIcon)
+{
+    _completedIcon = completedIcon;
+}
+
+/// <summary>
+/// Update the level's tier (editor only)
+/// </summary>
+public void UpdateTier(int tier)
+{
+    _tier = tier;
+}
+
+/// <summary>
+/// Update the level's index (editor only)
+/// </summary>
+public void UpdateLevelIndex(int levelIndex)
+{
+    _levelIndex = levelIndex;
+}
+
+/// <summary>
+/// Update the level's completion threshold (editor only)
+/// </summary>
+public void UpdateCompletionThreshold(float threshold)
+{
+    _completionThreshold = threshold;
+}
+
+/// <summary>
+/// Update the level's max attempts (editor only)
+/// </summary>
+public void UpdateMaxAttempts(int maxAttempts)
+{
+    _maxAttempts = maxAttempts;
+}
+
+
     /// <summary>
     /// Update visual icons (editor only)
     /// </summary>
@@ -500,11 +605,11 @@ public class Level : ScriptableObject
             asyncOp.completed += onComplete;
         }
     }
-    
+
     #endregion
-    
+
     #region Debug
-    
+
     public override string ToString()
     {
         string status = _isCompleted ? "✓" : _isUnlocked ? "○" : "🔒";
@@ -513,4 +618,15 @@ public class Level : ScriptableObject
     }
     
     #endregion
+    
+    /// <summary>
+    /// Save the asset
+    /// </summary>
+    public void Save()
+    {
+    #if UNITY_EDITOR
+        UnityEditor.EditorUtility.SetDirty(this);
+        UnityEditor.AssetDatabase.SaveAssets();
+    #endif
+}
 }

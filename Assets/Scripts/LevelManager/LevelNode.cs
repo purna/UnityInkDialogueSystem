@@ -9,6 +9,7 @@ using System.Linq;
 /// Individual level node UI component - handles display and interaction
 /// Now supports manual level selection from available levels in the controller
 /// Enhanced with click feedback, hover effects, and tooltip integration
+/// Supports both shared LevelTooltip and prefab-based tooltips
 /// </summary>
 public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
@@ -28,7 +29,7 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     [SerializeField] private Color _availableColor = new Color(1f, 0.8f, 0f);
     [SerializeField] private Color _lockedColor = new Color(0.4f, 0.4f, 0.4f);
     [SerializeField] private Color _hoverColor = Color.white;
-    [SerializeField] private Color _selectedColor = new Color(0f, 0.7f, 1f); // Cyan for selection
+    [SerializeField] private Color _selectedColor = new Color(0f, 0.7f, 1f);
     [SerializeField] private float _hoverScale = 1.1f;
     [SerializeField] private float _clickScale = 0.95f;
     [SerializeField] private float _clickDuration = 0.15f;
@@ -37,10 +38,13 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     [SerializeField] private Sprite _clickedSprite;
     [SerializeField] private Color _clickedBackgroundColor = new Color(1f, 1f, 1f, 0.3f);
     
-    [Header("Hover Tooltip")]
-    [SerializeField] private GameObject _hoverTooltipPrefab;
-    [SerializeField] private Vector2 _tooltipOffset = new Vector2(10f, 10f);
-    [SerializeField] private bool _showHoverTooltip = true;
+    [Header("Tooltip Settings")]
+    [SerializeField] private TooltipMode _tooltipMode = TooltipMode.SharedTooltip;
+    [SerializeField] private LevelTooltip _sharedTooltip; // For shared tooltip mode
+    [SerializeField] private GameObject _tooltipPrefab; // For prefab mode
+    [SerializeField] private bool _showTooltipOnHover = true;
+    [SerializeField] private bool _autoFindSharedTooltip = true;
+    [SerializeField] private Vector2 _tooltipOffset = new Vector2(10f, -10f);
 
     [Header("Manual Level Assignment")]
     [SerializeField] private LevelController _controller;
@@ -53,8 +57,8 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     private Vector3 _originalScale;
     private bool _isHovering;
     private bool _isSelected;
-    private GameObject _hoverTooltipInstance;
     private Sprite _originalSprite;
+    private GameObject _tooltipInstance; // Instance for prefab mode
 
     private void Awake()
     {
@@ -88,9 +92,16 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             _button.onClick.RemoveAllListeners();
             _button.onClick.AddListener(OnButtonClick);
         }
-        else
+        
+        // Auto-find shared tooltip if needed
+        if (_tooltipMode == TooltipMode.SharedTooltip && _autoFindSharedTooltip && _sharedTooltip == null)
         {
-            Debug.LogWarning($"[LevelNode] {gameObject.name}: No Button component found! Add a Button component to make this node clickable.");
+            _sharedTooltip = FindObjectOfType<LevelTooltip>(true); // includeInactive = true
+            
+            if (_sharedTooltip == null)
+            {
+                Debug.LogWarning("[LevelNode] No LevelTooltip found in scene! Tooltip will not be displayed.");
+            }
         }
     }
 
@@ -182,6 +193,15 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     public LevelController GetController()
     {
         return _controller;
+    }
+    
+    /// <summary>
+    /// Set the shared tooltip reference (for manual assignment)
+    /// </summary>
+    public void SetSharedTooltip(LevelTooltip tooltip)
+    {
+        _sharedTooltip = tooltip;
+        _tooltipMode = TooltipMode.SharedTooltip;
     }
 
     public void Initialize(Level level, LevelController controller)
@@ -297,6 +317,9 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
         }
     }
 
+
+ 
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         _isHovering = true;
@@ -313,16 +336,16 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             transform.localScale = _originalScale * _hoverScale;
         }
 
-        // Show description if available
+        // Show description if available (optional - can be disabled if tooltip is enough)
         if (_descriptionText != null && _level != null && !string.IsNullOrEmpty(_level.Description))
         {
             _descriptionText.gameObject.SetActive(true);
         }
 
-        // Show hover tooltip
-        if (_showHoverTooltip && _level != null)
+        // Show tooltip based on mode
+        if (_showTooltipOnHover && _level != null)
         {
-            ShowHoverTooltip();
+            ShowTooltip();
         }
     }
 
@@ -348,8 +371,206 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
             _descriptionText.gameObject.SetActive(false);
         }
 
-        // Hide hover tooltip
-        HideHoverTooltip();
+        // Hide tooltip
+        HideTooltip();
+    }
+
+    /// <summary>
+    /// Show tooltip based on selected mode
+    /// </summary>
+    private void ShowTooltip()
+    {
+        switch (_tooltipMode)
+        {
+            case TooltipMode.SharedTooltip:
+                ShowSharedTooltip();
+                break;
+                
+            case TooltipMode.PrefabTooltip:
+                ShowPrefabTooltip();
+                break;
+                
+            case TooltipMode.None:
+                // No tooltip
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Hide tooltip based on selected mode
+    /// </summary>
+    private void HideTooltip()
+    {
+        switch (_tooltipMode)
+        {
+            case TooltipMode.SharedTooltip:
+                HideSharedTooltip();
+                break;
+                
+            case TooltipMode.PrefabTooltip:
+                HidePrefabTooltip();
+                break;
+                
+            case TooltipMode.None:
+                // No tooltip
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Show the shared LevelTooltip component
+    /// </summary>
+    private void ShowSharedTooltip()
+    {
+        if (_sharedTooltip != null)
+        {
+            _sharedTooltip.gameObject.SetActive(true);
+            _sharedTooltip.SetLevel(_level);
+        }
+    }
+
+    /// <summary>
+    /// Hide the shared LevelTooltip component
+    /// </summary>
+    private void HideSharedTooltip()
+    {
+        if (_sharedTooltip != null)
+        {
+            _sharedTooltip.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Show a prefab-based tooltip instance
+    /// </summary>
+    private void ShowPrefabTooltip()
+    {
+        if (_tooltipPrefab == null)
+        {
+            Debug.LogWarning("[LevelNode] Tooltip prefab not assigned!");
+            return;
+        }
+
+        if (_tooltipInstance != null)
+        {
+            // Tooltip already exists, just update it
+            UpdatePrefabTooltip();
+            return;
+        }
+
+        // Instantiate tooltip
+        Canvas canvas = GetComponentInParent<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogWarning("[LevelNode] No Canvas found in parent hierarchy!");
+            return;
+        }
+
+        _tooltipInstance = Instantiate(_tooltipPrefab, canvas.transform);
+        
+        // Check if prefab has LevelTooltip component
+        LevelTooltip tooltipComponent = _tooltipInstance.GetComponent<LevelTooltip>();
+        if (tooltipComponent != null)
+        {
+            // Use LevelTooltip component
+            tooltipComponent.SetLevel(_level);
+        }
+        else
+        {
+            // Use SimpleLevelTooltip for manual population
+            SimpleLevelTooltip simpleTooltip = _tooltipInstance.GetComponent<SimpleLevelTooltip>();
+            if (simpleTooltip != null)
+            {
+                simpleTooltip.SetLevel(_level);
+            }
+            else
+            {
+                Debug.LogWarning("[LevelNode] Tooltip prefab has neither LevelTooltip nor SimpleLevelTooltip component!");
+            }
+        }
+
+        // Position tooltip
+        PositionPrefabTooltip();
+    }
+
+    /// <summary>
+    /// Update prefab tooltip data
+    /// </summary>
+    private void UpdatePrefabTooltip()
+    {
+        if (_tooltipInstance == null)
+            return;
+
+        LevelTooltip tooltipComponent = _tooltipInstance.GetComponent<LevelTooltip>();
+        if (tooltipComponent != null)
+        {
+            tooltipComponent.SetLevel(_level);
+        }
+        else
+        {
+            SimpleLevelTooltip simpleTooltip = _tooltipInstance.GetComponent<SimpleLevelTooltip>();
+            if (simpleTooltip != null)
+            {
+                simpleTooltip.SetLevel(_level);
+            }
+        }
+
+        PositionPrefabTooltip();
+    }
+
+    /// <summary>
+    /// Position the prefab tooltip near the mouse
+    /// </summary>
+    private void PositionPrefabTooltip()
+    {
+        if (_tooltipInstance == null)
+            return;
+
+        RectTransform tooltipRect = _tooltipInstance.GetComponent<RectTransform>();
+        if (tooltipRect != null)
+        {
+            Canvas canvas = GetComponentInParent<Canvas>();
+            if (canvas != null)
+            {
+                // Convert mouse position to canvas space
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    canvas.transform as RectTransform,
+                    Input.mousePosition,
+                    canvas.worldCamera,
+                    out Vector2 localPoint
+                );
+
+                // Apply offset
+                localPoint += _tooltipOffset;
+
+                // Clamp to canvas bounds
+                RectTransform canvasRect = canvas.transform as RectTransform;
+                Vector2 canvasSize = canvasRect.rect.size;
+                Vector2 tooltipSize = tooltipRect.rect.size;
+
+                float minX = -canvasSize.x / 2 + tooltipSize.x / 2;
+                float maxX = canvasSize.x / 2 - tooltipSize.x / 2;
+                localPoint.x = Mathf.Clamp(localPoint.x, minX, maxX);
+
+                float minY = -canvasSize.y / 2 + tooltipSize.y / 2;
+                float maxY = canvasSize.y / 2 - tooltipSize.y / 2;
+                localPoint.y = Mathf.Clamp(localPoint.y, minY, maxY);
+
+                tooltipRect.localPosition = localPoint;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Hide and destroy prefab tooltip instance
+    /// </summary>
+    private void HidePrefabTooltip()
+    {
+        if (_tooltipInstance != null)
+        {
+            Destroy(_tooltipInstance);
+            _tooltipInstance = null;
+        }
     }
 
     public void OnPointerClick(PointerEventData eventData)
@@ -507,44 +728,6 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     }
 
     /// <summary>
-    /// Show hover tooltip at mouse position
-    /// </summary>
-    private void ShowHoverTooltip()
-    {
-        if (_hoverTooltipPrefab != null && _hoverTooltipInstance == null)
-        {
-            // Instantiate tooltip
-            Canvas canvas = GetComponentInParent<Canvas>();
-            if (canvas != null)
-            {
-                _hoverTooltipInstance = Instantiate(_hoverTooltipPrefab, canvas.transform);
-                
-                // Position at mouse with offset
-                RectTransform tooltipRect = _hoverTooltipInstance.GetComponent<RectTransform>();
-                if (tooltipRect != null)
-                {
-                    Vector2 mousePos = Input.mousePosition;
-                    tooltipRect.position = mousePos + _tooltipOffset;
-                }
-                
-      
-            }
-        }
-    }
-
-    /// <summary>
-    /// Hide and destroy hover tooltip
-    /// </summary>
-    private void HideHoverTooltip()
-    {
-        if (_hoverTooltipInstance != null)
-        {
-            Destroy(_hoverTooltipInstance);
-            _hoverTooltipInstance = null;
-        }
-    }
-
-    /// <summary>
     /// Pulse animation for when a level is unlocked
     /// </summary>
     public void PlayUnlockAnimation()
@@ -639,7 +822,24 @@ public class LevelNode : MonoBehaviour, IPointerEnterHandler, IPointerExitHandle
     
     private void OnDestroy()
     {
-        // Clean up hover tooltip if it exists
-        HideHoverTooltip();
+        // Clean up tooltip based on mode
+        if (_tooltipMode == TooltipMode.SharedTooltip)
+        {
+            HideSharedTooltip();
+        }
+        else if (_tooltipMode == TooltipMode.PrefabTooltip)
+        {
+            HidePrefabTooltip();
+        }
     }
+}
+
+/// <summary>
+/// Tooltip display mode
+/// </summary>
+public enum TooltipMode
+{
+    None,           // No tooltip
+    SharedTooltip,  // Use a single shared LevelTooltip component
+    PrefabTooltip   // Instantiate a tooltip prefab for each hover
 }

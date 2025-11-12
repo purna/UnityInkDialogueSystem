@@ -318,7 +318,7 @@ public class LevelSystemSidebar
         _completedIconField.SetValueWithoutNotify(_selectedLevel.CompletedIcon);
         _tierField.SetValueWithoutNotify(_selectedLevel.Tier);
         _levelIndexField.SetValueWithoutNotify(_selectedLevel.LevelIndex);
-        _levelTypeField.SetValueWithoutNotify(_selectedLevel.LevelType);
+        _levelTypeField.SetValueWithoutNotify(_selectedLevel.LevelSceneType);
         
         // Set game scene field - convert SceneField to SceneAsset
         if (_selectedLevel.GameScene != null && !string.IsNullOrEmpty(_selectedLevel.GameSceneName))

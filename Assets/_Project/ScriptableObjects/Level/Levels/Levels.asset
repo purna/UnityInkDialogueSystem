@@ -12,9 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5b54fbeb8963544a7bd1aee4490e29b5, type: 3}
   m_Name: Levels
   m_EditorClassIdentifier: 
-  _allLevels:
-  - {fileID: 11400000, guid: 0fbfc106c0015474389e2be8a2aff2b2, type: 2}
-  - {fileID: 11400000, guid: 3f29f0f0a44af428683e9141cc82b5f1, type: 2}
-  _startingLevels:
-  - {fileID: 11400000, guid: 0fbfc106c0015474389e2be8a2aff2b2, type: 2}
-  - {fileID: 11400000, guid: 3f29f0f0a44af428683e9141cc82b5f1, type: 2}
+  _levelName: Levels
+  _description: 
+  _groups:
+    list:
+    - Key: {fileID: 11400000, guid: 6b7b56b9dcd2b4b2fb9a084ff489f5a2, type: 2}
+      Value:
+      - {fileID: 11400000, guid: 70ad203c6e8df42edb011f23907712b8, type: 2}
+      - {fileID: 11400000, guid: f06b9c0de9a864c5c8a4218ccfc641c9, type: 2}
+      - {fileID: 11400000, guid: e749583441cd84812a32baade06c0032, type: 2}
+      - {fileID: 11400000, guid: 26aa162ab26484dbe86c74d4a3665b09, type: 2}
+  _ungroupedLevels: []

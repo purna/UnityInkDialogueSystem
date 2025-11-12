@@ -103,6 +103,7 @@ public static class LevelSystemSaveManager {
         foreach (var node in _nodes) {
             SaveNodeToGraph(node, graphData);
             SaveNodeToScriptableObject(node, levelContainer);
+            node.Level = _createdLevels[node.ID];
             if (node.Group != null) {
                 if (groupedNodeNames.ContainsKey(node.Group.ID))
                     groupedNodeNames[node.Group.ID].Add(node.LevelName);
@@ -119,7 +120,8 @@ public static class LevelSystemSaveManager {
         UpdateOldUngroupedNodes(nodeNames, graphData);
     }
 
-    private static void SaveNodeToGraph(LevelBaseNode node, LevelSystemGraphSaveData graphData) {
+    private static void SaveNodeToGraph(LevelBaseNode node, LevelSystemGraphSaveData graphData)
+    {
         List<LevelChoiceSaveData> choices = CloneNodeChoices(node.Choices);
 
         // Create the base save data
@@ -145,38 +147,39 @@ public static class LevelSystemSaveManager {
     }
 
     private static void SaveNodeToScriptableObject(LevelBaseNode node, LevelContainer levelContainer) {
-        Level level;
-        string path;
-        string levelName = node.LevelName;
+    Level level;
+    string path;
+    string levelName = node.LevelName;
 
+    if (node.Group != null) {
+        path = $"{_graphFolderPath}/Groups/{node.Group.title}/Level";
+    } else {
+        path = $"{_graphFolderPath}/Global/Level";
+    }
+
+    // Try to get the Level from the node's reference first
+    // This is the SO that the inspector was modifying
+    level = node.Level; 
+
+    if (level == null)
+    {
+        // No reference, try to load from asset path (legacy/safety check)
+        level = AssetsUtility.LoadAsset<Level>(path, levelName);
+    }
+
+    if (level == null) 
+    {
+        // --- CREATE NEW Level ---
+        // Asset truly doesn't exist, create a new one
         if (node.Group != null) {
-            path = $"{_graphFolderPath}/Groups/{node.Group.title}/Level";
-        } else {
-            path = $"{_graphFolderPath}/Global/Level";
-        }
-
-        // Try to get the Level from the node's reference first
-        // This is the SO that the inspector was modifying
-        level = node.Level; 
-
-        if (level == null)
-        {
-            // No reference, try to load from asset path (legacy/safety check)
-            level = AssetsUtility.LoadAsset<Level>(path, levelName);
-        }
-
-        if (level == null) 
-        {
-            // --- CREATE NEW Level ---
-            // Asset truly doesn't exist, create a new one
-            if (node.Group != null) {
                 level = AssetsUtility.CreateAsset<Level>($"{_graphFolderPath}/Groups/{node.Group.title}/Level", node.LevelName);
-                levelContainer.AddLevel(level);
-                levelContainer.AddLevelToGroup(level, _createdLevelGroups[node.Group.ID]);
-            } else {
+                levelContainer.AddLevelToGroup(_createdLevelGroups[node.Group.ID], level);
+
+        } else {
                 level = AssetsUtility.CreateAsset<Level>($"{_graphFolderPath}/Global/Level", node.LevelName);
-                levelContainer.AddLevel(level);
-            }
+                levelContainer.AddUngroupedLevel(level);
+
+        }
 
             // Initialize the new Level using data from the node
             level.Initialize(
@@ -187,39 +190,89 @@ public static class LevelSystemSaveManager {
                 node.UnlockedIcon,
                 node.CompletedIcon,
                 node.Tier,
+                node.LevelSceneType,
                 node.LevelIndex,
                 node.CompletionThreshold,
                 node.MaxAttempts,
-                new List<Level>(),
-                new List<Level>(),
+                new List<Level>(), // Prerequisites
+                new List<Level>(), // Children
                 node.GetPosition().position
-            );
-        }
-        else
-        {
-            // TODO: Handle asset rename if node.LevelName != level.LevelName
-            // AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(level), node.LevelName);
-            
-            // Use the new methods you added to Level.cs
-            level.UpdateName(node.LevelName);
-            level.UpdateDescription(node.Text);
-            level.UpdatePosition(node.GetPosition().position);
-        }
 
-        // Add to dictionary for connection-linking
-        if (!_createdLevels.ContainsKey(node.ID))
+
+            );
+
+             // Set scene data if available
+            if (node.GameScene != null)
+            {
+                level.UpdateGameScene(node.GameScene);
+            }
+            
+             // Set level type/scene type if available
+            if (node.LevelSceneType != default)
+            {
+                level.UpdateLevelSceneType(node.LevelSceneType);
+            }
+    }
+    else
+    {
+        // --- UPDATE EXISTING Level ---
+        // TODO: Handle asset rename if node.LevelName != level.LevelName
+        // AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(level), node.LevelName);
+        
+        // Update ALL properties from the node to the Level SO
+        level.UpdateName(node.LevelName);
+        level.UpdateDescription(node.Text);
+        level.UpdatePosition(node.GetPosition().position);
+        
+      // Update visual properties
+            level.UpdateVisualData(
+                node.Icon,
+                node.LockedIcon,
+                node.UnlockedIcon,
+                node.CompletedIcon
+            );
+        
+        // Update level properties
+            level.UpdateLevelProperties(
+                node.Tier,
+                node.LevelIndex,
+                node.CompletionThreshold,
+                node.MaxAttempts
+            );
+        
+        // Update scene reference if available
+        if (node.GameScene != null)
         {
-            _createdLevels.Add(node.ID, level);
+            level.UpdateGameScene(node.GameScene);
         }
         
-        _graphView.RegisterNodeLevelMapping(node.ID, level);
-        
-        // This is the most important line, ensuring the node
-        // holds the reference to the single source of truth.
-        node.Level = level; 
-        
-        level.Save();
+        // Update level type
+        level.UpdateLevelSceneType(node.LevelSceneType);
     }
+
+    // ALWAYS ensure the level is registered in the container
+    // (This is what was missing!)
+    if (node.Group != null) {
+        levelContainer.AddLevelToGroup(_createdLevelGroups[node.Group.ID], level);
+    } else {
+        levelContainer.AddUngroupedLevel(level);
+    }
+
+    // Add to dictionary for connection-linking
+    if (!_createdLevels.ContainsKey(node.ID))
+    {
+        _createdLevels.Add(node.ID, level);
+    }
+    
+    _graphView.RegisterNodeLevelMapping(node.ID, level);
+    
+    // This is the most important line, ensuring the node
+    // holds the reference to the single source of truth.
+    node.Level = level; 
+    
+    level.Save();
+}
+    
 
     private static List<LevelChoiceSaveData> CloneNodeChoices(IEnumerable<LevelChoiceSaveData> originalChoices) {
         List<LevelChoiceSaveData> choices = new();

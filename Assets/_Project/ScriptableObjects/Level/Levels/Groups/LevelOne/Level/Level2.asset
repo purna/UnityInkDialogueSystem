@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _levelName: Level2
   _description: Level description.
-  _icon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+  _icon: {fileID: 21300000, guid: eae4cb8078363d7449ed775f5c8b08d5, type: 3}
   _lockedIcon: {fileID: 0}
   _unlockedIcon: {fileID: 0}
   _completedIcon: {fileID: 0}
@@ -27,6 +27,7 @@ MonoBehaviour:
   _completionThreshold: 100
   _maxAttempts: -1
   _prerequisiteLevels:
-  - {fileID: 11400000, guid: 0fbfc106c0015474389e2be8a2aff2b2, type: 2}
-  _nextLevels: []
-  _position: {x: 853, y: 191}
+  - {fileID: 11400000, guid: 26aa162ab26484dbe86c74d4a3665b09, type: 2}
+  _nextLevels:
+  - {fileID: 11400000, guid: 70ad203c6e8df42edb011f23907712b8, type: 2}
+  _position: {x: 390, y: 48.5}

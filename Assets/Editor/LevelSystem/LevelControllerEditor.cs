@@ -464,7 +464,7 @@ public class LevelControllerEditor : Editor
         
         EditorGUILayout.BeginVertical(EditorStyles.helpBox);
         EditorGUILayout.LabelField("Container Info", EditorStyles.boldLabel);
-        EditorGUILayout.LabelField("Name:", container.LevelName);
+        EditorGUILayout.LabelField("Name:", container.name);
         EditorGUILayout.LabelField("Groups:", container.HasGroups() ? container.GetGroupsNames().Length.ToString() : "0");
         EditorGUILayout.LabelField("Ungrouped Levels:", container.GetUngroupedLevelNames(false).Count.ToString());
         EditorGUILayout.EndVertical();
@@ -490,7 +490,7 @@ public class LevelControllerEditor : Editor
             
             string selectedGroupName = groupNames[selectedGroupIndex];
             LevelGroup selectedGroup = AssetsUtility.LoadAsset<LevelGroup>(
-                $"Assets/_Project/ScriptableObjects/Level/{container.LevelName}/Groups/{selectedGroupName}",
+                $"Assets/_Project/ScriptableObjects/Level/{container.name}/Groups/{selectedGroupName}",
                 selectedGroupName
             );
             
@@ -605,7 +605,7 @@ public class LevelControllerEditor : Editor
         EditorGUILayout.LabelField(level.LevelName, EditorStyles.boldLabel);
         
         EditorGUILayout.LabelField("Tier:", level.Tier.ToString());
-        EditorGUILayout.LabelField("Type:", level.LevelType.ToString());
+        EditorGUILayout.LabelField("Type:", level.LevelSceneType.ToString());
         
         EditorGUILayout.EndVertical();
         EditorGUILayout.EndHorizontal();
@@ -683,7 +683,7 @@ public class LevelControllerEditor : Editor
                 }
                 
                 EditorGUILayout.LabelField($"T{loadedLevel.Tier}", GUILayout.Width(30));
-                EditorGUILayout.LabelField(loadedLevel.LevelType.ToString(), GUILayout.Width(80));
+                EditorGUILayout.LabelField(loadedLevel.LevelSceneType.ToString(), GUILayout.Width(80));
             }
             
             if (GUILayout.Button("Select", GUILayout.Width(60)))

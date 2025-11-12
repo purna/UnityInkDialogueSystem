@@ -1,3 +1,7 @@
+
+Moses
+Love, joy, peace, patience, kindness, goodness, faithfulness, gentleness, and self-control
+
 Movement Path 🏃
 Tier 1 (Foundation)
 

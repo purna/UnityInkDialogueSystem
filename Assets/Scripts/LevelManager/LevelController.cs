@@ -51,6 +51,10 @@ public class LevelController : MonoBehaviour
     [SerializeField] private Color _completedLineColor = new Color(1f, 0.84f, 0f, 1f);
     [SerializeField] private float _lineWidth = 3f;
 
+    [Header("Tooltip")]
+    [SerializeField] private LevelTooltip _levelTooltip;
+ 
+
     [Header("Details Panel")]
     [SerializeField] private GameObject _detailsPanel;
     [SerializeField] private TextMeshProUGUI _detailsTitle;
@@ -251,7 +255,8 @@ public class LevelController : MonoBehaviour
     {
         if (groupedLevels && levelGroup != null)
         {
-            return levelContainer.GetGroupedLevels(levelGroup, startingLevelsOnly);
+            // Change this line to NOT filter by startingLevelsOnly
+            return levelContainer.GetGroupedLevels(levelGroup, false); // Always show all grouped levels
         }
         else if (startingLevel != null)
         {
@@ -261,10 +266,8 @@ public class LevelController : MonoBehaviour
         }
         else
         {
-            if (startingLevelsOnly)
-                return levelContainer.GetStartingLevels();
-            else
-                return levelContainer.GetAllLevels();
+            // Always return ALL levels, not just starting levels
+            return levelContainer.GetAllLevels();
         }
     }
     
@@ -786,6 +789,32 @@ public class LevelController : MonoBehaviour
         Debug.Log("[LevelController] Group filter cleared");
     }
 
+    #endregion
+
+     #region Tooltip Methods
+
+    // Call this method from your LevelNode when hovering
+    public void ShowTooltipForLevel(Level level)
+    {
+        if (_levelTooltip != null && level != null)
+        {
+            _levelTooltip.gameObject.SetActive(true);
+            _levelTooltip.SetLevel(level);
+        }
+    }
+
+    public void HideTooltip()
+    {
+        if (_levelTooltip != null)
+        {
+            _levelTooltip.gameObject.SetActive(false);
+        }
+    }
+    
+    // Then in your LevelNode, call these methods:
+    // - OnPointerEnter: levelController.ShowTooltipForLevel(level);
+    // - OnPointerExit: levelController.HideTooltip();
+    
     #endregion
 }
 

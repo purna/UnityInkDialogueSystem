@@ -259,41 +259,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &405499575
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 405499576}
-  m_Layer: 5
-  m_Name: LinesContainer
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &405499576
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 405499575}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1870074756}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &411143315
 GameObject:
   m_ObjectHideFlags: 0
@@ -749,7 +714,6 @@ RectTransform:
   m_Children:
   - {fileID: 557763836}
   - {fileID: 837595683}
-  - {fileID: 810190868}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -765,6 +729,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: triggerOnEnter
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: dialogueToStart
+      value: 
+      objectReference: {fileID: 11400000, guid: ae6ca2bd475494f5486fe586f4d749a2, type: 2}
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: dialogueContainer
+      value: 
+      objectReference: {fileID: 11400000, guid: ab3078607f9144596b7b286217a17024, type: 2}
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: selectedGroupName
+      value: NPC2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: dialogueController
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: selectedDialogueName
+      value: Scene1
+      objectReference: {fileID: 0}
     - target: {fileID: 1807938764199549705, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.25
@@ -820,7 +808,7 @@ PrefabInstance:
     - target: {fileID: 1965038264666680678, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: skillsTreeController
       value: 
-      objectReference: {fileID: 810190869}
+      objectReference: {fileID: 0}
     - target: {fileID: 5718822987209562633, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_Name
       value: NPC - Skill Tree (2)
@@ -829,150 +817,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: triggerOnEnter
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: dialogueToStart
-      value: 
-      objectReference: {fileID: 11400000, guid: ae6ca2bd475494f5486fe586f4d749a2, type: 2}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: dialogueContainer
-      value: 
-      objectReference: {fileID: 11400000, guid: ab3078607f9144596b7b286217a17024, type: 2}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: selectedGroupName
-      value: NPC2
-      objectReference: {fileID: 0}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: dialogueController
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: selectedDialogueName
-      value: Scene1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
---- !u!1 &810190867
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 810190868}
-  - component: {fileID: 810190869}
-  - component: {fileID: 810190870}
-  m_Layer: 5
-  m_Name: SkillsTreeController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &810190868
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 810190867}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 668136306}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &810190869
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 810190867}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 79129efaeed7e47e083b980012eaecec, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _setupMode: 0
-  skillstreeContainer: {fileID: 11400000, guid: ff03035f20eee4f1e8d2b882fb7c361e, type: 2}
-  skillstreeGroup: {fileID: 11400000, guid: 73c32b41d925e46ff8d8e858c89c4bdc, type: 2}
-  skillstree: {fileID: 11400000, guid: 3ef6de88d60f04decaa66a0151572a16, type: 2}
-  _manualSkillNodes:
-  - skill: {fileID: 11400000, guid: 3ef6de88d60f04decaa66a0151572a16, type: 2}
-    nodeGameObject: {fileID: 0}
-  - skill: {fileID: 11400000, guid: 202652d8d764a40bda1debcb708c1691, type: 2}
-    nodeGameObject: {fileID: 0}
-  - skill: {fileID: 11400000, guid: f4b3b016a3e834e498e213d77181c67e, type: 2}
-    nodeGameObject: {fileID: 0}
-  groupedSkillsTrees: 0
-  startingSkillsTreesOnly: 0
-  selectedSkillsTreeGroupIndex: 0
-  selectedSkillsTreeIndex: 0
-  skillstreeManager: {fileID: 1186241827}
-  skillstreeUI: {fileID: 837595682}
-  startSkillsTreeOnStart: 1
-  startDelay: 1
-  _skillNodesParent: {fileID: 1533481605}
-  _skillNodePrefab: {fileID: 9183279506104247201, guid: 51fcd2538b5434ea89068c88344fd67e, type: 3}
-  _gridLayout: {fileID: 0}
-  _useGridLayout: 0
-  _useSkillPositions: 1
-  _autoGenerateLines: 1
-  _connectionLinePrefab: {fileID: 1413658062037232460, guid: db229fcd8d23b469da64228a613041c2, type: 3}
-  _linesParent: {fileID: 405499576}
-  _lockedLineColor: {r: 1, g: 0.2783019, b: 0.2783019, a: 0.5}
-  _unlockedLineColor: {r: 0.2, g: 0.8, b: 0.2, a: 1}
-  _lineWidth: 3
-  _skillTooltip: {fileID: 0}
-  _detailsPanel: {fileID: 24160804}
-  _detailsPanelTooltip: {fileID: 0}
-  _detailsTitle: {fileID: 898774659}
-  _detailsDescription: {fileID: 1260535277}
-  _detailsIcon: {fileID: 2015067804}
-  _detailsCost: {fileID: 888149213}
-  _detailsLevel: {fileID: 1352533197}
-  _unlockButton: {fileID: 1625801276}
-  _unlockButtonText: {fileID: 1010328238}
-  _skillPointsText: {fileID: 411143317}
---- !u!114 &810190870
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 810190867}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 328584253ca9547a58d84fe095c5b721, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _titleText: {fileID: 898774659}
-  _descriptionText: {fileID: 1260535277}
-  _statsText: {fileID: 0}
-  _costText: {fileID: 888149213}
-  _levelText: {fileID: 1352533197}
-  _statusText: {fileID: 0}
-  _iconImage: {fileID: 2015067804}
-  _backgroundImage: {fileID: 1903666732}
-  _prerequisitesContainer: {fileID: 0}
-  _prerequisiteItemPrefab: {fileID: 0}
-  _unlockedColor: {r: 0.2, g: 0.8, b: 0.2, a: 1}
-  _lockedColor: {r: 0.8, g: 0.2, b: 0.2, a: 1}
-  _availableColor: {r: 1, g: 0.8, b: 0, a: 1}
 --- !u!4 &810387683 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6038373101476468013, guid: 8c2e478c8a4774d2eb8a7676410466a6, type: 3}
@@ -1782,6 +1631,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1186241828}
   - component: {fileID: 1186241827}
+  - component: {fileID: 1186241830}
+  - component: {fileID: 1186241829}
   m_Layer: 0
   m_Name: SkillTreeManager
   m_TagString: Untagged
@@ -1820,6 +1671,84 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1638022776}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1186241829
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1186241826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 328584253ca9547a58d84fe095c5b721, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _titleText: {fileID: 898774659}
+  _descriptionText: {fileID: 1260535277}
+  _statsText: {fileID: 0}
+  _costText: {fileID: 888149213}
+  _levelText: {fileID: 1352533197}
+  _statusText: {fileID: 0}
+  _iconImage: {fileID: 2015067804}
+  _backgroundImage: {fileID: 1903666732}
+  _prerequisitesContainer: {fileID: 0}
+  _prerequisiteItemPrefab: {fileID: 0}
+  _unlockedColor: {r: 0.2, g: 0.8, b: 0.2, a: 1}
+  _lockedColor: {r: 0.8, g: 0.2, b: 0.2, a: 1}
+  _availableColor: {r: 1, g: 0.8, b: 0, a: 1}
+--- !u!114 &1186241830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1186241826}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79129efaeed7e47e083b980012eaecec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _setupMode: 0
+  skillstreeContainer: {fileID: 11400000, guid: ff03035f20eee4f1e8d2b882fb7c361e, type: 2}
+  skillstreeGroup: {fileID: 11400000, guid: 73c32b41d925e46ff8d8e858c89c4bdc, type: 2}
+  skillstree: {fileID: 11400000, guid: 3ef6de88d60f04decaa66a0151572a16, type: 2}
+  _manualSkillNodes:
+  - skill: {fileID: 11400000, guid: 3ef6de88d60f04decaa66a0151572a16, type: 2}
+    nodeGameObject: {fileID: 0}
+  - skill: {fileID: 11400000, guid: 202652d8d764a40bda1debcb708c1691, type: 2}
+    nodeGameObject: {fileID: 0}
+  - skill: {fileID: 11400000, guid: f4b3b016a3e834e498e213d77181c67e, type: 2}
+    nodeGameObject: {fileID: 0}
+  groupedSkillsTrees: 0
+  startingSkillsTreesOnly: 0
+  selectedSkillsTreeGroupIndex: 0
+  selectedSkillsTreeIndex: 0
+  skillstreeManager: {fileID: 1186241827}
+  skillstreeUI: {fileID: 837595682}
+  startSkillsTreeOnStart: 1
+  startDelay: 1
+  _skillNodesParent: {fileID: 1533481605}
+  _skillNodePrefab: {fileID: 9183279506104247201, guid: 51fcd2538b5434ea89068c88344fd67e, type: 3}
+  _gridLayout: {fileID: 0}
+  _useGridLayout: 0
+  _useSkillPositions: 1
+  _autoGenerateLines: 1
+  _connectionLinePrefab: {fileID: 1413658062037232460, guid: db229fcd8d23b469da64228a613041c2, type: 3}
+  _linesParent: {fileID: 0}
+  _lockedLineColor: {r: 1, g: 0.2783019, b: 0.2783019, a: 0.5}
+  _unlockedLineColor: {r: 0.2, g: 0.8, b: 0.2, a: 1}
+  _lineWidth: 3
+  _skillTooltip: {fileID: 0}
+  _detailsPanel: {fileID: 24160804}
+  _detailsPanelTooltip: {fileID: 0}
+  _detailsTitle: {fileID: 898774659}
+  _detailsDescription: {fileID: 1260535277}
+  _detailsIcon: {fileID: 2015067804}
+  _detailsCost: {fileID: 888149213}
+  _detailsLevel: {fileID: 1352533197}
+  _unlockButton: {fileID: 1625801276}
+  _unlockButtonText: {fileID: 1010328238}
+  _skillPointsText: {fileID: 411143317}
 --- !u!1 &1260535275
 GameObject:
   m_ObjectHideFlags: 0
@@ -2259,6 +2188,30 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: triggerOnEnter
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: dialogueContainer
+      value: 
+      objectReference: {fileID: 11400000, guid: ab3078607f9144596b7b286217a17024, type: 2}
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: selectedGroupName
+      value: NPC1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: dialogueController
+      value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: selectedDialogueName
+      value: npc1a
+      objectReference: {fileID: 0}
+    - target: {fileID: 4037660505584872615, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
+      propertyPath: inkJSON
+      value: 
+      objectReference: {fileID: 4900000, guid: 36ecffd9695efc647b3b7c6c5194a996, type: 3}
     - target: {fileID: 1129322935282465108, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_Color.b
       value: 0.43025863
@@ -2326,7 +2279,7 @@ PrefabInstance:
     - target: {fileID: 1965038264666680678, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: skillsTreeController
       value: 
-      objectReference: {fileID: 810190869}
+      objectReference: {fileID: 0}
     - target: {fileID: 5718822987209562633, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_Name
       value: NPC - Skill Tree (1)
@@ -2335,30 +2288,6 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: triggerOnEnter
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: dialogueContainer
-      value: 
-      objectReference: {fileID: 11400000, guid: ab3078607f9144596b7b286217a17024, type: 2}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: selectedGroupName
-      value: NPC1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: dialogueController
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 2135297740496048888, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: selectedDialogueName
-      value: npc1a
-      objectReference: {fileID: 0}
-    - target: {fileID: 4037660505584872615, guid: aea4bb20ee5966449907efea174cfcf6, type: 3}
-      propertyPath: inkJSON
-      value: 
-      objectReference: {fileID: 4900000, guid: 36ecffd9695efc647b3b7c6c5194a996, type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2489,7 +2418,7 @@ GameObject:
   - component: {fileID: 1468795866}
   - component: {fileID: 1468795865}
   m_Layer: 5
-  m_Name: Button
+  m_Name: CloseButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2559,7 +2488,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 810190869}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: SkillsTreeController, Assembly-CSharp
         m_MethodName: HideSkillTree
         m_Mode: 1
@@ -2892,7 +2821,6 @@ RectTransform:
   m_Children:
   - {fileID: 411143316}
   - {fileID: 1834212842}
-  - {fileID: 405499576}
   - {fileID: 1533481605}
   m_Father: {fileID: 1468615362}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -3786,7 +3714,7 @@ PrefabInstance:
     - target: {fileID: 1965038264666680678, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: skillsTreeController
       value: 
-      objectReference: {fileID: 810190869}
+      objectReference: {fileID: 0}
     - target: {fileID: 5718822987209562633, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_Name
       value: NPC - Skill Tree (3)

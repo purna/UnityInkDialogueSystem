@@ -15,23 +15,67 @@ MonoBehaviour:
   _fileName: Levels
   _groups:
   - _ID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
-    _name: Level group
-    _position: {x: 505, y: 132.5}
+    _name: LevelOne
+    _position: {x: 48, y: -10}
   _nodes:
-  - _id: bced0ba3-83c6-42b3-b07f-f31140f33f11
-    _name: Level2
+  - _id: 27230658-7a27-46f7-9702-df524db6bbc8
+    _name: Level3
+    _text: Level description.
+    _choices:
+    - _text: New Tier
+      _nodeID: cc06336f-dacc-422b-a266-3c781ec973aa
+    - _text: New Tier
+      _nodeID: 
+    _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
+    _levelType: 1
+    _position: {x: 710, y: 59}
+    _icon: {fileID: 0}
+    _lockedIcon: {fileID: 0}
+    _unlockedIcon: {fileID: 0}
+    _completedIcon: {fileID: 0}
+    _description: 
+    _tier: 0
+    _levelIndex: 0
+    _completionThreshold: 100
+    _maxAttempts: -1
+    _levelSceneType: 0
+    _gameScenePath: 
+    _gameSceneName: 
+  - _id: cc06336f-dacc-422b-a266-3c781ec973aa
+    _name: Level4
     _text: Level description.
     _choices:
     - _text: Next Tier
       _nodeID: 
     _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
     _levelType: 0
-    _position: {x: 853, y: 191}
-    _icon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+    _position: {x: 1080, y: 79}
+    _icon: {fileID: 0}
     _lockedIcon: {fileID: 0}
     _unlockedIcon: {fileID: 0}
     _completedIcon: {fileID: 0}
-    _description: Level description.
+    _description: 
+    _tier: 0
+    _levelIndex: 0
+    _completionThreshold: 100
+    _maxAttempts: -1
+    _levelSceneType: 0
+    _gameScenePath: 
+    _gameSceneName: 
+  - _id: bced0ba3-83c6-42b3-b07f-f31140f33f11
+    _name: Level2
+    _text: Level description.
+    _choices:
+    - _text: Next Tier
+      _nodeID: 27230658-7a27-46f7-9702-df524db6bbc8
+    _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
+    _levelType: 0
+    _position: {x: 390, y: 48.5}
+    _icon: {fileID: 0}
+    _lockedIcon: {fileID: 0}
+    _unlockedIcon: {fileID: 0}
+    _completedIcon: {fileID: 0}
+    _description: 
     _tier: 0
     _levelIndex: 0
     _completionThreshold: 100
@@ -47,25 +91,27 @@ MonoBehaviour:
       _nodeID: bced0ba3-83c6-42b3-b07f-f31140f33f11
     _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
     _levelType: 0
-    _position: {x: 530, y: 194}
-    _icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
+    _position: {x: 73, y: 66}
+    _icon: {fileID: 0}
     _lockedIcon: {fileID: 0}
     _unlockedIcon: {fileID: 0}
     _completedIcon: {fileID: 0}
-    _description: Level description.
+    _description: 
     _tier: 0
     _levelIndex: 0
     _completionThreshold: 100
     _maxAttempts: -1
-    _levelSceneType: 1
-    _gameScenePath: Assets/_Dialogue/Ink/Demos/Basic Demo/Basic Demo.unity
-    _gameSceneName: Basic Demo
+    _levelSceneType: 0
+    _gameScenePath: 
+    _gameSceneName: 
   _oldGroupNames:
-  - Level group
+  - LevelOne
   _oldUngroupedNodeNames: []
   _oldGroupedNodeNames:
     list:
     - Key: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
       Value:
+      - Level3
+      - Level4
       - Level2
       - Level1

@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fab2d8c91ae3148e0b5f6474ad899c14, type: 3}
-  m_Name: Level group
+  m_Name: LevelOne
   m_EditorClassIdentifier: 
-  _groupName: Level group
+  _groupName: LevelOne
   _description: 
   _tierLevel: 0
   _groupColor: {r: 1, g: 1, b: 1, a: 1}
