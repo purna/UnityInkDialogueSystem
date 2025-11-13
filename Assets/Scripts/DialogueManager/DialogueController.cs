@@ -2,15 +2,23 @@ using System;
 using UnityEngine;
 using System.Collections.Generic;
 
+/// <summary>
+/// Main controller for the dialogue system 
+/// Matches LevelController pattern with player control integration
+/// </summary>
 public class DialogueController : MonoBehaviour
 {
-    /* Dialogue Scriptable Objects */
+    [Header("Setup Mode")]
+    [SerializeField] private DialogueSetupMode _setupMode = DialogueSetupMode.ScreenSpace;
+    
     [Header("Dialogue Data")]
     [SerializeField] private DialogueContainer dialogueContainer;
     [SerializeField] private DialogueGroup dialogueGroup;
     [SerializeField] private Dialogue dialogue;
 
-    /* Emote Animator */
+    private bool _isDialogueOpen = false;
+    public bool IsDialogueOpen => _isDialogueOpen;
+
     [Header("Emote Animator")]
     [Tooltip("Animator used for emote animations during dialogue (especially for Ink nodes)")]
     [SerializeField] private Animator emoteAnimator;
@@ -19,24 +27,31 @@ public class DialogueController : MonoBehaviour
     public event Action OnDialogueStarted;
     public event Action OnDialogueEnded;
 
-    /* Filters */
     [Header("Dialogue Selection")]
     [SerializeField] private bool groupedDialogues;
     [SerializeField] private bool startingDialoguesOnly;
     [SerializeField] private int selectedDialogueGroupIndex;
     [SerializeField] private int selectedDialogueIndex;
 
-    /* System References */
     [Header("System References")]
     [SerializeField] private DialogueManager dialogueManager;
     [SerializeField] private DialogueUI dialogueUI;
 
-    /* Auto Start */
     [Header("Auto Start Settings")]
-    [SerializeField] private bool startDialogueOnStart = false;
+    [SerializeField] private bool initializeOnStart = false;
     [SerializeField] private float startDelay = 0f;
 
-    /* Events */
+    [Header("Close Button Settings")]
+    [SerializeField] private bool _allowCloseWithKey = true;
+    [SerializeField] private KeyCode _closeKey = KeyCode.Escape;
+   
+    [Header("Player Control")]
+    [SerializeField] private GameObject _playerObject;
+    [SerializeField] private bool _disablePlayerWhenOpen = true;
+    
+    private IPlayerController _playerController;
+
+    // Events for tutorial/sequential systems
     public event Action DialoguePartEnded;
 
     // Public property for DialogueManager to access
@@ -69,8 +84,32 @@ public class DialogueController : MonoBehaviour
             dialogueUI = FindObjectOfType<DialogueUI>();
         }
 
-        // Auto start dialogue if enabled
-        if (startDialogueOnStart)
+        // Find player controller
+        if (_playerObject != null && _disablePlayerWhenOpen)
+        {
+            _playerController = _playerObject.GetComponent<IPlayerController>();
+            if (_playerController == null)
+            {
+                Debug.LogWarning("[DialogueController] Player object doesn't implement IPlayerController interface!");
+            }
+        }
+        else if (_disablePlayerWhenOpen)
+        {
+            // Try to find player by tag
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                _playerObject = player;
+                _playerController = player.GetComponent<IPlayerController>();
+                if (_playerController == null)
+                {
+                    Debug.LogWarning("[DialogueController] Player doesn't implement IPlayerController interface!");
+                }
+            }
+        }
+
+        // FIXED: Only initialize if initializeOnStart is TRUE
+        if (initializeOnStart)
         {
             if (startDelay > 0)
             {
@@ -79,6 +118,26 @@ public class DialogueController : MonoBehaviour
             else
             {
                 AutoStartDialogue();
+            }
+        }
+        else
+        {
+            // IMPORTANT: Hide the UI if we're not auto-starting
+            if (dialogueUI != null)
+                dialogueUI.gameObject.SetActive(false);
+                
+            Debug.Log("[DialogueController] Dialogue UI initialized but hidden. Waiting for trigger.");
+        }
+    }
+
+    private void Update()
+    {
+        // Handle close key input when dialogue UI is open
+        if (_isDialogueOpen && _allowCloseWithKey)
+        {
+            if (Input.GetKeyDown(_closeKey))
+            {
+                HideDialogue();
             }
         }
     }
@@ -105,6 +164,69 @@ public class DialogueController : MonoBehaviour
         else
         {
             Debug.LogWarning("Cannot auto-start dialogue: No dialogue or container assigned!");
+        }
+    }
+
+    #region Public Dialogue Methods
+
+    /// <summary>
+    /// Shows the dialogue UI without starting a specific dialogue
+    /// Used by DialogueTrigger to open the UI first
+    /// </summary>
+    public void ShowDialogue()
+    {
+        Debug.Log("[DialogueController] ShowDialogue() called");
+        
+        if (dialogueUI != null)
+        {
+            dialogueUI.gameObject.SetActive(true);
+            _isDialogueOpen = true;
+            Debug.Log("[DialogueController] ✓ Main dialogue UI activated");
+        }
+        else
+        {
+            Debug.LogWarning("[DialogueController] dialogueUI is not assigned!");
+        }
+
+        // Disable player movement
+        if (_disablePlayerWhenOpen && _playerController != null)
+        {
+            _playerController.DisablePlayer();
+            Debug.Log("[DialogueController] Player movement disabled");
+        }
+    }
+
+    /// <summary>
+    /// Hides the dialogue UI
+    /// </summary>
+    public void HideDialogue()
+    {
+        if (dialogueUI != null)
+        {
+            dialogueUI.gameObject.SetActive(false);
+            _isDialogueOpen = false;
+            Debug.Log("[DialogueController] Dialogue UI hidden");
+        }
+
+        // Re-enable player movement
+        if (_disablePlayerWhenOpen && _playerController != null)
+        {
+            _playerController.EnablePlayer();
+            Debug.Log("[DialogueController] Player movement enabled");
+        }
+    }
+
+    /// <summary>
+    /// Toggles dialogue UI visibility
+    /// </summary>
+    public void ToggleDialogue()
+    {
+        if (dialogueUI != null)
+        {
+            if (dialogueUI.gameObject.activeSelf)
+                HideDialogue();
+            else
+                ShowDialogue();
         }
     }
 
@@ -170,6 +292,57 @@ public class DialogueController : MonoBehaviour
     }
 
     /// <summary>
+    /// Triggers a specific dialogue at runtime
+    /// This is called by DialogueTrigger
+    /// </summary>
+    public void TriggerDialogue(Dialogue dialogueToStart)
+    {
+        TriggerDialogue(dialogueToStart, emoteAnimator);
+    }
+
+    /// <summary>
+    /// Triggers a specific dialogue with custom animator at runtime
+    /// </summary>
+    public void TriggerDialogue(Dialogue dialogueToStart, Animator customEmoteAnimator)
+    {
+        if (dialogueToStart == null)
+        {
+            Debug.LogWarning("Cannot trigger null dialogue!");
+            return;
+        }
+
+        // Update the dialogue reference
+        dialogue = dialogueToStart;
+        StartDialogueInternal(dialogueToStart, customEmoteAnimator);
+    }
+
+    /// <summary>
+    /// Ends the current dialogue
+    /// </summary>
+    public void EndDialogue()
+    {
+        // Invoke the event to notify subscribers (like DialoguePlayerController)
+        OnDialogueEnded?.Invoke();
+        Debug.Log("<color=orange>[DialogueController]</color> OnDialogueEnded event invoked!");
+ 
+        if (dialogueManager != null)
+        {
+            dialogueManager.EndDialogue();
+        }
+        else if (dialogueUI != null)
+        {
+            dialogueUI.EndDialogue();
+        }
+
+        // Hide the UI when dialogue ends
+        HideDialogue();
+    }
+
+    #endregion
+
+    #region Private Methods
+
+    /// <summary>
     /// Gets the starting dialogue from the container based on settings
     /// </summary>
     private Dialogue GetStartingDialogue()
@@ -205,30 +378,6 @@ public class DialogueController : MonoBehaviour
     }
 
     /// <summary>
-    /// Triggers a specific dialogue at runtime
-    /// </summary>
-    public void TriggerDialogue(Dialogue dialogueToStart)
-    {
-        TriggerDialogue(dialogueToStart, emoteAnimator);
-    }
-
-    /// <summary>
-    /// Triggers a specific dialogue with custom animator at runtime
-    /// </summary>
-    public void TriggerDialogue(Dialogue dialogueToStart, Animator customEmoteAnimator)
-    {
-        if (dialogueToStart == null)
-        {
-            Debug.LogWarning("Cannot trigger null dialogue!");
-            return;
-        }
-
-        // Update the dialogue reference
-        dialogue = dialogueToStart;
-        StartDialogueInternal(dialogueToStart, customEmoteAnimator);
-    }
-
-    /// <summary>
     /// Internal method to start dialogue with animator support
     /// </summary>
     private void StartDialogueInternal(Dialogue dialogueToStart, Animator customEmoteAnimator)
@@ -241,6 +390,12 @@ public class DialogueController : MonoBehaviour
 
         // Update the current dialogue reference
         dialogue = dialogueToStart;
+
+        // Show the UI if not already shown
+        if (!_isDialogueOpen)
+        {
+            ShowDialogue();
+        }
 
         // Invoke the event BEFORE starting dialogue (so player gets disabled first)
         OnDialogueStarted?.Invoke();
@@ -264,25 +419,6 @@ public class DialogueController : MonoBehaviour
     }
 
     /// <summary>
-    /// Ends the current dialogue
-    /// </summary>
-    public void EndDialogue()
-    {
-        // Invoke the event to notify subscribers (like DialoguePlayerController)
-        OnDialogueEnded?.Invoke();
-        Debug.Log("<color=orange>[DialogueController]</color> OnDialogueEnded event invoked!");
- 
-        if (dialogueManager != null)
-        {
-            dialogueManager.EndDialogue();
-        }
-        else if (dialogueUI != null)
-        {
-            dialogueUI.EndDialogue();
-        }
-    }
-
-    /// <summary>
     /// Called when dialogue ends (from DialogueManager event)
     /// This is the EVENT HANDLER, not the event itself
     /// </summary>
@@ -295,7 +431,14 @@ public class DialogueController : MonoBehaviour
         
         // Also invoke OnDialogueEnded for external systems
         OnDialogueEnded?.Invoke();
+
+        // Hide dialogue UI when dialogue ends
+        HideDialogue();
     }
+
+    #endregion
+
+    #region Public Utility Methods
 
     /// <summary>
     /// Checks if dialogue is currently active
@@ -332,4 +475,12 @@ public class DialogueController : MonoBehaviour
     public DialogueGroup GetDialogueGroup() => dialogueGroup;
     public bool IsGroupedDialogues() => groupedDialogues;
     public bool IsStartingDialoguesOnly() => startingDialoguesOnly;
+
+    #endregion
+}
+
+public enum DialogueSetupMode
+{
+    ScreenSpace,
+    WorldSpace
 }

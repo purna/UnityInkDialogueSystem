@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Ms Green
   m_EditorClassIdentifier: 
   _defaultSprite: {fileID: 21300000, guid: 7225b7bb6ac02ad4dbc0f4815c6f883e, type: 3}
-  _defaultName: Ms Greem
+  _defaultName: Ms Green
   _emotionSprites:
   - _emotion: 1
     _sprite: {fileID: 21300000, guid: 7225b7bb6ac02ad4dbc0f4815c6f883e, type: 3}

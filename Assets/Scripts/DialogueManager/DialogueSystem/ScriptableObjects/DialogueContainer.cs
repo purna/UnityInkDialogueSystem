@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+[CreateAssetMenu(fileName = "DialogueContainer", menuName = "Dialogue System/Dialogue Container")]
+
 public class DialogueContainer : ScriptableObject {
     [SerializeField] private string _fileName;
     [SerializeField] private SerializableDictionary<DialogueGroup, List<Dialogue>> _groups;

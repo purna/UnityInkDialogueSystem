@@ -70,7 +70,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
   m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 350, y: 0}
+  m_AnchoredPosition: {x: 330, y: 0}
   m_SizeDelta: {x: 500, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8837875291734542470
@@ -101,7 +101,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press E to view Skills
+  m_text: Press E to view Levels
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dbd96e28fdecd415fa9144be85d90db4, type: 2}
   m_sharedMaterial: {fileID: 297587786121153943, guid: dbd96e28fdecd415fa9144be85d90db4, type: 2}
@@ -349,19 +349,31 @@ MonoBehaviour:
   levelController: {fileID: 0}
   levelContainer: {fileID: 11400000, guid: 8f44aaa6805bc49d2b63ae72f40c7d37, type: 2}
   selectedGroup: {fileID: 11400000, guid: 6b7b56b9dcd2b4b2fb9a084ff489f5a2, type: 2}
-  selectedLevelName: Level1
+  selectedLevelName: Level3
   triggerOnEnter: 0
   requiresInput: 1
   interactKey: 101
   canTriggerMultipleTimes: 1
   toggleWithInteractKey: 1
-  interactPrompt: {fileID: 0}
-  promptTextComponent: {fileID: 0}
+  levelManager: {fileID: 0}
+  levelUI: {fileID: 0}
+  startLeveleOnStart: 0
+  startDelay: 0
+  interactPrompt: {fileID: 7396228892125995047}
+  promptTextComponent: {fileID: 8756625513768359787}
   promptText: Press E to view Levels
   fadeInDuration: 0.3
   displayDuration: 2
   fadeOutDuration: 0.3
   loopPrompt: 1
+  _skillTooltip: {fileID: 0}
+  _detailsPanel: {fileID: 0}
+  _detailsPanelTooltip: {fileID: 0}
+  _closeButton: {fileID: 0}
+  _allowCloseWithKey: 1
+  _closeKey: 27
+  _playerObject: {fileID: 0}
+  _disablePlayerWhenOpen: 1
 --- !u!1 &7268833918567021936
 GameObject:
   m_ObjectHideFlags: 0
