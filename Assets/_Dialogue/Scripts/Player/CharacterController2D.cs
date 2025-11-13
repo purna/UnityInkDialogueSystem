@@ -1,5 +1,28 @@
 ﻿using UnityEngine;
 
+
+/// <summary>
+/// Interface for player controllers to enable/disable player movement
+/// Implement this interface in your player controller script
+/// </summary>
+public interface IPlayerController
+{
+    /// <summary>
+    /// Enable player movement and controls
+    /// </summary>
+    void EnablePlayer();
+
+    /// <summary>
+    /// Disable player movement and controls
+    /// </summary>
+    void DisablePlayer();
+
+    /// <summary>
+    /// Check if player is currently enabled
+    /// </summary>
+    bool IsPlayerEnabled { get; }
+}
+
 // This script is a basic 2D character controller that allows
 // the player to run and jump. It uses Unity's new input system,
 // which needs to be set up accordingly for directional movement
@@ -7,8 +30,10 @@
 
 [RequireComponent(typeof(BoxCollider2D))]
 [RequireComponent(typeof(Rigidbody2D))]
-public class CharacterController2D : MonoBehaviour
+public class CharacterController2D : MonoBehaviour,  IPlayerController
 {
+    private bool _isEnabled = true;
+
 
     [Header("Movement Params")]
     public float runSpeed = 6.0f;
@@ -18,20 +43,33 @@ public class CharacterController2D : MonoBehaviour
     // components attached to player
     private BoxCollider2D coll;
     private Rigidbody2D rb;
+    private Animator _animator;
+
 
     // other
     private bool isGrounded = false;
+
+    public bool IsPlayerEnabled => _isEnabled;
+
 
     private void Awake()
     {
         coll = GetComponent<BoxCollider2D>();
         rb = GetComponent<Rigidbody2D>();
 
+        if (_animator != null)
+        {
+            _animator = GetComponent<Animator>();
+        }
+
         rb.gravityScale = gravityScale;
     }
 
     private void FixedUpdate()
     {
+       if (!_isEnabled) return; // Don't process input when disabled
+        
+       
        /*
         if (DialogueManager.GetInstance().dialogueIsPlaying)
         {
@@ -82,6 +120,32 @@ public class CharacterController2D : MonoBehaviour
             isGrounded = false;
             rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
         }
+    }
+
+
+    public void EnablePlayer()
+    {
+        _isEnabled = true;
+        Debug.Log("[PlayerController] Player movement ENABLED");
+    }
+    
+    public void DisablePlayer()
+    {
+        _isEnabled = false;
+        
+        // Stop movement
+        if (rb != null)
+        {
+            rb.velocity = Vector2.zero;
+        }
+        
+        // Stop animation
+        if (_animator != null)
+        {
+            _animator.SetFloat("Speed", 0f);
+        }
+        
+        Debug.Log("[PlayerController] Player movement DISABLED");
     }
 
 }

@@ -17,6 +17,9 @@ public class LevelController : MonoBehaviour
     [SerializeField] private LevelContainer levelContainer;
     [SerializeField] private LevelGroup levelGroup;
     [SerializeField] private Level startingLevel;
+    private bool _isLevelOpen = false;
+
+    public bool IsLevelOpen => _isLevelOpen;
     
     [Header("Manual Node Assignment")]
     [SerializeField] private List<LevelNodeMapping> _manualLevelNodes = new List<LevelNodeMapping>();
@@ -32,7 +35,7 @@ public class LevelController : MonoBehaviour
     [SerializeField] private GameObject levelUI;
     
     [Header("Auto Start Settings")]
-    [SerializeField] private bool initializeOnStart = true;
+    [SerializeField] private bool initializeOnStart = false;
     [SerializeField] private float startDelay = 0f;
     
     [Header("UI Setup (Auto Generate Mode)")]
@@ -54,9 +57,11 @@ public class LevelController : MonoBehaviour
     [Header("Tooltip")]
     [SerializeField] private LevelTooltip _levelTooltip;
  
-
     [Header("Details Panel")]
     [SerializeField] private GameObject _detailsPanel;
+    [SerializeField] private LevelTooltip _detailsPanelTooltip;
+
+    [Header("Details Panel UI (Legacy - Optional)")]
     [SerializeField] private TextMeshProUGUI _detailsTitle;
     [SerializeField] private TextMeshProUGUI _detailsDescription;
     [SerializeField] private Image _detailsIcon;
@@ -67,6 +72,17 @@ public class LevelController : MonoBehaviour
     [Header("Progress Display")]
     [SerializeField] private TextMeshProUGUI _progressText;
     [SerializeField] private Slider _progressBar;
+
+    [Header("Close Button")]
+    [SerializeField] private Button _closeButton;
+    [SerializeField] private bool _allowCloseWithKey = true;
+    [SerializeField] private KeyCode _closeKey = KeyCode.Escape;
+    
+    [Header("Player Control")]
+    [SerializeField] private GameObject _playerObject;
+    [SerializeField] private bool _disablePlayerWhenOpen = true;
+    
+    private IPlayerController _playerController;
     
     private Dictionary<Level, LevelNode> _levelNodes = new Dictionary<Level, LevelNode>();
     private Dictionary<Level, List<LineRenderer>> _connectionLines = new Dictionary<Level, List<LineRenderer>>();
@@ -81,6 +97,9 @@ public class LevelController : MonoBehaviour
         
         if (_playButton != null)
             _playButton.onClick.AddListener(OnPlayButtonClicked);
+
+        if (_closeButton != null)
+            _closeButton.onClick.AddListener(OnCloseButtonClicked);
         
         if (levelManager == null)
             levelManager = LevelManager.Instance;
@@ -91,7 +110,42 @@ public class LevelController : MonoBehaviour
             levelManager.OnLevelCompleted += OnLevelCompleted;
             levelManager.OnProgressChanged += OnProgressChanged;
         }
+
+        if (_levelTooltip == null)
+        {
+            _levelTooltip = GetComponent<LevelTooltip>();
+        }
         
+        if (_levelTooltip != null)
+        {
+            _levelTooltip.gameObject.SetActive(false);
+        }
+
+        // Find player controller
+        if (_playerObject != null && _disablePlayerWhenOpen)
+        {
+            _playerController = _playerObject.GetComponent<IPlayerController>();
+            if (_playerController == null)
+            {
+                Debug.LogWarning("[LevelController] Player object doesn't implement IPlayerController interface!");
+            }
+        }
+        else if (_disablePlayerWhenOpen)
+        {
+            // Try to find player by tag
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                _playerObject = player;
+                _playerController = player.GetComponent<IPlayerController>();
+                if (_playerController == null)
+                {
+                    Debug.LogWarning("[LevelController] Player doesn't implement IPlayerController interface!");
+                }
+            }
+        }
+        
+        // FIXED: Only initialize if initializeOnStart is TRUE
         if (initializeOnStart)
         {
             if (startDelay > 0)
@@ -99,8 +153,28 @@ public class LevelController : MonoBehaviour
             else
                 InitializeLevel();
         }
+        else
+        {
+            // IMPORTANT: Hide the UI if we're not auto-starting
+            if (levelUI != null)
+                levelUI.SetActive(false);
+                
+            Debug.Log("[LevelController] Level UI initialized but hidden. Waiting for trigger.");
+        }
         
         UpdateProgressDisplay();
+    }
+
+    private void Update()
+    {
+        // Handle close key input when level UI is open
+        if (_isLevelOpen && _allowCloseWithKey)
+        {
+            if (Input.GetKeyDown(_closeKey))
+            {
+                HideLevel();
+            }
+        }
     }
     
     private void OnDestroy()
@@ -434,10 +508,20 @@ public class LevelController : MonoBehaviour
             return;
         }
 
+        Debug.Log($"[LevelController] ShowLevelDetails() called for: {level.LevelName}");
+
         _selectedLevel = level;
 
+        if (levelUI != null && !levelUI.activeSelf)
+        {
+            levelUI.SetActive(true);
+        }
+
         if (_detailsPanel != null)
+        {
             _detailsPanel.SetActive(true);
+            Debug.Log("[LevelController] ✓ Details panel activated");
+        }
         else
         {
             Debug.LogWarning("[LevelController] Details panel reference is not set!");
@@ -447,35 +531,6 @@ public class LevelController : MonoBehaviour
         UpdateNodeSelectionStates(level);
         UpdateDetailsUI(level);
         UpdatePlayButton();
-    }
-    
-    private void UpdateDetailsUI(Level level)
-    {
-        if (_detailsTitle != null)
-            _detailsTitle.text = level.LevelName;
-        
-        if (_detailsDescription != null)
-            _detailsDescription.text = level.Description;
-        
-        if (_detailsIcon != null)
-        {
-            if (level.IsCompleted && level.CompletedIcon != null)
-                _detailsIcon.sprite = level.CompletedIcon;
-            else if (level.IsUnlocked && level.UnlockedIcon != null)
-                _detailsIcon.sprite = level.UnlockedIcon;
-            else if (!level.IsUnlocked && level.LockedIcon != null)
-                _detailsIcon.sprite = level.LockedIcon;
-            else if (level.Icon != null)
-                _detailsIcon.sprite = level.Icon;
-        }
-        
-        if (_detailsStatus != null)
-        {
-            string status = level.IsCompleted ? "✓ Completed" : 
-                           level.IsUnlocked ? "Unlocked - Ready to Play" : 
-                           "🔒 Locked";
-            _detailsStatus.text = status;
-        }
     }
 
     private void UpdateNodeSelectionStates(Level selectedLevel)
@@ -492,11 +547,49 @@ public class LevelController : MonoBehaviour
             }
         }
     }
+    
+    private void UpdateDetailsUI(Level level)
+    {
+        if (_detailsPanelTooltip != null)
+        {
+            _detailsPanelTooltip.SetLevel(level);
+        }
+        else
+        {
+            if (_detailsTitle != null)
+                _detailsTitle.text = level.LevelName;
+            
+            if (_detailsDescription != null)
+                _detailsDescription.text = level.Description;
+            
+            if (_detailsIcon != null)
+            {
+                if (level.IsCompleted && level.CompletedIcon != null)
+                    _detailsIcon.sprite = level.CompletedIcon;
+                else if (level.IsUnlocked && level.UnlockedIcon != null)
+                    _detailsIcon.sprite = level.UnlockedIcon;
+                else if (!level.IsUnlocked && level.LockedIcon != null)
+                    _detailsIcon.sprite = level.LockedIcon;
+                else if (level.Icon != null)
+                    _detailsIcon.sprite = level.Icon;
+            }
+            
+            if (_detailsStatus != null)
+            {
+                string status = level.IsCompleted ? "✓ Completed" : 
+                               level.IsUnlocked ? "Unlocked - Ready to Play" : 
+                               "🔒 Locked";
+                _detailsStatus.text = status;
+            }
+        }
+    }
 
     public void HideLevelDetails()
     {
         if (_detailsPanel != null)
+        {
             _detailsPanel.SetActive(false);
+        }
 
         foreach (var node in _instantiatedNodes)
         {
@@ -569,6 +662,11 @@ public class LevelController : MonoBehaviour
             levelManager.LoadLevel(_selectedLevel);
             Debug.Log($"[LevelController] Loading level: {_selectedLevel.LevelName}");
         }
+    }
+
+    private void OnCloseButtonClicked()
+    {
+        HideLevel();
     }
     
     #endregion
@@ -712,22 +810,68 @@ public class LevelController : MonoBehaviour
 
     public void ShowLevel()
     {
+        Debug.Log("[LevelController] ShowLevel() called");
+        
         if (levelUI != null)
         {
             levelUI.SetActive(true);
-            Debug.Log("[LevelController] Level UI opened");
+            _isLevelOpen = true;
+            Debug.Log("[LevelController] ✓ Main level UI activated");
+        }
+        else
+        {
+            Debug.LogWarning("[LevelController] levelUI is not assigned!");
+        }
+
+        if (_detailsPanel != null)
+        {
+            _detailsPanel.SetActive(false);
+            Debug.Log("[LevelController] Details panel hidden (will show on level selection)");
+        }
+
+        if (_levelNodes == null || _levelNodes.Count == 0)
+        {
+            Debug.Log("[LevelController] Initializing level nodes...");
+            InitializeLevel();
         }
 
         UpdateAllNodeStates();
         UpdateProgressDisplay();
+
+        // Disable player movement
+        if (_disablePlayerWhenOpen && _playerController != null)
+        {
+            _playerController.DisablePlayer();
+            Debug.Log("[LevelController] Player movement disabled");
+        }
     }
 
     public void HideLevel()
     {
         if (levelUI != null)
+        {
             levelUI.SetActive(false);
+            _isLevelOpen = false;
+            Debug.Log("[LevelController] Level UI hidden");
+        }
 
-        HideLevelDetails();
+        if (_detailsPanel != null)
+            _detailsPanel.SetActive(false);
+
+        if (_currentlySelectedNode != null)
+        {
+            _currentlySelectedNode.SetSelected(false);
+            _currentlySelectedNode = null;
+        }
+
+        _selectedLevel = null;
+
+        // Re-enable player movement
+        if (_disablePlayerWhenOpen && _playerController != null)
+        {
+            _playerController.EnablePlayer();
+            Debug.Log("[LevelController] Player movement enabled");
+        }
     }
 
     public void ToggleLevel()

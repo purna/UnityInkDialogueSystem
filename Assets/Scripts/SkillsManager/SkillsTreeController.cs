@@ -17,6 +17,9 @@ public class SkillsTreeController : MonoBehaviour
     [SerializeField] private SkillsTreeContainer skillstreeContainer;
     [SerializeField] private SkillsTreeGroup skillstreeGroup;
     [SerializeField] private Skill skillstree;
+    private bool _isSkillTreeOpen = false;
+
+    public bool IsSkillTreeOpen => _isSkillTreeOpen;
     
     [Header("Manual Node Assignment")]
     [SerializeField] private List<SkillNodeMapping> _manualSkillNodes = new List<SkillNodeMapping>();
@@ -57,7 +60,6 @@ public class SkillsTreeController : MonoBehaviour
     [SerializeField] private GameObject _detailsPanel;
     [SerializeField] private SkillTooltip _detailsPanelTooltip;
 
-    // Optional: Legacy UI elements (use if NOT using SkillTooltip)
     [Header("Details Panel UI (Legacy - Optional)")]
     [SerializeField] private TextMeshProUGUI _detailsTitle;
     [SerializeField] private TextMeshProUGUI _detailsDescription;
@@ -66,9 +68,18 @@ public class SkillsTreeController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI _detailsLevel;
     [SerializeField] private Button _unlockButton;
     [SerializeField] private TextMeshProUGUI _unlockButtonText;
-    
-    [Header("Skill Points Display")]
     [SerializeField] private TextMeshProUGUI _skillPointsText;
+    
+    [Header("Close Button")]
+    [SerializeField] private Button _closeButton;
+    [SerializeField] private bool _allowCloseWithKey = true;
+    [SerializeField] private KeyCode _closeKey = KeyCode.Escape;
+    
+    [Header("Player Control")]
+    [SerializeField] private GameObject _playerObject;
+    [SerializeField] private bool _disablePlayerWhenOpen = true;
+    
+    private IPlayerController _playerController;
     
     private Dictionary<Skill, SkillNode> _skillNodes = new Dictionary<Skill, SkillNode>();
     private Dictionary<Skill, List<LineRenderer>> _connectionLines = new Dictionary<Skill, List<LineRenderer>>();
@@ -84,11 +95,12 @@ public class SkillsTreeController : MonoBehaviour
         if (_unlockButton != null)
             _unlockButton.onClick.AddListener(OnUnlockButtonClicked);
         
-        // Use the reference if provided, otherwise try to find instance
+        if (_closeButton != null)
+            _closeButton.onClick.AddListener(OnCloseButtonClicked);
+        
         if (skillstreeManager == null)
             skillstreeManager = SkillTreeManager.Instance;
 
-        // Subscribe to skill tree manager events
         if (skillstreeManager != null)
         {
             skillstreeManager.OnSkillUnlocked += OnSkillUnlocked;
@@ -101,12 +113,36 @@ public class SkillsTreeController : MonoBehaviour
             _skillTooltip = GetComponent<SkillTooltip>();
         }
         
-        // Hide the tooltip by default
         if (_skillTooltip != null)
         {
             _skillTooltip.gameObject.SetActive(false);
         }
         
+        // Find player controller
+        if (_playerObject != null && _disablePlayerWhenOpen)
+        {
+            _playerController = _playerObject.GetComponent<IPlayerController>();
+            if (_playerController == null)
+            {
+                Debug.LogWarning("[SkillsTreeController] Player object doesn't implement IPlayerController interface!");
+            }
+        }
+        else if (_disablePlayerWhenOpen)
+        {
+            // Try to find player by tag
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player != null)
+            {
+                _playerObject = player;
+                _playerController = player.GetComponent<IPlayerController>();
+                if (_playerController == null)
+                {
+                    Debug.LogWarning("[SkillsTreeController] Player doesn't implement IPlayerController interface!");
+                }
+            }
+        }
+        
+        // FIXED: Only initialize if startSkillsTreeOnStart is TRUE
         if (startSkillsTreeOnStart)
         {
             if (startDelay > 0)
@@ -116,10 +152,26 @@ public class SkillsTreeController : MonoBehaviour
         }
         else
         {
-            InitializeSkillTree();
+            // IMPORTANT: Hide the UI if we're not auto-starting
+            if (skillstreeUI != null)
+                skillstreeUI.SetActive(false);
+                
+            Debug.Log("[SkillsTreeController] Skill tree UI initialized but hidden. Waiting for trigger.");
         }
         
         UpdateSkillPointsDisplay();
+    }
+    
+    private void Update()
+    {
+        // Handle close key input when skill tree is open
+        if (_isSkillTreeOpen && _allowCloseWithKey)
+        {
+            if (Input.GetKeyDown(_closeKey))
+            {
+                HideSkillTree();
+            }
+        }
     }
     
     private void OnDestroy()
@@ -155,10 +207,6 @@ public class SkillsTreeController : MonoBehaviour
     
     #region Public Skill Access Methods
     
-    /// <summary>
-    /// Get all available skills from the current container/group configuration
-    /// This is used by SkillNode to populate the skill selection dropdown
-    /// </summary>
     public List<Skill> GetAvailableSkills()
     {
         if (skillstreeContainer == null)
@@ -171,18 +219,12 @@ public class SkillsTreeController : MonoBehaviour
         return skills ?? new List<Skill>();
     }
     
-    /// <summary>
-    /// Get a skill by its name
-    /// </summary>
     public Skill GetSkillByName(string skillName)
     {
         List<Skill> availableSkills = GetAvailableSkills();
         return availableSkills.Find(s => s.SkillName == skillName);
     }
     
-    /// <summary>
-    /// Register a manually assigned node
-    /// </summary>
     public void RegisterManualNode(Skill skill, SkillNode node)
     {
         if (skill != null && node != null)
@@ -201,58 +243,42 @@ public class SkillsTreeController : MonoBehaviour
         _skillNodes.Clear();
         ClearRegisteredNodes();
         
-        // First, find all SkillNode components in the scene
-        SkillNode[] allChoicers = FindObjectsOfType<SkillNode>();
+        SkillNode[] allNodes = FindObjectsOfType<SkillNode>();
         
-        foreach (var choicer in allChoicers)
+        foreach (var node in allNodes)
         {
-            Skill skill = choicer.GetSkill();
+            Skill skill = node.GetSkill();
             if (skill != null)
             {
-                // Ensure controller is set
-                choicer.SetController(this);
-                
-                // Register the node
-                _skillNodes[skill] = choicer;
-                RegisterSkillNode(choicer);
+                node.SetController(this);
+                _skillNodes[skill] = node;
+                RegisterSkillNode(node);
             }
         }
         
-        // Also process the manual mappings list if it exists
         if (_manualSkillNodes != null && _manualSkillNodes.Count > 0)
         {
             foreach (var mapping in _manualSkillNodes)
             {
                 if (mapping.skill == null || mapping.nodeGameObject == null)
-                {
-                    Debug.LogWarning($"[SkillsTreeController] Skipping invalid mapping");
                     continue;
-                }
                 
-                // Get or add the SkillNode component
                 SkillNode nodeComponent = mapping.nodeGameObject.GetComponent<SkillNode>();
                 if (nodeComponent == null)
-                {
                     nodeComponent = mapping.nodeGameObject.AddComponent<SkillNode>();
-                }
                 
-                // Initialize the node with skill data
                 nodeComponent.SetController(this);
                 nodeComponent.SetSkill(mapping.skill);
                 
-                // Store the mapping
                 _skillNodes[mapping.skill] = nodeComponent;
                 RegisterSkillNode(nodeComponent);
             }
         }
         
-        // Generate connection lines if enabled
         foreach (var skill in _skillNodes.Keys)
         {
             if (_autoGenerateLines)
-            {
                 CreateConnectionLines(skill);
-            }
         }
         
         UpdateAllNodeStates();
@@ -284,13 +310,11 @@ public class SkillsTreeController : MonoBehaviour
         
         Debug.Log($"[SkillsTreeController] Generating {skillsToGenerate.Count} skill nodes...");
         
-        // First pass: Create all skill nodes
         foreach (var skill in skillsToGenerate)
         {
             CreateSkillNode(skill);
         }
         
-        // Second pass: Create connections after all nodes exist
         if (_autoGenerateLines)
         {
             foreach (var skill in skillsToGenerate)
@@ -308,33 +332,23 @@ public class SkillsTreeController : MonoBehaviour
     {
         if (groupedSkillsTrees && skillstreeGroup != null)
         {
-            // Get skills from the selected group
             return skillstreeContainer.GetGroupedSkills(skillstreeGroup, startingSkillsTreesOnly);
         }
         else if (skillstree != null)
         {
-            // Single skill tree - get all related skills
             List<Skill> allSkills = new List<Skill>();
             CollectSkillTreeRecursive(skillstree, allSkills);
             return allSkills;
         }
         else
         {
-            // Get all skills from container
             if (startingSkillsTreesOnly)
-            {
                 return skillstreeContainer.GetStartingSkills();
-            }
             else
-            {
                 return skillstreeContainer.GetAllSkills();
-            }
         }
     }
     
-    /// <summary>
-    /// Recursively collect all skills in a skill tree (including children)
-    /// </summary>
     private void CollectSkillTreeRecursive(Skill skill, List<Skill> collection)
     {
         if (skill == null || collection.Contains(skill))
@@ -342,7 +356,6 @@ public class SkillsTreeController : MonoBehaviour
         
         collection.Add(skill);
         
-        // Collect all children
         foreach (var child in skill.Children)
         {
             CollectSkillTreeRecursive(child, collection);
@@ -363,27 +376,19 @@ public class SkillsTreeController : MonoBehaviour
         SkillNode nodeComponent = nodeObj.GetComponent<SkillNode>();
         
         if (nodeComponent == null)
-        {
             nodeComponent = nodeObj.AddComponent<SkillNode>();
-        }
         
-        // Initialize the node with the skill data
         nodeComponent.Initialize(skill, this);
         
-        // Position the node based on settings
         if (!_useGridLayout && _useSkillPositions)
         {
-            // Use the skill's saved position
             RectTransform rectTransform = nodeObj.GetComponent<RectTransform>();
             if (rectTransform != null)
-            {
                 rectTransform.anchoredPosition = skill.Position;
-            }
         }
-        // If using grid layout, let Unity's GridLayoutGroup handle positioning
         
         _skillNodes[skill] = nodeComponent;
-        RegisterSkillNode(nodeComponent); // IMPORTANT: Register the node
+        RegisterSkillNode(nodeComponent);
         
         Debug.Log($"[SkillsTreeController] Created node for skill: {skill.SkillName}");
     }
@@ -406,15 +411,11 @@ public class SkillsTreeController : MonoBehaviour
             
             LineRenderer line = CreateLine(skill, childSkill);
             if (line != null)
-            {
                 lines.Add(line);
-            }
         }
         
         if (lines.Count > 0)
-        {
             _connectionLines[skill] = lines;
-        }
     }
     
     private LineRenderer CreateLine(Skill fromSkill, Skill toSkill)
@@ -423,39 +424,31 @@ public class SkillsTreeController : MonoBehaviour
         
         GameObject lineObj;
         if (_connectionLinePrefab != null)
-        {
             lineObj = Instantiate(_connectionLinePrefab, linesContainer);
-        }
         else
         {
             lineObj = new GameObject($"Line_{fromSkill.SkillName}_to_{toSkill.SkillName}");
             lineObj.transform.SetParent(linesContainer);
         }
         
-        // Ensure line is drawn behind nodes
         lineObj.transform.SetAsFirstSibling();
         
         LineRenderer line = lineObj.GetComponent<LineRenderer>();
         if (line == null)
-        {
             line = lineObj.AddComponent<LineRenderer>();
-        }
         
-        // Configure line renderer
         line.positionCount = 2;
         line.startWidth = _lineWidth;
         line.endWidth = _lineWidth;
         line.material = new Material(Shader.Find("Sprites/Default"));
         line.sortingOrder = -1;
         
-        // Set positions
         Vector3 startPos = _skillNodes[fromSkill].transform.position;
         Vector3 endPos = _skillNodes[toSkill].transform.position;
         
         line.SetPosition(0, startPos);
         line.SetPosition(1, endPos);
         
-        // Set color based on unlock state
         UpdateLineColor(line, fromSkill);
         
         return line;
@@ -477,7 +470,6 @@ public class SkillsTreeController : MonoBehaviour
 
     private void ClearSkillTree()
     {
-        // Only destroy nodes if in auto-generate mode
         if (_setupMode == SkillTreeSetupMode.AutoGenerate)
         {
             foreach (var node in _skillNodes.Values)
@@ -505,10 +497,6 @@ public class SkillsTreeController : MonoBehaviour
     
     #region Details Panel
     
-    /// <summary>
-    /// Show skill details in the details panel
-    /// Called when a skill node is clicked
-    /// </summary>
     public void ShowSkillDetails(Skill skill)
     {
         if (skill == null)
@@ -517,12 +505,19 @@ public class SkillsTreeController : MonoBehaviour
             return;
         }
 
+        Debug.Log($"[SkillsTreeController] ShowSkillDetails() called for: {skill.SkillName}");
+        
         _selectedSkill = skill;
 
-        // Activate the details panel
+        if (skillstreeUI != null && !skillstreeUI.activeSelf)
+        {
+            skillstreeUI.SetActive(true);
+        }
+
         if (_detailsPanel != null)
         {
             _detailsPanel.SetActive(true);
+            Debug.Log("[SkillsTreeController] ✓ Details panel activated");
         }
         else
         {
@@ -530,65 +525,11 @@ public class SkillsTreeController : MonoBehaviour
             return;
         }
         
-        // Update node selection states - IMPORTANT!
         UpdateNodeSelectionStates(skill);
-        
-        // Method 1: Use SkillTooltip component (RECOMMENDED)
-        if (_detailsPanelTooltip == null)
-        {
-            _detailsPanelTooltip = _detailsPanel.GetComponent<SkillTooltip>();
-            
-            if (_detailsPanelTooltip == null)
-            {
-                _detailsPanelTooltip = _detailsPanel.GetComponentInChildren<SkillTooltip>();
-            }
-        }
-        
-        if (_detailsPanelTooltip != null)
-        {
-            _detailsPanelTooltip.SetSkillData(skill, this);
-        }
-        
-        // Method 2: Use legacy UI elements (OPTIONAL - only if SkillTooltip not used)
-        if (_detailsPanelTooltip == null)
-        {
-            UpdateLegacyDetailsUI(skill);
-        }
-        
+        UpdateDetailsUI(skill);
         UpdateUnlockButton();
     }
     
-    /// <summary>
-    /// Update legacy details UI elements (if not using SkillTooltip)
-    /// </summary>
-    private void UpdateLegacyDetailsUI(Skill skill)
-    {
-        if (_detailsTitle != null)
-            _detailsTitle.text = skill.SkillName;
-        
-        if (_detailsDescription != null)
-            _detailsDescription.text = skill.Description;
-        
-        if (_detailsIcon != null)
-        {
-            if (skill.IsUnlocked && skill.UnlockedIcon != null)
-                _detailsIcon.sprite = skill.UnlockedIcon;
-            else if (!skill.IsUnlocked && skill.LockedIcon != null)
-                _detailsIcon.sprite = skill.LockedIcon;
-            else if (skill.Icon != null)
-                _detailsIcon.sprite = skill.Icon;
-        }
-        
-        if (_detailsCost != null)
-            _detailsCost.text = $"Cost: {skill.UnlockCost} SP";
-        
-        if (_detailsLevel != null)
-            _detailsLevel.text = $"Level: {skill.CurrentLevel} / {skill.MaxLevel}";
-    }
-
-    /// <summary>
-    /// Update selection states for all nodes
-    /// </summary>
     private void UpdateNodeSelectionStates(Skill selectedSkill)
     {
         foreach (var node in _instantiatedNodes)
@@ -599,16 +540,36 @@ public class SkillsTreeController : MonoBehaviour
                 node.SetSelected(isSelected);
                 
                 if (isSelected)
-                {
                     _currentlySelectedNode = node;
-                }
             }
         }
     }
 
-    /// <summary>
-    /// Hide the details panel
-    /// </summary>
+    private void UpdateDetailsUI(Skill skill)
+    {
+        if (_detailsPanelTooltip != null)
+        {
+            _detailsPanelTooltip.SetSkillData(skill, this);
+        }
+        else
+        {
+            if (_detailsTitle != null)
+                _detailsTitle.text = skill.SkillName;
+            
+            if (_detailsDescription != null)
+                _detailsDescription.text = skill.Description;
+            
+            if (_detailsIcon != null && skill.Icon != null)
+                _detailsIcon.sprite = skill.Icon;
+            
+            if (_detailsCost != null)
+                _detailsCost.text = $"Cost: {skill.UnlockCost} SP";
+            
+            if (_detailsLevel != null)
+                _detailsLevel.text = $"Level: {skill.CurrentLevel} / {skill.MaxLevel}";
+        }
+    }
+
     public void HideSkillDetails()
     {
         if (_detailsPanel != null)
@@ -616,60 +577,38 @@ public class SkillsTreeController : MonoBehaviour
             _detailsPanel.SetActive(false);
         }
 
-        // Deselect all nodes
         foreach (var node in _instantiatedNodes)
         {
             if (node != null)
-            {
                 node.SetSelected(false);
-            }
         }
 
         _currentlySelectedNode = null;
         _selectedSkill = null;
     }
 
-    /// <summary>
-    /// Register a skill node (call this when instantiating nodes)
-    /// </summary>
     public void RegisterSkillNode(SkillNode node)
     {
         if (node != null && !_instantiatedNodes.Contains(node))
-        {
             _instantiatedNodes.Add(node);
-        }
     }
     
-    /// <summary>
-    /// Unregister a skill node (call this when destroying nodes)
-    /// </summary>
     public void UnregisterSkillNode(SkillNode node)
     {
         if (node != null && _instantiatedNodes.Contains(node))
-        {
             _instantiatedNodes.Remove(node);
-        }
     }
     
-    /// <summary>
-    /// Clear all registered nodes (call this when regenerating the tree)
-    /// </summary>
     public void ClearRegisteredNodes()
     {
         _instantiatedNodes.Clear();
         _currentlySelectedNode = null;
     }
 
-    /// <summary>
-    /// Refresh the details panel if a skill is currently selected
-    /// Useful when skill state changes (e.g., after unlock)
-    /// </summary>
     public void RefreshDetailsPanel()
     {
         if (_selectedSkill != null)
-        {
             ShowSkillDetails(_selectedSkill);
-        }
     }
 
     private void UpdateUnlockButton()
@@ -677,30 +616,32 @@ public class SkillsTreeController : MonoBehaviour
         if (_unlockButton == null || _selectedSkill == null)
             return;
         
-        bool canAfford = skillstreeManager != null && 
-                        skillstreeManager.CurrentSkillPoints >= _selectedSkill.UnlockCost;
-        bool canUnlock = _selectedSkill.CanUnlock() && canAfford;
-        
-        if (_selectedSkill.IsUnlocked)
+        if (skillstreeManager == null)
         {
-            if (_selectedSkill.CurrentLevel < _selectedSkill.MaxLevel)
-            {
-                _unlockButton.interactable = canAfford;
-                if (_unlockButtonText != null)
-                    _unlockButtonText.text = "Level Up";
-            }
-            else
-            {
-                _unlockButton.interactable = false;
-                if (_unlockButtonText != null)
-                    _unlockButtonText.text = "Max Level";
-            }
+            _unlockButton.interactable = false;
+            return;
+        }
+        
+        bool canAfford = skillstreeManager.CurrentSkillPoints >= _selectedSkill.UnlockCost;
+        bool canUnlock = _selectedSkill.CanUnlock();
+        
+        if (!_selectedSkill.IsUnlocked)
+        {
+            _unlockButton.interactable = canAfford && canUnlock;
+            if (_unlockButtonText != null)
+                _unlockButtonText.text = canAfford && canUnlock ? "Unlock" : "Locked";
+        }
+        else if (_selectedSkill.CurrentLevel < _selectedSkill.MaxLevel)
+        {
+            _unlockButton.interactable = canAfford;
+            if (_unlockButtonText != null)
+                _unlockButtonText.text = canAfford ? "Level Up" : "Level Up";
         }
         else
         {
-            _unlockButton.interactable = canUnlock;
+            _unlockButton.interactable = false;
             if (_unlockButtonText != null)
-                _unlockButtonText.text = canUnlock ? "Unlock" : "Locked";
+                _unlockButtonText.text = "Max Level";
         }
     }
 
@@ -722,9 +663,13 @@ public class SkillsTreeController : MonoBehaviour
 
         if (success)
         {
-            // Refresh the details panel
             ShowSkillDetails(_selectedSkill);
         }
+    }
+    
+    private void OnCloseButtonClicked()
+    {
+        HideSkillTree();
     }
     
     #endregion
@@ -739,7 +684,6 @@ public class SkillsTreeController : MonoBehaviour
         if (_selectedSkill == skill)
             ShowSkillDetails(skill);
             
-        // Play unlock animation if node exists
         if (_skillNodes.ContainsKey(skill))
         {
             _skillNodes[skill].PlayUnlockAnimation();
@@ -799,15 +743,8 @@ public class SkillsTreeController : MonoBehaviour
     {
         foreach (var node in _skillNodes.Values)
         {
-            node.UpdateDisplay();
-        }
-        
-        foreach (var skillLines in _connectionLines)
-        {
-            foreach (var line in skillLines.Value)
-            {
-                UpdateLineColor(line, skillLines.Key);
-            }
+            if (node != null)
+                node.UpdateDisplay();
         }
     }
     
@@ -826,9 +763,6 @@ public class SkillsTreeController : MonoBehaviour
         InitializeSkillTree();
     }
     
-    /// <summary>
-    /// Manually add a skill node mapping at runtime
-    /// </summary>
     public void AddManualSkillNode(Skill skill, GameObject nodeGameObject)
     {
         if (skill == null || nodeGameObject == null)
@@ -837,184 +771,166 @@ public class SkillsTreeController : MonoBehaviour
             return;
         }
         
-        // Add to manual nodes list
         _manualSkillNodes.Add(new SkillNodeMapping { skill = skill, nodeGameObject = nodeGameObject });
         
-        // If already initialized, set it up immediately
         if (_skillNodes != null && _setupMode == SkillTreeSetupMode.ManualAssignment)
         {
             SkillNode nodeComponent = nodeGameObject.GetComponent<SkillNode>();
             if (nodeComponent == null)
-            {
                 nodeComponent = nodeGameObject.AddComponent<SkillNode>();
-            }
             
             nodeComponent.Initialize(skill, this);
             _skillNodes[skill] = nodeComponent;
             RegisterSkillNode(nodeComponent);
             
             if (_autoGenerateLines)
-            {
                 CreateConnectionLines(skill);
-            }
         }
     }
 
-    /// <summary>
-    /// Get the node GameObject for a specific skill
-    /// </summary>
     public GameObject GetSkillNodeGameObject(Skill skill)
     {
         if (_skillNodes.ContainsKey(skill))
-        {
             return _skillNodes[skill].gameObject;
-        }
         return null;
     }
 
-    #endregion
-
-    #region Public UI Control Methods
-
-    /// <summary>
-    /// Show/Open the skill tree UI
-    /// </summary>
     public void ShowSkillTree()
     {
+        Debug.Log("[SkillsTreeController] ShowSkillTree() called");
+        
         if (skillstreeUI != null)
         {
             skillstreeUI.SetActive(true);
-            Debug.Log("[SkillsTreeController] Skill tree UI opened");
+            _isSkillTreeOpen = true;
+            Debug.Log("[SkillsTreeController] ✓ Main skill tree UI activated");
         }
         else
         {
-            Debug.LogWarning("[SkillsTreeController] Skill tree UI reference not set!");
+            Debug.LogWarning("[SkillsTreeController] skillstreeUI is not assigned!");
         }
-
-        // Refresh the display
+        
+        if (_detailsPanel != null)
+        {
+            _detailsPanel.SetActive(false);
+            Debug.Log("[SkillsTreeController] Details panel hidden (will show on skill selection)");
+        }
+        
+        if (_skillNodes == null || _skillNodes.Count == 0)
+        {
+            Debug.Log("[SkillsTreeController] Initializing skill tree nodes...");
+            InitializeSkillTree();
+        }
+        
         UpdateAllNodeStates();
         UpdateSkillPointsDisplay();
+        
+        // Disable player movement
+        if (_disablePlayerWhenOpen && _playerController != null)
+        {
+            _playerController.DisablePlayer();
+            Debug.Log("[SkillsTreeController] Player movement disabled");
+        }
     }
 
-
-    /// <summary>
-    /// Hide/Close the skill tree UI
-    /// </summary>
     public void HideSkillTree()
     {
         if (skillstreeUI != null)
         {
             skillstreeUI.SetActive(false);
-            Debug.Log("[SkillsTreeController] Skill tree UI closed");
+            _isSkillTreeOpen = false;
+            Debug.Log("[SkillsTreeController] Skill tree UI hidden");
         }
-
-        // Also hide the details panel
-        HideSkillDetails();
+        
+        if (_detailsPanel != null)
+        {
+            _detailsPanel.SetActive(false);
+        }
+        
+        if (_currentlySelectedNode != null)
+        {
+            _currentlySelectedNode.SetSelected(false);
+            _currentlySelectedNode = null;
+        }
+        
+        _selectedSkill = null;
+        
+        // Re-enable player movement
+        if (_disablePlayerWhenOpen && _playerController != null)
+        {
+            _playerController.EnablePlayer();
+            Debug.Log("[SkillsTreeController] Player movement enabled");
+        }
     }
 
-/// <summary>
-/// Toggle the skill tree UI visibility
-/// </summary>
-public void ToggleSkillTree()
-{
-    if (skillstreeUI != null)
+    public void ToggleSkillTree()
     {
-        if (skillstreeUI.activeSelf)
+        if (skillstreeUI != null)
         {
-            HideSkillTree();
-        }
-        else
-        {
-            ShowSkillTree();
+            if (skillstreeUI.activeSelf)
+                HideSkillTree();
+            else
+                ShowSkillTree();
         }
     }
-}
 
-/// <summary>
-/// Set the skill group to display (filters the tree to only show skills from this group)
-/// </summary>
-public void SetSkillGroup(SkillsTreeGroup group)
-{
-    skillstreeGroup = group;
-    
-    // Regenerate the skill tree with the new group
-    InitializeSkillTree();
-    
-    Debug.Log($"[SkillsTreeController] Filtered to group: {group?.GroupName ?? "None"}");
-}
-
-/// <summary>
-/// Filter the skill tree by group name
-/// </summary>
-public void FilterByGroup(string groupName)
-{
-    if (skillstreeContainer == null)
+    public void SetSkillGroup(SkillsTreeGroup group)
     {
-        Debug.LogWarning("[SkillsTreeController] No container assigned to filter by group!");
-        return;
+        skillstreeGroup = group;
+        InitializeSkillTree();
+        Debug.Log($"[SkillsTreeController] Filtered to group: {group?.GroupName ?? "None"}");
     }
-    
-    // Find the group by name
-    foreach (var kvp in skillstreeContainer.Groups)
+
+    public void FilterByGroup(string groupName)
     {
-        if (kvp.Key.GroupName == groupName)
+        if (skillstreeContainer == null)
         {
-            SetSkillGroup(kvp.Key);
+            Debug.LogWarning("[SkillsTreeController] No container assigned to filter by group!");
             return;
         }
+        
+        foreach (var kvp in skillstreeContainer.Groups)
+        {
+            if (kvp.Key.GroupName == groupName)
+            {
+                SetSkillGroup(kvp.Key);
+                return;
+            }
+        }
+        
+        Debug.LogWarning($"[SkillsTreeController] Could not find group with name: {groupName}");
     }
-    
-    Debug.LogWarning($"[SkillsTreeController] Could not find group with name: {groupName}");
-}
 
-/// <summary>
-/// Get a skill group by name from the current container
-/// </summary>
-public SkillsTreeGroup GetSkillGroup(string groupName)
-{
-    if (skillstreeContainer == null)
+    public SkillsTreeGroup GetSkillGroup(string groupName)
     {
-        Debug.LogWarning("[SkillsTreeController] No container assigned!");
+        if (skillstreeContainer == null)
+            return null;
+        
+        foreach (var kvp in skillstreeContainer.Groups)
+        {
+            if (kvp.Key.GroupName == groupName)
+                return kvp.Key;
+        }
+        
         return null;
     }
-    
-    foreach (var kvp in skillstreeContainer.Groups)
+
+    public void ClearGroupFilter()
     {
-        if (kvp.Key.GroupName == groupName)
-        {
-            return kvp.Key;
-        }
+        skillstreeGroup = null;
+        InitializeSkillTree();
+        Debug.Log("[SkillsTreeController] Group filter cleared - showing all skills");
     }
-    
-    return null;
+
+    #endregion
 }
 
-/// <summary>
-/// Clear any group filter and show all skills
-/// </summary>
-public void ClearGroupFilter()
-{
-    skillstreeGroup = null;
-    InitializeSkillTree();
-    Debug.Log("[SkillsTreeController] Group filter cleared - showing all skills");
-}
-
-#endregion
-
-}
-
-/// <summary>
-/// Setup mode for the skill tree
-/// </summary>
 public enum SkillTreeSetupMode
 {
-    AutoGenerate,       // Automatically generate nodes from prefab
-    ManualAssignment    // Use manually assigned GameObjects
+    AutoGenerate,
+    ManualAssignment
 }
 
-/// <summary>
-/// Mapping between a Skill and its UI GameObject
-/// </summary>
 [Serializable]
 public class SkillNodeMapping
 {

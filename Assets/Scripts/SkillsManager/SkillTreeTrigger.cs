@@ -1,4 +1,6 @@
 using UnityEngine;
+using TMPro;
+using System.Collections;
 
 /// <summary>
 /// Triggers the skill tree UI when player enters the trigger zone
@@ -21,23 +23,41 @@ public class SkillTreeTrigger : MonoBehaviour
     [SerializeField] private string selectedSkillName;
 
     [Header("Trigger Settings")]
+    [Tooltip("If TRUE, opens skill tree immediately when player enters (ignores input requirement)")]
     [SerializeField] private bool triggerOnEnter = false;
+    [Tooltip("If TRUE, requires key press to open skill tree. If FALSE with triggerOnEnter FALSE, does nothing!")]
     [SerializeField] private bool requiresInput = true;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
+    [Tooltip("If FALSE, trigger only works once. If TRUE, can be triggered multiple times.")]
     [SerializeField] private bool canTriggerMultipleTimes = true;
+    [Tooltip("If TRUE, pressing the interact key again will close the skill tree")]
+    [SerializeField] private bool toggleWithInteractKey = true;
 
     [Header("UI Prompt")]
     [SerializeField] private GameObject interactPrompt;
+    [SerializeField] private TextMeshProUGUI promptTextComponent;
     [SerializeField] private string promptText = "Press E to view Skills";
+    [SerializeField] private float fadeInDuration = 0.3f;
+    [SerializeField] private float displayDuration = 2f;
+    [SerializeField] private float fadeOutDuration = 0.3f;
+    [SerializeField] private bool loopPrompt = true;
 
-    public bool playerInRange;
+    private bool playerInRange;
     private bool hasTriggered;
+    private bool skillTreeWasOpenedByThisTrigger;
+    private bool hasShownPromptThisEntry;
     private Skill cachedSkill;
+    private Coroutine promptCoroutine;
+    private CanvasGroup promptCanvasGroup;
 
-    private void Awake() 
+    public bool IsPlayerInRange => playerInRange;
+
+    private void Awake()
     {
         playerInRange = false;
         hasTriggered = false;
+        skillTreeWasOpenedByThisTrigger = false;
+        hasShownPromptThisEntry = false;
 
         if (visualCue != null)
         {
@@ -47,48 +67,55 @@ public class SkillTreeTrigger : MonoBehaviour
         if (interactPrompt != null)
         {
             interactPrompt.SetActive(false);
+            
+            promptCanvasGroup = interactPrompt.GetComponent<CanvasGroup>();
+            if (promptCanvasGroup == null)
+            {
+                promptCanvasGroup = interactPrompt.AddComponent<CanvasGroup>();
+            }
+            promptCanvasGroup.alpha = 0f;
+            
+            if (promptTextComponent != null)
+            {
+                promptTextComponent.text = promptText;
+            }
         }
 
-        // Cache the skill reference
         CacheSkillReferences();
     }
 
     private void CacheSkillReferences()
     {
-        // Validate references
         if (skillsTreeController == null)
         {
-            Debug.LogWarning("[SkillTreeTrigger] SkillsTreeController is not assigned!");
+            Debug.LogWarning($"[SkillTreeTrigger:{gameObject.name}] SkillsTreeController is not assigned!");
             return;
         }
 
         if (skillsTreeContainer == null)
         {
-            Debug.LogWarning("[SkillTreeTrigger] SkillsTreeContainer is not assigned!");
+            Debug.LogWarning($"[SkillTreeTrigger:{gameObject.name}] SkillsTreeContainer is not assigned!");
             return;
         }
 
-        // Try to find the specific skill if a name is provided
         if (!string.IsNullOrEmpty(selectedSkillName))
         {
             if (selectedGroup != null)
             {
-                // Look in the specific group
                 cachedSkill = skillsTreeContainer.GetGroupSkill(selectedGroup.GroupName, selectedSkillName);
                 
                 if (cachedSkill == null)
                 {
-                    Debug.LogWarning($"[SkillTreeTrigger] Could not find skill '{selectedSkillName}' in group '{selectedGroup.GroupName}'");
+                    Debug.LogWarning($"[SkillTreeTrigger:{gameObject.name}] Could not find skill '{selectedSkillName}' in group '{selectedGroup.GroupName}'");
                 }
             }
             else
             {
-                // Search in container (both grouped and ungrouped)
                 cachedSkill = skillsTreeContainer.GetSkillByName(selectedSkillName);
                 
                 if (cachedSkill == null)
                 {
-                    Debug.LogWarning($"[SkillTreeTrigger] Could not find skill '{selectedSkillName}' in container");
+                    Debug.LogWarning($"[SkillTreeTrigger:{gameObject.name}] Could not find skill '{selectedSkillName}' in container");
                 }
             }
         }
@@ -96,155 +123,287 @@ public class SkillTreeTrigger : MonoBehaviour
 
     private void Update()
     {
-        if (playerInRange) 
+        // Handle input when player is in range
+        if (playerInRange && requiresInput && !triggerOnEnter)
         {
-            // Show visual cue
-            if (visualCue != null)
+            if (Input.GetKeyDown(interactKey))
             {
-                visualCue.SetActive(true);
-            }
-
-            // Show interact prompt
-            if (interactPrompt != null && requiresInput)
-            {
-                interactPrompt.SetActive(true);
-            }
-
-            // Check for interaction input
-            if (requiresInput)
-            {
-                if (Input.GetKeyDown(interactKey))
+                Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Key '{interactKey}' pressed!");
+                
+                // Check if skill tree is currently open
+                bool isThisSkillTreeOpen = IsSkillTreeOpen();
+                
+                if (isThisSkillTreeOpen && toggleWithInteractKey && skillTreeWasOpenedByThisTrigger)
                 {
-                    if (canTriggerMultipleTimes || !hasTriggered)
-                    {
-                        TriggerSkillTree();
-                    }
+                    // Close the skill tree
+                    CloseSkillTree();
+                }
+                else if (!isThisSkillTreeOpen && (canTriggerMultipleTimes || !hasTriggered))
+                {
+                    // Open the skill tree
+                    TriggerSkillTree();
+                }
+                else
+                {
+                    Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Cannot interact (triggered: {hasTriggered}, treeOpen: {isThisSkillTreeOpen})");
                 }
             }
         }
-        else 
+        
+        // Handle visual feedback
+        if (!playerInRange)
         {
-            // Hide visual cue
-            if (visualCue != null)
-            {
-                visualCue.SetActive(false);
-            }
+            HideAllPrompts();
+            return;
+        }
 
-            // Hide interact prompt
-            if (interactPrompt != null)
+        // Player is in range
+        if (visualCue != null && !visualCue.activeSelf)
+        {
+            visualCue.SetActive(true);
+        }
+
+        // Show interact prompt ONLY if:
+        // 1. We require input
+        // 2. Not auto-triggering
+        // 3. Skill tree is NOT already open (or wasn't opened by this trigger)
+        // 4. Haven't shown prompt this entry yet
+        bool isSkillTreeOpen = IsSkillTreeOpen();
+        bool shouldShowPrompt = requiresInput && !triggerOnEnter && (!isSkillTreeOpen || !skillTreeWasOpenedByThisTrigger) && !hasShownPromptThisEntry;
+
+        if (shouldShowPrompt)
+        {
+            if (interactPrompt != null && !interactPrompt.activeSelf)
             {
-                interactPrompt.SetActive(false);
+                interactPrompt.SetActive(true);
+
+                if (promptCoroutine == null)
+                {
+                    loopPrompt = false; // Show once, don't loop
+                    promptCoroutine = StartCoroutine(PromptFadeLoop());
+                    hasShownPromptThisEntry = true;
+                }
             }
+        }
+        else
+        {
+            // Hide prompt if tree is open
+            if (interactPrompt != null && interactPrompt.activeSelf && isSkillTreeOpen)
+            {
+                StopPrompt();
+            }
+        }
+    }
+
+    private bool IsSkillTreeOpen()
+    {
+        if (skillsTreeController == null)
+            return false;
+
+        return skillsTreeController.IsSkillTreeOpen;
+    }
+
+    private void HideAllPrompts()
+    {
+        if (visualCue != null && visualCue.activeSelf)
+        {
+            visualCue.SetActive(false);
+        }
+
+        StopPrompt();
+    }
+
+    private void StopPrompt()
+    {
+        if (promptCoroutine != null)
+        {
+            StopCoroutine(promptCoroutine);
+            promptCoroutine = null;
+        }
+        
+        if (interactPrompt != null && interactPrompt.activeSelf)
+        {
+            interactPrompt.SetActive(false);
+            if (promptCanvasGroup != null)
+                promptCanvasGroup.alpha = 0f;
+        }
+    }
+
+    private IEnumerator PromptFadeLoop()
+    {
+        if (promptCanvasGroup == null)
+            yield break;
+
+        while (true)
+        {
+            // Fade in
+            float elapsed = 0f;
+            while (elapsed < fadeInDuration)
+            {
+                elapsed += Time.deltaTime;
+                promptCanvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / fadeInDuration);
+                yield return null;
+            }
+            promptCanvasGroup.alpha = 1f;
+
+            // Display
+            yield return new WaitForSeconds(displayDuration);
+
+            // Fade out
+            elapsed = 0f;
+            while (elapsed < fadeOutDuration)
+            {
+                elapsed += Time.deltaTime;
+                promptCanvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / fadeOutDuration);
+                yield return null;
+            }
+            promptCanvasGroup.alpha = 0f;
+
+            if (!loopPrompt)
+                break;
+
+            yield return new WaitForSeconds(0.5f);
         }
     }
 
     private void TriggerSkillTree()
     {
+        Debug.Log($"[SkillTreeTrigger:{gameObject.name}] TriggerSkillTree() called");
+        
         if (skillsTreeController == null)
         {
-            Debug.LogWarning("[SkillTreeTrigger] SkillsTreeController not assigned!");
+            Debug.LogWarning($"[SkillTreeTrigger:{gameObject.name}] SkillsTreeController not assigned!");
             return;
         }
 
         if (skillsTreeContainer == null)
         {
-            Debug.LogWarning("[SkillTreeTrigger] SkillsTreeContainer not assigned!");
+            Debug.LogWarning($"[SkillTreeTrigger:{gameObject.name}] SkillsTreeContainer not assigned!");
             return;
         }
 
-        // Set the container on the controller if needed
         skillsTreeController.SetSkillTreeContainer(skillsTreeContainer);
-
-        // Open the skill tree UI
         skillsTreeController.ShowSkillTree();
+        
+        Debug.Log($"[SkillTreeTrigger:{gameObject.name}] ✓ Main skill tree panel opened");
 
-        // If a specific group is selected, configure the controller to show it
         if (selectedGroup != null)
         {
-            // You may need to add a method to the controller to set the group
-            // For now, we'll just note it in the log
-            Debug.Log($"[SkillTreeTrigger] Opening skill tree with group: {selectedGroup.GroupName}");
-            
-            // If your controller has a method to filter by group, call it here:
-            // skillsTreeController.SetSkillGroup(selectedGroup);
+            Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Filtering to group: {selectedGroup.GroupName}");
         }
 
-        // If a specific skill is selected, show its details
         if (cachedSkill != null)
         {
-            skillsTreeController.ShowSkillDetails(cachedSkill);
-            Debug.Log($"[SkillTreeTrigger] Auto-selecting skill: {cachedSkill.SkillName}");
+            StartCoroutine(ShowSkillDetailsDelayed(cachedSkill));
+        }
+        else
+        {
+            Debug.Log($"[SkillTreeTrigger:{gameObject.name}] No auto-select skill - showing main tree only");
         }
 
         hasTriggered = true;
+        skillTreeWasOpenedByThisTrigger = true;
 
-        // Optional: Play emote animation
         if (emoteAnimator != null)
         {
             emoteAnimator.SetTrigger("Talk");
         }
 
-        // Hide visual cue after triggering
-        if (visualCue != null)
-        {
-            visualCue.SetActive(false);
-        }
-
-        // Hide interact prompt
-        if (interactPrompt != null)
-        {
-            interactPrompt.SetActive(false);
-        }
+        // Hide prompts after opening
+        HideAllPrompts();
 
         string groupInfo = selectedGroup != null ? $"Group: {selectedGroup.GroupName}" : "All Groups";
-        string skillInfo = cachedSkill != null ? $", Skill: {cachedSkill.SkillName}" : "";
-        Debug.Log($"[SkillTreeTrigger] Opened skill tree - {groupInfo}{skillInfo}");
+        string skillInfo = cachedSkill != null ? $" → Auto-selecting: {cachedSkill.SkillName}" : " (No auto-select)";
+        Debug.Log($"[SkillTreeTrigger:{gameObject.name}] ✓ Skill tree opened - {groupInfo}{skillInfo}");
     }
 
-    private void OnTriggerEnter2D(Collider2D collider) 
+    private void CloseSkillTree()
     {
-        if (collider.gameObject.CompareTag("Player"))
+        Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Closing skill tree via toggle");
+        
+        if (skillsTreeController != null)
         {
-            playerInRange = true;
+            skillsTreeController.HideSkillTree();
+            skillTreeWasOpenedByThisTrigger = false;
+            Debug.Log($"[SkillTreeTrigger:{gameObject.name}] ✓ Skill tree closed");
+        }
+    }
 
-            // Auto-trigger on enter if enabled
-            if (triggerOnEnter)
+    private IEnumerator ShowSkillDetailsDelayed(Skill skill)
+    {
+        yield return null;
+        
+        if (skillsTreeController != null && skill != null)
+        {
+            skillsTreeController.ShowSkillDetails(skill);
+            Debug.Log($"[SkillTreeTrigger:{gameObject.name}] ✓ Auto-selected skill details: {skill.SkillName}");
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collider)
+    {
+        if (!collider.gameObject.CompareTag("Player"))
+            return;
+
+        Debug.Log($"[SkillTreeTrigger:{gameObject.name}] ✓ Player ENTERED trigger zone");
+        playerInRange = true;
+        hasShownPromptThisEntry = false;
+
+        // Reset the flag when entering fresh
+        // But only if tree is not currently open
+        if (!IsSkillTreeOpen())
+        {
+            skillTreeWasOpenedByThisTrigger = false;
+        }
+
+        if (triggerOnEnter)
+        {
+            if (canTriggerMultipleTimes || !hasTriggered)
             {
-                if (canTriggerMultipleTimes || !hasTriggered)
-                {
-                    TriggerSkillTree();
-                }
+                Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Auto-triggering on enter");
+                TriggerSkillTree();
             }
+        }
+        else
+        {
+            Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Waiting for key press: {interactKey}");
         }
     }
 
     private void OnTriggerExit2D(Collider2D collider) 
     {
-        if (collider.gameObject.CompareTag("Player"))
+        if (!collider.gameObject.CompareTag("Player"))
+            return;
+
+        Debug.Log($"[SkillTreeTrigger:{gameObject.name}] ✓ Player EXITED trigger zone");
+        playerInRange = false;
+        
+        // Reset triggered state when player leaves (if repeatable)
+        if (canTriggerMultipleTimes)
         {
-            playerInRange = false;
-            
-            // Reset triggered state when player leaves (if repeatable)
-            if (canTriggerMultipleTimes)
-            {
-                hasTriggered = false;
-            }
+            hasTriggered = false;
         }
+        
+        // Reset the "opened by this trigger" flag
+        // This allows the prompt to show again when returning
+        skillTreeWasOpenedByThisTrigger = false;
     }
 
-    // Public method to reset the trigger (useful for one-time triggers that need to be reset)
     public void ResetTrigger()
     {
         hasTriggered = false;
+        skillTreeWasOpenedByThisTrigger = false;
+        Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Trigger reset");
     }
 
-    // Public method to manually trigger skill tree from other scripts
     public void ManualTrigger()
     {
-        TriggerSkillTree();
+        if (canTriggerMultipleTimes || !hasTriggered)
+        {
+            TriggerSkillTree();
+        }
     }
 
-    // Public method to set which container/group/skill to show
     public void SetTargetSkill(SkillsTreeContainer container, SkillsTreeGroup group, string skillName)
     {
         skillsTreeContainer = container;
@@ -253,28 +412,35 @@ public class SkillTreeTrigger : MonoBehaviour
         CacheSkillReferences();
     }
 
-    // Public method to get cached skill (useful for debugging)
     public Skill GetCachedSkill()
     {
         return cachedSkill;
     }
 
-    // Public method to get selected group
     public SkillsTreeGroup GetSelectedGroup()
     {
         return selectedGroup;
     }
 
-    // Validation in editor
     private void OnValidate()
     {
         if (Application.isPlaying) return;
+        
+        if (!triggerOnEnter && !requiresInput)
+        {
+            Debug.LogWarning($"[SkillTreeTrigger:{gameObject.name}] Both triggerOnEnter and requiresInput are FALSE - trigger will never activate!");
+        }
+        
+        if (promptTextComponent != null && !string.IsNullOrEmpty(promptText))
+        {
+            promptTextComponent.text = promptText;
+        }
+        
         CacheSkillReferences();
     }
 
     private void OnDrawGizmos()
     {
-        // Draw the trigger area in the editor
         Collider2D col = GetComponent<Collider2D>();
         if (col != null)
         {
@@ -290,7 +456,6 @@ public class SkillTreeTrigger : MonoBehaviour
             }
         }
 
-        // Draw a label showing what this trigger opens
         #if UNITY_EDITOR
         if (skillsTreeContainer != null)
         {
@@ -299,6 +464,15 @@ public class SkillTreeTrigger : MonoBehaviour
                 label += $"\nGroup: {selectedGroup.GroupName}";
             if (!string.IsNullOrEmpty(selectedSkillName))
                 label += $"\nSkill: {selectedSkillName}";
+            
+            if (triggerOnEnter)
+                label += "\n[AUTO TRIGGER]";
+            else if (requiresInput)
+            {
+                label += $"\n[Press {interactKey}]";
+                if (toggleWithInteractKey)
+                    label += " (Toggle)";
+            }
 
             UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, label);
         }

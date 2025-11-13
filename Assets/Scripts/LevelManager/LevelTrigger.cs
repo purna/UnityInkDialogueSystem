@@ -1,8 +1,13 @@
+// old verion
+
 using UnityEngine;
+using TMPro;
+using System.Collections;
+using UnityEngine.UI;
 
 /// <summary>
-/// Triggers the skill tree UI when player enters the trigger zone
-/// Shows visual cues and emote animations, links to specific skill groups/skills
+/// Triggers the level UI when player enters the trigger zone
+/// Shows visual cues and emote animations, links to specific level groups/levels
 /// Integrates with LevelContainer, LevelGroup, and Level system
 /// </summary>
 public class LevelTrigger : MonoBehaviour
@@ -13,31 +18,81 @@ public class LevelTrigger : MonoBehaviour
     [Header("Emote Animator")]
     [SerializeField] private Animator emoteAnimator;
 
-    [Header("Level Tree Settings")]
+    [Header("Level Settings")]
     [SerializeField] private LevelController levelController;
     [SerializeField] private LevelContainer levelContainer;
     [SerializeField] private LevelGroup selectedGroup;
-    [Tooltip("Leave empty to show all skills, or specify a skill to auto-select it")]
+
+
+    [Tooltip("Leave empty to show all levels, or specify a level to auto-select it")]
     [SerializeField] private string selectedLevelName;
 
     [Header("Trigger Settings")]
+    [Tooltip("If TRUE, opens level UI immediately when player enters (ignores input requirement)")]
     [SerializeField] private bool triggerOnEnter = false;
+    [Tooltip("If TRUE, requires key press to open level UI. If FALSE with triggerOnEnter FALSE, does nothing!")]
     [SerializeField] private bool requiresInput = true;
     [SerializeField] private KeyCode interactKey = KeyCode.E;
+    [Tooltip("If FALSE, trigger only works once. If TRUE, can be triggered multiple times.")]
     [SerializeField] private bool canTriggerMultipleTimes = true;
+    [Tooltip("If TRUE, pressing the interact key again will close the level UI")]
+    [SerializeField] private bool toggleWithInteractKey = true;
+
+    [Header("System References")]
+    [SerializeField] private LevelManager levelManager;
+    [SerializeField] private GameObject levelUI;
+
+    [Header("Auto Start Settings")]
+    [SerializeField] private bool startLeveleOnStart = false;
+    [SerializeField] private float startDelay = 0f;
 
     [Header("UI Prompt")]
     [SerializeField] private GameObject interactPrompt;
+    [SerializeField] private TextMeshProUGUI promptTextComponent;
     [SerializeField] private string promptText = "Press E to view Levels";
+    [SerializeField] private float fadeInDuration = 0.3f;
+    [SerializeField] private float displayDuration = 2f;
+    [SerializeField] private float fadeOutDuration = 0.3f;
+    [SerializeField] private bool loopPrompt = true;
 
-    public bool playerInRange;
+
+
+
+    [Header("Tooltip Panel")]
+    [SerializeField] private SkillTooltip _skillTooltip;
+
+    [Header("Details Panel")]
+    [SerializeField] private GameObject _detailsPanel;
+    [SerializeField] private SkillTooltip _detailsPanelTooltip;
+
+
+    [Header("Close Button")]
+    [SerializeField] private Button _closeButton;
+    [SerializeField] private bool _allowCloseWithKey = true;
+    [SerializeField] private KeyCode _closeKey = KeyCode.Escape;
+
+    [Header("Player Control")]
+    [SerializeField] private GameObject _playerObject;
+    [SerializeField] private bool _disablePlayerWhenOpen = true;
+
+
+     private bool playerInRange;
     private bool hasTriggered;
-    private Level cachedLevel;
+    private bool levelWasOpenedByThisTrigger;
+    private bool hasShownPromptThisEntry;
 
-    private void Awake() 
+    private Level cachedLevel;
+    private Coroutine promptCoroutine;
+    private CanvasGroup promptCanvasGroup;
+
+    public bool IsPlayerInRange => playerInRange;
+
+    private void Awake()
     {
         playerInRange = false;
         hasTriggered = false;
+        levelWasOpenedByThisTrigger = false;
+        hasShownPromptThisEntry = false;
 
         if (visualCue != null)
         {
@@ -47,238 +102,384 @@ public class LevelTrigger : MonoBehaviour
         if (interactPrompt != null)
         {
             interactPrompt.SetActive(false);
+
+            promptCanvasGroup = interactPrompt.GetComponent<CanvasGroup>();
+            if (promptCanvasGroup == null)
+            {
+                promptCanvasGroup = interactPrompt.AddComponent<CanvasGroup>();
+            }
+            promptCanvasGroup.alpha = 0f;
+
+            if (promptTextComponent != null)
+            {
+                promptTextComponent.text = promptText;
+            }
         }
 
-        // Cache the skill reference
         CacheLevelReferences();
     }
 
     private void CacheLevelReferences()
     {
-        // Validate references
         if (levelController == null)
         {
-            Debug.LogWarning("[LevelTrigger] LevelController is not assigned!");
+            Debug.LogWarning($"[LevelTrigger:{gameObject.name}] LevelController is not assigned!");
             return;
         }
 
         if (levelContainer == null)
         {
-            Debug.LogWarning("[LevelTrigger] LevelContainer is not assigned!");
+            Debug.LogWarning($"[LevelTrigger:{gameObject.name}] LevelContainer is not assigned!");
             return;
         }
 
-        // Try to find the specific skill if a name is provided
         if (!string.IsNullOrEmpty(selectedLevelName))
         {
             if (selectedGroup != null)
             {
-                // Look in the specific group
                 cachedLevel = levelContainer.GetGroupLevel(selectedGroup.GroupName, selectedLevelName);
-                
+
                 if (cachedLevel == null)
                 {
-                    Debug.LogWarning($"[LevelTrigger] Could not find skill '{selectedLevelName}' in group '{selectedGroup.GroupName}'");
+                    Debug.LogWarning($"[LevelTrigger:{gameObject.name}] Could not find level '{selectedLevelName}' in group '{selectedGroup.GroupName}'");
                 }
             }
             else
             {
-                // Search in container (both grouped and ungrouped)
                 cachedLevel = levelContainer.GetLevelByName(selectedLevelName);
-                
+
                 if (cachedLevel == null)
                 {
-                    Debug.LogWarning($"[LevelTrigger] Could not find skill '{selectedLevelName}' in container");
+                    Debug.LogWarning($"[LevelTrigger:{gameObject.name}] Could not find level '{selectedLevelName}' in container");
                 }
             }
         }
     }
 
-    private void Update()
+private void Update()
     {
-        if (playerInRange) 
+        // Handle input when player is in range
+        if (playerInRange && requiresInput && !triggerOnEnter)
         {
-            // Show visual cue
-            if (visualCue != null)
+            if (Input.GetKeyDown(interactKey))
             {
-                visualCue.SetActive(true);
-            }
-
-            // Show interact prompt
-            if (interactPrompt != null && requiresInput)
-            {
-                interactPrompt.SetActive(true);
-            }
-
-            // Check for interaction input
-            if (requiresInput)
-            {
-                if (Input.GetKeyDown(interactKey))
+                Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Key '{interactKey}' pressed!");
+                
+                // Check if skill tree is currently open
+                bool isThisSkillTreeOpen = IsLevelOpen();
+                
+                if (isThisSkillTreeOpen && toggleWithInteractKey && levelWasOpenedByThisTrigger)
                 {
-                    if (canTriggerMultipleTimes || !hasTriggered)
-                    {
-                        TriggerLevel();
-                    }
+                    // Close the skill tree
+                    CloseLevel();
+                }
+                else if (!isThisSkillTreeOpen && (canTriggerMultipleTimes || !hasTriggered))
+                {
+                    // Open the skill tree
+                    TriggerLevel();
+                }
+                else
+                {
+                    Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Cannot interact (triggered: {hasTriggered}, treeOpen: {isThisSkillTreeOpen})");
                 }
             }
         }
-        else 
+        
+        // Handle visual feedback
+        if (!playerInRange)
         {
-            // Hide visual cue
-            if (visualCue != null)
-            {
-                visualCue.SetActive(false);
-            }
+            HideAllPrompts();
+            return;
+        }
 
-            // Hide interact prompt
-            if (interactPrompt != null)
+        // Player is in range
+        if (visualCue != null && !visualCue.activeSelf)
+        {
+            visualCue.SetActive(true);
+        }
+
+        // Show interact prompt ONLY if:
+        // 1. We require input
+        // 2. Not auto-triggering
+        // 3. Skill tree is NOT already open (or wasn't opened by this trigger)
+        // 4. Haven't shown prompt this entry yet
+        bool isLevelOpen = IsLevelOpen();
+        bool shouldShowPrompt = requiresInput && !triggerOnEnter && (!isLevelOpen || !levelWasOpenedByThisTrigger) && !hasShownPromptThisEntry;
+
+        if (shouldShowPrompt)
+        {
+            if (interactPrompt != null && !interactPrompt.activeSelf)
             {
-                interactPrompt.SetActive(false);
+                interactPrompt.SetActive(true);
+
+                if (promptCoroutine == null)
+                {
+                    loopPrompt = false; // Show once, don't loop
+                    promptCoroutine = StartCoroutine(PromptFadeLoop());
+                    hasShownPromptThisEntry = true;
+                }
             }
+        }
+        else
+        {
+            // Hide prompt if tree is open
+            if (interactPrompt != null && interactPrompt.activeSelf && isLevelOpen)
+            {
+                StopPrompt();
+            }
+        }
+    }
+
+        private bool IsLevelOpen()
+    {
+        if (levelController == null)
+            return false;
+
+        return levelController.IsLevelOpen;
+    }
+
+    private void HideAllPrompts()
+    {
+        if (visualCue != null && visualCue.activeSelf)
+        {
+            visualCue.SetActive(false);
+        }
+
+        StopPrompt();
+    }
+
+      private void StopPrompt()
+    {
+        if (promptCoroutine != null)
+        {
+            StopCoroutine(promptCoroutine);
+            promptCoroutine = null;
+        }
+        
+        if (interactPrompt != null && interactPrompt.activeSelf)
+        {
+            interactPrompt.SetActive(false);
+            if (promptCanvasGroup != null)
+                promptCanvasGroup.alpha = 0f;
+        }
+    }
+
+    private IEnumerator PromptFadeLoop()
+    {
+        if (promptCanvasGroup == null)
+            yield break;
+
+        while (true)
+        {
+            // Fade in
+            float elapsed = 0f;
+            while (elapsed < fadeInDuration)
+            {
+                elapsed += Time.deltaTime;
+                promptCanvasGroup.alpha = Mathf.Lerp(0f, 1f, elapsed / fadeInDuration);
+                yield return null;
+            }
+            promptCanvasGroup.alpha = 1f;
+
+            // Display
+            yield return new WaitForSeconds(displayDuration);
+
+            // Fade out
+            elapsed = 0f;
+            while (elapsed < fadeOutDuration)
+            {
+                elapsed += Time.deltaTime;
+                promptCanvasGroup.alpha = Mathf.Lerp(1f, 0f, elapsed / fadeOutDuration);
+                yield return null;
+            }
+            promptCanvasGroup.alpha = 0f;
+
+            if (!loopPrompt)
+                break;
+
+            yield return new WaitForSeconds(0.5f);
         }
     }
 
     private void TriggerLevel()
     {
+        Debug.Log($"[LevelTrigger:{gameObject.name}] TriggerLevel() called");
+        
         if (levelController == null)
         {
-            Debug.LogWarning("[LevelTrigger] LevelController not assigned!");
+            Debug.LogWarning($"[LevelTrigger:{gameObject.name}] LevelController not assigned!");
             return;
         }
 
         if (levelContainer == null)
         {
-            Debug.LogWarning("[LevelTrigger] LevelContainer not assigned!");
+            Debug.LogWarning($"[LevelTrigger:{gameObject.name}] LevelContainer not assigned!");
             return;
         }
 
-        // Set the container on the controller if needed
         levelController.SetLevelContainer(levelContainer);
-
-        // Open the skill tree UI
         levelController.ShowLevel();
+        
+        Debug.Log($"[LevelTrigger:{gameObject.name}] ✓ Main level UI panel opened");
 
-        // If a specific group is selected, configure the controller to show it
         if (selectedGroup != null)
         {
-            // You may need to add a method to the controller to set the group
-            // For now, we'll just note it in the log
-            Debug.Log($"[LevelTrigger] Opening skill tree with group: {selectedGroup.GroupName}");
-            
-            // If your controller has a method to filter by group, call it here:
-            // levelController.SetLevelGroup(selectedGroup);
+            Debug.Log($"[LevelTrigger:{gameObject.name}] Filtering to group: {selectedGroup.GroupName}");
         }
 
-        // If a specific skill is selected, show its details
         if (cachedLevel != null)
         {
-            levelController.ShowLevelDetails(cachedLevel);
-            Debug.Log($"[LevelTrigger] Auto-selecting skill: {cachedLevel.LevelName}");
+            StartCoroutine(ShowLevelDetailsDelayed(cachedLevel));
+        }
+        else
+        {
+            Debug.Log($"[LevelTrigger:{gameObject.name}] No auto-select level - showing main UI only");
         }
 
         hasTriggered = true;
+        levelWasOpenedByThisTrigger = true;
 
-        // Optional: Play emote animation
         if (emoteAnimator != null)
         {
             emoteAnimator.SetTrigger("Talk");
         }
 
-        // Hide visual cue after triggering
-        if (visualCue != null)
-        {
-            visualCue.SetActive(false);
-        }
-
-        // Hide interact prompt
-        if (interactPrompt != null)
-        {
-            interactPrompt.SetActive(false);
-        }
+        // Hide prompts after opening
+        HideAllPrompts();
 
         string groupInfo = selectedGroup != null ? $"Group: {selectedGroup.GroupName}" : "All Groups";
-        string skillInfo = cachedLevel != null ? $", Level: {cachedLevel.LevelName}" : "";
-        Debug.Log($"[LevelTrigger] Opened skill tree - {groupInfo}{skillInfo}");
+        string levelInfo = cachedLevel != null ? $" → Auto-selecting: {cachedLevel.LevelName}" : " (No auto-select)";
+        Debug.Log($"[LevelTrigger:{gameObject.name}] ✓ Level UI opened - {groupInfo}{levelInfo}");
     }
 
-    private void OnTriggerEnter2D(Collider2D collider) 
+    private void CloseLevel()
     {
-        if (collider.gameObject.CompareTag("Player"))
+        Debug.Log($"[LevelTrigger:{gameObject.name}] Closing level UI via toggle");
+        
+        if (levelController != null)
         {
-            playerInRange = true;
+            levelController.HideLevel();
+            levelWasOpenedByThisTrigger = false;
+            Debug.Log($"[LevelTrigger:{gameObject.name}] ✓ Level UI closed");
+        }
+    }
 
-            // Auto-trigger on enter if enabled
-            if (triggerOnEnter)
+    private IEnumerator ShowLevelDetailsDelayed(Level level)
+    {
+        yield return null;
+        
+        if (levelController != null && level != null)
+        {
+            levelController.ShowLevelDetails(level);
+            Debug.Log($"[LevelTrigger:{gameObject.name}] ✓ Auto-selected level details: {level.LevelName}");
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collider)
+    {
+        if (!collider.gameObject.CompareTag("Player"))
+            return;
+
+        Debug.Log($"[LevelTrigger:{gameObject.name}] ✓ Player ENTERED trigger zone");
+        playerInRange = true;
+        hasShownPromptThisEntry = false;
+
+        // Reset the flag when entering fresh
+        // But only if UI is not currently open
+        if (!IsLevelOpen())
+        {
+            levelWasOpenedByThisTrigger = false;
+        }
+
+        if (triggerOnEnter)
+        {
+            if (canTriggerMultipleTimes || !hasTriggered)
             {
-                if (canTriggerMultipleTimes || !hasTriggered)
-                {
-                    TriggerLevel();
-                }
+                Debug.Log($"[LevelTrigger:{gameObject.name}] Auto-triggering on enter");
+                TriggerLevel();
             }
+        }
+        else
+        {
+            Debug.Log($"[LevelTrigger:{gameObject.name}] Waiting for key press: {interactKey}");
         }
     }
 
     private void OnTriggerExit2D(Collider2D collider) 
     {
-        if (collider.gameObject.CompareTag("Player"))
+        if (!collider.gameObject.CompareTag("Player"))
+            return;
+
+        Debug.Log($"[LevelTrigger:{gameObject.name}] ✓ Player EXITED trigger zone");
+        playerInRange = false;
+        
+        // Reset triggered state when player leaves (if repeatable)
+        if (canTriggerMultipleTimes)
         {
-            playerInRange = false;
-            
-            // Reset triggered state when player leaves (if repeatable)
-            if (canTriggerMultipleTimes)
-            {
-                hasTriggered = false;
-            }
+            hasTriggered = false;
         }
+        
+        // Reset the "opened by this trigger" flag
+        // This allows the prompt to show again when returning
+        levelWasOpenedByThisTrigger = false;
     }
 
-    // Public method to reset the trigger (useful for one-time triggers that need to be reset)
     public void ResetTrigger()
     {
         hasTriggered = false;
+        levelWasOpenedByThisTrigger = false;
+        Debug.Log($"[LevelTrigger:{gameObject.name}] Trigger reset");
     }
 
-    // Public method to manually trigger skill tree from other scripts
     public void ManualTrigger()
     {
-        TriggerLevel();
+        if (canTriggerMultipleTimes || !hasTriggered)
+        {
+            TriggerLevel();
+        }
     }
 
-    // Public method to set which container/group/skill to show
-    public void SetTargetLevel(LevelContainer container, LevelGroup group, string skillName)
+    public void SetTargetLevel(LevelContainer container, LevelGroup group, string levelName)
     {
         levelContainer = container;
         selectedGroup = group;
-        selectedLevelName = skillName;
+        selectedLevelName = levelName;
         CacheLevelReferences();
     }
 
-    // Public method to get cached skill (useful for debugging)
     public Level GetCachedLevel()
     {
         return cachedLevel;
     }
 
-    // Public method to get selected group
     public LevelGroup GetSelectedGroup()
     {
         return selectedGroup;
     }
 
-    // Validation in editor
     private void OnValidate()
     {
         if (Application.isPlaying) return;
+        
+        if (!triggerOnEnter && !requiresInput)
+        {
+            Debug.LogWarning($"[LevelTrigger:{gameObject.name}] Both triggerOnEnter and requiresInput are FALSE - trigger will never activate!");
+        }
+        
+        if (promptTextComponent != null && !string.IsNullOrEmpty(promptText))
+        {
+            promptTextComponent.text = promptText;
+        }
+        
         CacheLevelReferences();
     }
 
     private void OnDrawGizmos()
     {
-        // Draw the trigger area in the editor
         Collider2D col = GetComponent<Collider2D>();
         if (col != null)
         {
-            Gizmos.color = playerInRange ? Color.green : Color.yellow;
+            Gizmos.color = playerInRange ? Color.green : Color.cyan;
             
             if (col is BoxCollider2D boxCol)
             {
@@ -290,15 +491,23 @@ public class LevelTrigger : MonoBehaviour
             }
         }
 
-        // Draw a label showing what this trigger opens
         #if UNITY_EDITOR
         if (levelContainer != null)
         {
-            string label = $"Level Tree: {levelContainer.LevelName}";
+            string label = $"Level UI: {levelContainer.LevelName}";
             if (selectedGroup != null)
                 label += $"\nGroup: {selectedGroup.GroupName}";
             if (!string.IsNullOrEmpty(selectedLevelName))
                 label += $"\nLevel: {selectedLevelName}";
+            
+            if (triggerOnEnter)
+                label += "\n[AUTO TRIGGER]";
+            else if (requiresInput)
+            {
+                label += $"\n[Press {interactKey}]";
+                if (toggleWithInteractKey)
+                    label += " (Toggle)";
+            }
 
             UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, label);
         }
