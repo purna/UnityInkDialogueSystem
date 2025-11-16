@@ -32,10 +32,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 7951826009466324383}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 330, y: 0}
-  m_SizeDelta: {x: 500, y: 30}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 50}
+  m_SizeDelta: {x: 300, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1462493451364803291
 CanvasRenderer:
@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: +++++++++++
+  m_text: Press E to Talk
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dbd96e28fdecd415fa9144be85d90db4, type: 2}
   m_sharedMaterial: {fileID: 297587786121153943, guid: dbd96e28fdecd415fa9144be85d90db4, type: 2}
@@ -99,7 +99,7 @@ MonoBehaviour:
   m_fontSizeMin: 14
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -169,7 +169,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 1.5}
+  m_AnchoredPosition: {x: 8.75, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &7949403853184774863
@@ -383,13 +383,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   visualCue: {fileID: 4037660505489436075}
   emoteAnimator: {fileID: 7769045050920009776}
+  dialogueController: {fileID: 0}
   dialogueContainer: {fileID: 11400000, guid: ab3078607f9144596b7b286217a17024, type: 2}
   selectedGroupName: NPC2
   selectedDialogueName: Scene1
+  npcTransform: {fileID: 4037660505693481884}
+  dialoguePosition: 3
+  horizontalOffset: 2
+  verticalOffset: 1.5
+  screenEdgeMargin: 0.15
   triggerOnEnter: 0
   requiresInput: 1
   interactKey: 101
-  playerInRange: 0
+  canTriggerMultipleTimes: 1
+  toggleWithInteractKey: 0
+  interactPrompt: {fileID: 1742590082953517616}
+  promptTextComponent: {fileID: 3433337377270241825}
+  promptText: Press E to Talk
+  fadeInDuration: 0.3
+  displayDuration: 2
+  fadeOutDuration: 0.3
+  loopPrompt: 1
+  promptLeftOffset: -2.5
+  promptRightOffset: 2.5
+  promptAboveOffset: 2
+  promptBelowOffset: 2
+  promptVerticalOffset: 0.5
+  continuousPositionUpdate: 0
 --- !u!1 &4037660505693481885
 GameObject:
   m_ObjectHideFlags: 0

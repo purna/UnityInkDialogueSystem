@@ -13,6 +13,11 @@ public class DialogueTriggerEditor : Editor
     private SerializedProperty dialogueContainerProp;
     private SerializedProperty selectedGroupNameProp;
     private SerializedProperty selectedDialogueNameProp;
+    private SerializedProperty npcTransformProp;
+    private SerializedProperty dialoguePositionProp;
+    private SerializedProperty horizontalOffsetProp;
+    private SerializedProperty verticalOffsetProp;
+    private SerializedProperty screenEdgeMarginProp;
     private SerializedProperty triggerOnEnterProp;
     private SerializedProperty requiresInputProp;
     private SerializedProperty interactKeyProp;
@@ -25,6 +30,14 @@ public class DialogueTriggerEditor : Editor
     private SerializedProperty displayDurationProp;
     private SerializedProperty fadeOutDurationProp;
     private SerializedProperty loopPromptProp;
+    
+    // New prompt positioning properties
+    private SerializedProperty promptLeftOffsetProp;
+    private SerializedProperty promptRightOffsetProp;
+    private SerializedProperty promptAboveOffsetProp;
+    private SerializedProperty promptBelowOffsetProp;
+    private SerializedProperty promptVerticalOffsetProp;
+    private SerializedProperty continuousPositionUpdateProp;
 
     private int selectedGroupIndex = 0;
     private int selectedDialogueIndex = 0;
@@ -39,6 +52,11 @@ public class DialogueTriggerEditor : Editor
         dialogueContainerProp = serializedObject.FindProperty("dialogueContainer");
         selectedGroupNameProp = serializedObject.FindProperty("selectedGroupName");
         selectedDialogueNameProp = serializedObject.FindProperty("selectedDialogueName");
+        npcTransformProp = serializedObject.FindProperty("npcTransform");
+        dialoguePositionProp = serializedObject.FindProperty("dialoguePosition");
+        horizontalOffsetProp = serializedObject.FindProperty("horizontalOffset");
+        verticalOffsetProp = serializedObject.FindProperty("verticalOffset");
+        screenEdgeMarginProp = serializedObject.FindProperty("screenEdgeMargin");
         triggerOnEnterProp = serializedObject.FindProperty("triggerOnEnter");
         requiresInputProp = serializedObject.FindProperty("requiresInput");
         interactKeyProp = serializedObject.FindProperty("interactKey");
@@ -51,6 +69,14 @@ public class DialogueTriggerEditor : Editor
         displayDurationProp = serializedObject.FindProperty("displayDuration");
         fadeOutDurationProp = serializedObject.FindProperty("fadeOutDuration");
         loopPromptProp = serializedObject.FindProperty("loopPrompt");
+        
+        // New prompt positioning properties
+        promptLeftOffsetProp = serializedObject.FindProperty("promptLeftOffset");
+        promptRightOffsetProp = serializedObject.FindProperty("promptRightOffset");
+        promptAboveOffsetProp = serializedObject.FindProperty("promptAboveOffset");
+        promptBelowOffsetProp = serializedObject.FindProperty("promptBelowOffset");
+        promptVerticalOffsetProp = serializedObject.FindProperty("promptVerticalOffset");
+        continuousPositionUpdateProp = serializedObject.FindProperty("continuousPositionUpdate");
     }
 
     public override void OnInspectorGUI()
@@ -64,13 +90,17 @@ public class DialogueTriggerEditor : Editor
         EditorGUILayout.Space(5);
 
         // Visual Cue Header
-        EditorGUILayout.LabelField("Visual Cue", EditorStyles.boldLabel);
+        DrawSectionHeader("Visual Cue");
         EditorGUILayout.PropertyField(visualCueProp, new GUIContent("Visual Cue GameObject"));
         EditorGUILayout.Space();
 
         // Emote Animator Header
-        EditorGUILayout.LabelField("Emote Animator", EditorStyles.boldLabel);
+        DrawSectionHeader("Emote Animator");
         EditorGUILayout.PropertyField(emoteAnimatorProp, new GUIContent("Animator (Optional)"));
+        EditorGUILayout.Space();
+
+        // World Space Settings
+        DrawWorldSpaceSettings();
         EditorGUILayout.Space();
 
         // Trigger Settings (moved up for better workflow)
@@ -80,20 +110,7 @@ public class DialogueTriggerEditor : Editor
         // UI Prompt Section
         if (requiresInputProp.boolValue && !triggerOnEnterProp.boolValue)
         {
-            EditorGUILayout.LabelField("UI Prompt", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(interactPromptProp, new GUIContent("Prompt GameObject"));
-            EditorGUILayout.PropertyField(promptTextComponentProp, new GUIContent("Text Component"));
-            EditorGUILayout.PropertyField(promptTextProp, new GUIContent("Prompt Message"));
-            
-            EditorGUILayout.Space(5);
-            EditorGUILayout.LabelField("Fade Animation", EditorStyles.miniBoldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(fadeInDurationProp, new GUIContent("Fade In Duration"));
-            EditorGUILayout.PropertyField(displayDurationProp, new GUIContent("Display Duration"));
-            EditorGUILayout.PropertyField(fadeOutDurationProp, new GUIContent("Fade Out Duration"));
-            EditorGUILayout.PropertyField(loopPromptProp, new GUIContent("Loop Animation"));
-            EditorGUI.indentLevel--;
-            
+            DrawUIPromptSection();
             EditorGUILayout.Space();
         }
 
@@ -106,6 +123,204 @@ public class DialogueTriggerEditor : Editor
         DrawUtilityButtons();
 
         serializedObject.ApplyModifiedProperties();
+    }
+
+    private void DrawSectionHeader(string title)
+    {
+        EditorGUILayout.LabelField(title, EditorStyles.boldLabel);
+        Rect rect = EditorGUILayout.GetControlRect(false, 1);
+        rect.height = 1;
+        EditorGUI.DrawRect(rect, new Color(0.5f, 0.5f, 0.5f, 1));
+        EditorGUILayout.Space(3);
+    }
+
+    private void DrawWorldSpaceSettings()
+    {
+        DrawSectionHeader("World Space Settings");
+        
+        // Check if DialogueController is in WorldSpace mode
+        DialogueController controller = dialogueControllerProp.objectReferenceValue as DialogueController;
+        bool isWorldSpaceMode = controller != null && controller.GetSetupMode() == DialogueSetupMode.WorldSpace;
+        
+        if (isWorldSpaceMode)
+        {
+            EditorGUILayout.HelpBox(
+                "✓ DialogueController is in WorldSpace mode.\n" +
+                "Configure NPC attachment and positioning below.",
+                MessageType.Info);
+        }
+        else
+        {
+            EditorGUILayout.HelpBox(
+                "DialogueController is in ScreenSpace mode.\n" +
+                "These settings only apply in WorldSpace mode.",
+                MessageType.None);
+        }
+        
+        EditorGUILayout.Space(3);
+        
+        // NPC Transform
+        EditorGUILayout.PropertyField(npcTransformProp, new GUIContent(
+            "NPC Transform",
+            "Optional: NPC to attach WorldSpace dialogue to. If not set, uses this trigger's transform."));
+        
+        if (npcTransformProp.objectReferenceValue == null)
+        {
+            EditorGUILayout.HelpBox(
+                "ℹ No NPC Transform specified. WorldSpace dialogue will attach to this trigger's transform.",
+                MessageType.Info);
+        }
+        
+        EditorGUILayout.Space(5);
+        
+        // Position Mode
+        EditorGUILayout.PropertyField(dialoguePositionProp, new GUIContent(
+            "Position Mode",
+            "Where to place the dialogue relative to the NPC. Auto will choose the best position based on screen edges."));
+        
+        WorldSpaceDialoguePosition currentPosition = (WorldSpaceDialoguePosition)dialoguePositionProp.enumValueIndex;
+        
+        // Position mode info
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        switch (currentPosition)
+        {
+            case WorldSpaceDialoguePosition.Auto:
+                EditorGUILayout.LabelField("🤖 Auto Mode", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField(
+                    "• Automatically chooses best position\n" +
+                    "• Avoids screen edges\n" +
+                    "• Places dialogue where it's most visible", 
+                    EditorStyles.wordWrappedMiniLabel);
+                break;
+            case WorldSpaceDialoguePosition.Above:
+                EditorGUILayout.LabelField("⬆️ Above", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Dialogue appears above NPC (overridden if near top edge)", EditorStyles.wordWrappedMiniLabel);
+                break;
+            case WorldSpaceDialoguePosition.Below:
+                EditorGUILayout.LabelField("⬇️ Below", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Dialogue appears below NPC (overridden if near bottom edge)", EditorStyles.wordWrappedMiniLabel);
+                break;
+            case WorldSpaceDialoguePosition.Left:
+                EditorGUILayout.LabelField("⬅️ Left", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Dialogue appears to the left of NPC (overridden if near left edge)", EditorStyles.wordWrappedMiniLabel);
+                break;
+            case WorldSpaceDialoguePosition.Right:
+                EditorGUILayout.LabelField("➡️ Right", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField("Dialogue appears to the right of NPC (overridden if near right edge)", EditorStyles.wordWrappedMiniLabel);
+                break;
+        }
+        EditorGUILayout.EndVertical();
+        
+        EditorGUILayout.Space(5);
+        
+        // Offset Controls
+        EditorGUILayout.LabelField("Dialogue Offset Distance", EditorStyles.miniBoldLabel);
+        EditorGUI.indentLevel++;
+        
+        EditorGUILayout.PropertyField(horizontalOffsetProp, new GUIContent(
+            "Horizontal Offset",
+            "Distance from NPC when positioned Left or Right"));
+        
+        EditorGUILayout.PropertyField(verticalOffsetProp, new GUIContent(
+            "Vertical Offset",
+            "Distance from NPC when positioned Above or Below"));
+        
+        EditorGUI.indentLevel--;
+        
+        EditorGUILayout.Space(5);
+        
+        // Edge Margin
+        EditorGUILayout.PropertyField(screenEdgeMarginProp, new GUIContent(
+            "Screen Edge Margin",
+            "How close to screen edges before overriding position (0-0.5, percentage of screen)"));
+        
+        // Visual preview of current settings
+        if (isWorldSpaceMode)
+        {
+            EditorGUILayout.Space(3);
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField("📍 Current Configuration", EditorStyles.boldLabel);
+            
+            Transform npc = npcTransformProp.objectReferenceValue as Transform;
+            string npcName = npc != null ? npc.name : "[Trigger Transform]";
+            
+            EditorGUILayout.LabelField($"Target: {npcName}", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField($"Position: {currentPosition}", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField($"H-Offset: {horizontalOffsetProp.floatValue:F2} | V-Offset: {verticalOffsetProp.floatValue:F2}", EditorStyles.miniLabel);
+            EditorGUILayout.LabelField($"Edge Margin: {screenEdgeMarginProp.floatValue:P0}", EditorStyles.miniLabel);
+            
+            EditorGUILayout.EndVertical();
+        }
+    }
+
+    private void DrawUIPromptSection()
+    {
+        DrawSectionHeader("UI Prompt");
+        
+        EditorGUILayout.PropertyField(interactPromptProp, new GUIContent("Prompt GameObject"));
+        EditorGUILayout.PropertyField(promptTextComponentProp, new GUIContent("Text Component"));
+        EditorGUILayout.PropertyField(promptTextProp, new GUIContent("Prompt Message"));
+        
+        EditorGUILayout.Space(5);
+        
+        // Fade Animation
+        EditorGUILayout.LabelField("Fade Animation", EditorStyles.miniBoldLabel);
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(fadeInDurationProp, new GUIContent("Fade In Duration"));
+        EditorGUILayout.PropertyField(displayDurationProp, new GUIContent("Display Duration"));
+        EditorGUILayout.PropertyField(fadeOutDurationProp, new GUIContent("Fade Out Duration"));
+        EditorGUILayout.PropertyField(loopPromptProp, new GUIContent("Loop Animation"));
+        EditorGUI.indentLevel--;
+        
+        EditorGUILayout.Space(5);
+        
+        // Dynamic Prompt Positioning
+        EditorGUILayout.LabelField("Dynamic Positioning", EditorStyles.miniBoldLabel);
+        
+        EditorGUILayout.HelpBox(
+            "Prompt automatically positions itself on the side of the trigger furthest from screen edges.\n" +
+            "Configure the offset distances for each position below.",
+            MessageType.Info);
+        
+        EditorGUI.indentLevel++;
+        
+        EditorGUILayout.PropertyField(promptLeftOffsetProp, new GUIContent(
+            "Left Offset",
+            "Horizontal offset when prompt is positioned to the left (negative value)"));
+        
+        EditorGUILayout.PropertyField(promptRightOffsetProp, new GUIContent(
+            "Right Offset",
+            "Horizontal offset when prompt is positioned to the right (positive value)"));
+        
+        EditorGUILayout.PropertyField(promptAboveOffsetProp, new GUIContent(
+            "Above Offset",
+            "Vertical offset when prompt is positioned above (positive value)"));
+        
+        EditorGUILayout.PropertyField(promptBelowOffsetProp, new GUIContent(
+            "Below Offset",
+            "Vertical offset when prompt is positioned below (negative value)"));
+        
+        EditorGUILayout.PropertyField(promptVerticalOffsetProp, new GUIContent(
+            "Additional Vertical Offset",
+            "Extra vertical offset applied to all positions"));
+        
+        EditorGUILayout.Space(3);
+        
+        EditorGUILayout.PropertyField(continuousPositionUpdateProp, new GUIContent(
+            "Continuous Update",
+            "Update prompt position every frame (enable for moving triggers)"));
+        
+        EditorGUI.indentLevel--;
+        
+        // Preview current settings
+        EditorGUILayout.Space(3);
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        EditorGUILayout.LabelField("📍 Prompt Offset Configuration", EditorStyles.boldLabel);
+        EditorGUILayout.LabelField($"Left: {promptLeftOffsetProp.floatValue:F2} | Right: {promptRightOffsetProp.floatValue:F2}", EditorStyles.miniLabel);
+        EditorGUILayout.LabelField($"Above: {promptAboveOffsetProp.floatValue:F2} | Below: {promptBelowOffsetProp.floatValue:F2}", EditorStyles.miniLabel);
+        EditorGUILayout.LabelField($"Extra Vertical: {promptVerticalOffsetProp.floatValue:F2}", EditorStyles.miniLabel);
+        EditorGUILayout.LabelField($"Continuous Update: {(continuousPositionUpdateProp.boolValue ? "Enabled" : "Disabled")}", EditorStyles.miniLabel);
+        EditorGUILayout.EndVertical();
     }
 
     private void DrawConfigurationWarning()
@@ -137,7 +352,7 @@ public class DialogueTriggerEditor : Editor
 
     private void DrawTriggerSettings()
     {
-        EditorGUILayout.LabelField("Trigger Settings", EditorStyles.boldLabel);
+        DrawSectionHeader("Trigger Settings");
         
         EditorGUILayout.PropertyField(triggerOnEnterProp, new GUIContent(
             "Trigger On Enter",
@@ -164,19 +379,27 @@ public class DialogueTriggerEditor : Editor
             "Can Trigger Multiple Times",
             "If FALSE, trigger only works once. If TRUE, can be triggered every time player enters."));
         
-        // Force toggle to false and disable it (dialogue must be completed)
-        EditorGUI.BeginDisabledGroup(true);
-        toggleWithInteractKeyProp.boolValue = false;
         EditorGUILayout.PropertyField(toggleWithInteractKeyProp, new GUIContent(
-            "Toggle with Key (Disabled for Dialogue)",
-            "Dialogues cannot be toggled - they must be completed"));
-        EditorGUI.EndDisabledGroup();
+            "Toggle with Key",
+            "If TRUE, pressing interact key again will close the dialogue"));
     }
 
     private void DrawDialogueSettings()
     {
-        EditorGUILayout.LabelField("Dialogue Settings", EditorStyles.boldLabel);
+        DrawSectionHeader("Dialogue Settings");
         EditorGUILayout.PropertyField(dialogueControllerProp, new GUIContent("Controller"));
+        
+        // Show current mode
+        DialogueController controller = dialogueControllerProp.objectReferenceValue as DialogueController;
+        if (controller != null)
+        {
+            DialogueSetupMode mode = controller.GetSetupMode();
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            EditorGUILayout.LabelField($"Controller Mode: {mode}", EditorStyles.miniLabel);
+            EditorGUILayout.EndVertical();
+            EditorGUILayout.Space(3);
+        }
+        
         EditorGUILayout.PropertyField(dialogueContainerProp, new GUIContent("Container"));
 
         DialogueContainer container = dialogueContainerProp.objectReferenceValue as DialogueContainer;
@@ -281,7 +504,7 @@ public class DialogueTriggerEditor : Editor
 
     private void DrawUtilityButtons()
     {
-        EditorGUILayout.LabelField("Utilities", EditorStyles.boldLabel);
+        DrawSectionHeader("Utilities");
         
         DialogueTrigger trigger = (DialogueTrigger)target;
         
@@ -321,6 +544,19 @@ public class DialogueTriggerEditor : Editor
                 EditorGUILayout.LabelField($"Cached Dialogue: {cachedDialogue.Name}");
             }
             
+            // Show NPC attachment info
+            if (npcTransformProp.objectReferenceValue != null)
+            {
+                Transform npc = npcTransformProp.objectReferenceValue as Transform;
+                EditorGUILayout.LabelField($"NPC Transform: {npc.name}");
+            }
+            else
+            {
+                EditorGUILayout.LabelField("NPC Transform: Using trigger transform");
+            }
+            
+            EditorGUILayout.LabelField($"Position Mode: {trigger.GetDialoguePosition()}");
+            
             EditorGUILayout.EndVertical();
         }
         else
@@ -330,7 +566,9 @@ public class DialogueTriggerEditor : Editor
                 "✓ Trigger is ready! Make sure to:\n" +
                 "• Add a 2D Collider with 'Is Trigger' enabled\n" +
                 "• Set the collider size to your desired trigger area\n" +
-                "• Tag your player GameObject as 'Player'",
+                "• Tag your player GameObject as 'Player'\n" +
+                "• (Optional) Assign NPC Transform for WorldSpace mode\n" +
+                "• (Optional) Configure positioning for WorldSpace dialogue",
                 MessageType.Info);
             
             // Check for collider

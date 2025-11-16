@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine;
 
 public static class SkillsTreeSystemSaveManager {
     private static SkillsTreeSystemGraphView _graphView;
@@ -39,7 +40,18 @@ public static class SkillsTreeSystemSaveManager {
         graphData.Initialize(_graphFileName);
 
         SkillsTreeContainer skillstreeContainer = AssetsUtility.CreateAsset<SkillsTreeContainer>(_graphFolderPath, _graphFileName);
-        skillstreeContainer.Initialize(_graphFileName);
+        
+        // CRITICAL FIX: Don't reinitialize if it already exists, just update the name
+        if (skillstreeContainer.Groups == null || skillstreeContainer.UngroupedSkills == null)
+        {
+            skillstreeContainer.Initialize(_graphFileName);
+        }
+        else
+        {
+            // Clear existing entries to rebuild them
+            skillstreeContainer.Groups.Clear();
+            skillstreeContainer.UngroupedSkills.Clear();
+        }
 
         SaveGroups(graphData, skillstreeContainer);
         SaveNodes(graphData, skillstreeContainer);
@@ -51,9 +63,10 @@ public static class SkillsTreeSystemSaveManager {
     #region Groups
     private static void SaveGroups(SkillsTreeSystemGraphSaveData graphData, SkillsTreeContainer skillstreeContainer) {
         List<string> groupNames = new();
+        
         foreach (var group in _groups) {
             SaveGroupToGraph(group, graphData);
-            SaveGroupToScriptableObject(group, skillstreeContainer);
+            SaveGroupToScriptableObject(group, skillstreeContainer, graphData);
             groupNames.Add(group.title);
         }
 
@@ -70,17 +83,50 @@ public static class SkillsTreeSystemSaveManager {
         graphData.AddGroup(groupData);
     }
 
-    private static void SaveGroupToScriptableObject(SkillsTreeSystemGroup group, SkillsTreeContainer skillstreeContainer) {
+    private static void SaveGroupToScriptableObject(SkillsTreeSystemGroup group, SkillsTreeContainer skillstreeContainer, SkillsTreeSystemGraphSaveData graphData) {
         string groupName = group.title;
-        FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Groups", groupName);
-        FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Groups/{groupName}", "SkillsTree");
+        string groupPath = $"{_graphFolderPath}/Groups/{groupName}";
+        
+        // Check if this group was renamed
+        string oldGroupName = FindOldGroupName(group.ID, graphData);
+        if (!string.IsNullOrEmpty(oldGroupName) && oldGroupName != groupName)
+        {
+            // Rename the folder
+            string oldGroupPath = $"{_graphFolderPath}/Groups/{oldGroupName}";
+            if (AssetDatabase.IsValidFolder(oldGroupPath))
+            {
+                Debug.Log($"Renaming group folder from '{oldGroupName}' to '{groupName}'");
+                FoldersUtility.RenameEditorFolder(oldGroupPath, groupName);
+                groupPath = $"{_graphFolderPath}/Groups/{groupName}";
+            }
+        }
+        else
+        {
+            // Create folders if they don't exist
+            FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Groups", groupName);
+            FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Groups/{groupName}", "SkillsTree");
+        }
 
         SkillsTreeGroup skillstreeGroup = AssetsUtility.CreateAsset<SkillsTreeGroup>($"{_graphFolderPath}/Groups/{groupName}", groupName);
         skillstreeGroup.Initialize(groupName);
+        
+        // CRITICAL FIX: Always add the group to the container
         skillstreeContainer.AddGroup(skillstreeGroup);
         _createdSkillsTreeGroups.Add(group.ID, skillstreeGroup);
 
         skillstreeGroup.Save();
+    }
+
+    private static string FindOldGroupName(string groupID, SkillsTreeSystemGraphSaveData graphData)
+    {
+        foreach (var oldGroup in graphData.Groups)
+        {
+            if (oldGroup.ID == groupID)
+            {
+                return oldGroup.Name;
+            }
+        }
+        return null;
     }
 
     private static void UpdateOldGroups(List<string> currentGroupNames, SkillsTreeSystemGraphSaveData graphData) {
@@ -102,16 +148,18 @@ public static class SkillsTreeSystemSaveManager {
 
         foreach (var node in _nodes) {
             SaveNodeToGraph(node, graphData);
-            SaveNodeToScriptableObject(node, skillstreeContainer);
+            SaveNodeToScriptableObject(node, skillstreeContainer, graphData);
+            
             if (node.Group != null) {
                 if (groupedNodeNames.ContainsKey(node.Group.ID))
                     groupedNodeNames[node.Group.ID].Add(node.SkillsTreeName);
                 else
                     groupedNodeNames[node.Group.ID] = new() { node.SkillsTreeName };
-                continue;
             }
-
-            nodeNames.Add(node.SkillsTreeName);
+            else
+            {
+                nodeNames.Add(node.SkillsTreeName);
+            }
         }
 
         UpdateSkillsTreeChoicesConnections();
@@ -119,112 +167,156 @@ public static class SkillsTreeSystemSaveManager {
         UpdateOldUngroupedNodes(nodeNames, graphData);
     }
 
-private static void SaveNodeToGraph(SkillsTreeBaseNode node, SkillsTreeSystemGraphSaveData graphData) {
-    List<SkillsTreeChoiceSaveData> choices = CloneNodeChoices(node.Choices);
+    private static void SaveNodeToGraph(SkillsTreeBaseNode node, SkillsTreeSystemGraphSaveData graphData) {
+        List<SkillsTreeChoiceSaveData> choices = CloneNodeChoices(node.Choices);
 
-    // Create the base save data
-    SkillsTreeNodeSaveData nodeData = new SkillsTreeNodeSaveData(
-        node.ID,
-        node.SkillsTreeName,
-        node.Text,
-        choices,
-        node.Group?.ID,
-        node.SkillsTreeType,
-        node.GetPosition().position
-    );
-
-    // NOW, update it with the skill data from the SO
-    // This ensures the save data matches the SO
-    if (node.Skill != null)
-    {
-        // This method already exists in SkillsTreeNodeSaveData!
-        nodeData.UpdateFromSkillsTree(node.Skill, AssetDatabase.GetAssetPath(node.Skill));
-    }
-
-    graphData.AddNode(nodeData);
-}
-
-
-    // In SkillsTreeSystemSaveManager.cs
-
-private static void SaveNodeToScriptableObject(SkillsTreeBaseNode node, SkillsTreeContainer skillstreeContainer) {
-    Skill skillstree;
-    string path;
-    string skillName = node.SkillsTreeName;
-
-    if (node.Group != null) {
-        path = $"{_graphFolderPath}/Groups/{node.Group.title}/SkillsTree";
-    } else {
-        path = $"{_graphFolderPath}/Global/SkillsTree";
-    }
-
-    // Try to get the skill from the node's reference first
-    // This is the SO that the inspector was modifying
-    skillstree = node.Skill; 
-
-    if (skillstree == null)
-    {
-        // No reference, try to load from asset path (legacy/safety check)
-        skillstree = AssetsUtility.LoadAsset<Skill>(path, skillName);
-    }
-
-    if (skillstree == null) 
-    {
-        // --- CREATE NEW SKILL ---
-        // Asset truly doesn't exist, create a new one
-        if (node.Group != null) {
-            skillstree = AssetsUtility.CreateAsset<Skill>($"{_graphFolderPath}/Groups/{node.Group.title}/SkillsTree", node.SkillsTreeName);
-            skillstreeContainer.AddSkillToGroup(_createdSkillsTreeGroups[node.Group.ID], skillstree);
-        } else {
-            skillstree = AssetsUtility.CreateAsset<Skill>($"{_graphFolderPath}/Global/SkillsTree", node.SkillsTreeName);
-            skillstreeContainer.AddUngroupedSkill(skillstree);
-        }
-
-        // Initialize the new skill using data from the node
-        // (This assumes SkillsTreeBaseNode has these properties)
-        skillstree.Initialize(
+        SkillsTreeNodeSaveData nodeData = new SkillsTreeNodeSaveData(
+            node.ID,
             node.SkillsTreeName,
-            node.Text, // node.Text is the description
-            node.Icon,
-            node.LockedIcon,
-            node.UnlockedIcon,
-            node.Tier,
-            node.UnlockCost,
-            SkillType.Passive, // TODO: Get this from node if possible
-            node.Value,
-            node.MaxLevel,
-            new List<Skill>(),
-            new List<Skill>(),
-            new List<SkillFunction>(),
+            node.Text,
+            choices,
+            node.Group?.ID,
+            node.SkillsTreeType,
             node.GetPosition().position
         );
-    }
-    else
-    {
-       
-        // TODO: Handle asset rename if node.SkillsTreeName != skillstree.SkillName
-        // AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(skillstree), node.SkillsTreeName);
-        
-        // Use the new methods you added to Skill.cs
-        skillstree.UpdateName(node.SkillsTreeName);
-        skillstree.UpdateDescription(node.Text);
-        skillstree.UpdatePosition(node.GetPosition().position);
+
+        if (node.Skill != null)
+        {
+            nodeData.UpdateFromSkillsTree(node.Skill, AssetDatabase.GetAssetPath(node.Skill));
+        }
+
+        graphData.AddNode(nodeData);
     }
 
-    // Add to dictionary for connection-linking
-    if (!_createdSkillsTree.ContainsKey(node.ID))
-    {
-        _createdSkillsTree.Add(node.ID, skillstree);
+    private static void SaveNodeToScriptableObject(SkillsTreeBaseNode node, SkillsTreeContainer skillstreeContainer, SkillsTreeSystemGraphSaveData graphData) {
+        Skill skillstree;
+        string path;
+        string skillName = node.SkillsTreeName;
+
+        if (node.Group != null) {
+            path = $"{_graphFolderPath}/Groups/{node.Group.title}/SkillsTree";
+        } else {
+            path = $"{_graphFolderPath}/Global/SkillsTree";
+        }
+
+        // Check if node was renamed
+        string oldNodeName = FindOldNodeName(node.ID, graphData);
+        bool wasRenamed = !string.IsNullOrEmpty(oldNodeName) && oldNodeName != skillName;
+
+        // Try to get the skill from the node's reference first
+        skillstree = node.Skill;
+
+        if (skillstree == null)
+        {
+            // Try loading with old name if it was renamed
+            if (wasRenamed)
+            {
+                skillstree = AssetsUtility.LoadAsset<Skill>(path, oldNodeName);
+            }
+            
+            if (skillstree == null)
+            {
+                skillstree = AssetsUtility.LoadAsset<Skill>(path, skillName);
+            }
+        }
+
+        if (skillstree == null) 
+        {
+            // --- CREATE NEW SKILL ---
+            if (node.Group != null) {
+                skillstree = AssetsUtility.CreateAsset<Skill>($"{_graphFolderPath}/Groups/{node.Group.title}/SkillsTree", node.SkillsTreeName);
+                // CRITICAL FIX: Add to container using the group from _createdSkillsTreeGroups
+                if (_createdSkillsTreeGroups.ContainsKey(node.Group.ID))
+                {
+                    skillstreeContainer.AddSkillToGroup(_createdSkillsTreeGroups[node.Group.ID], skillstree);
+                }
+            } else {
+                skillstree = AssetsUtility.CreateAsset<Skill>($"{_graphFolderPath}/Global/SkillsTree", node.SkillsTreeName);
+                // CRITICAL FIX: Add to ungrouped skills
+                skillstreeContainer.AddUngroupedSkill(skillstree);
+            }
+
+            skillstree.Initialize(
+                node.SkillsTreeName,
+                node.Text,
+                node.Icon,
+                node.LockedIcon,
+                node.UnlockedIcon,
+                node.Tier,
+                node.UnlockCost,
+                SkillType.Passive,
+                node.Value,
+                node.MaxLevel,
+                new List<Skill>(),
+                new List<Skill>(),
+                new List<SkillFunction>(),
+                node.GetPosition().position
+            );
+        }
+        else
+        {
+            // --- UPDATE EXISTING SKILL ---
+            
+            // Handle rename
+            if (wasRenamed)
+            {
+                Debug.Log($"Renaming skill asset from '{oldNodeName}' to '{skillName}'");
+                string assetPath = AssetDatabase.GetAssetPath(skillstree);
+                AssetDatabase.RenameAsset(assetPath, skillName);
+            }
+            
+            // Handle group change (move to different folder)
+            string currentAssetPath = AssetDatabase.GetAssetPath(skillstree);
+            string expectedPath = $"{path}/{skillName}.asset";
+            
+            if (currentAssetPath != expectedPath)
+            {
+                Debug.Log($"Moving skill asset from '{currentAssetPath}' to '{expectedPath}'");
+                string error = AssetDatabase.MoveAsset(currentAssetPath, expectedPath);
+                if (!string.IsNullOrEmpty(error))
+                {
+                    Debug.LogError($"Failed to move asset: {error}");
+                }
+            }
+            
+            // CRITICAL FIX: Re-add skill to container in correct location
+            if (node.Group != null) {
+                if (_createdSkillsTreeGroups.ContainsKey(node.Group.ID))
+                {
+                    skillstreeContainer.AddSkillToGroup(_createdSkillsTreeGroups[node.Group.ID], skillstree);
+                }
+            } else {
+                skillstreeContainer.AddUngroupedSkill(skillstree);
+            }
+            
+            skillstree.UpdateName(node.SkillsTreeName);
+            skillstree.UpdateDescription(node.Text);
+            skillstree.UpdatePosition(node.GetPosition().position);
+        }
+
+        if (!_createdSkillsTree.ContainsKey(node.ID))
+        {
+            _createdSkillsTree.Add(node.ID, skillstree);
+        }
+        
+        _graphView.RegisterNodeSkillMapping(node.ID, skillstree);
+        node.Skill = skillstree;
+        
+        skillstree.Save();
     }
-    
-    _graphView.RegisterNodeSkillMapping(node.ID, skillstree);
-    
-    // This is the most important line, ensuring the node
-    // holds the reference to the single source of truth.
-    node.Skill = skillstree; 
-    
-    skillstree.Save();
-}
+
+    private static string FindOldNodeName(string nodeID, SkillsTreeSystemGraphSaveData graphData)
+    {
+        foreach (var oldNode in graphData.Nodes)
+        {
+            if (oldNode.ID == nodeID)
+            {
+                return oldNode.Name;
+            }
+        }
+        return null;
+    }
+
     private static List<SkillsTreeChoiceSaveData> CloneNodeChoices(IEnumerable<SkillsTreeChoiceSaveData> originalChoices) {
         List<SkillsTreeChoiceSaveData> choices = new();
         foreach (var choice in originalChoices)
@@ -241,12 +333,10 @@ private static void SaveNodeToScriptableObject(SkillsTreeBaseNode node, SkillsTr
                 if (string.IsNullOrEmpty(nodeChoice.NodeID))
                     continue;
 
-                // Add the connected skill as a child
                 Skill childSkill = _createdSkillsTree[nodeChoice.NodeID];
                 if (childSkill != null && !skillstree.Children.Contains(childSkill)) {
                     skillstree.Children.Add(childSkill);
                     
-                    // Also add this skill as a prerequisite to the child
                     if (!childSkill.Prerequisites.Contains(skillstree)) {
                         childSkill.Prerequisites.Add(skillstree);
                         childSkill.Save();
@@ -256,13 +346,6 @@ private static void SaveNodeToScriptableObject(SkillsTreeBaseNode node, SkillsTr
                 skillstree.Save();
             }
         }
-    }
-
-    private static List<SkillsTreeChoiceData> ConvertNodeChoicesToSkillsTreeChoices(IEnumerable<SkillsTreeChoiceSaveData> nodeChoices) {
-        List<SkillsTreeChoiceData> skillstreeChoices = new();
-        foreach (var nodeChoice in nodeChoices)
-            skillstreeChoices.Add(nodeChoice.ToSkillsTreeChoice());
-        return skillstreeChoices;
     }
 
     private static void UpdateOldUngroupedNodes(List<string> currentNodeNames, SkillsTreeSystemGraphSaveData graphData) {
@@ -303,7 +386,6 @@ private static void SaveNodeToScriptableObject(SkillsTreeBaseNode node, SkillsTr
     }
     #endregion
 
-
     #region Load
     public static void Load()
     {
@@ -337,71 +419,45 @@ private static void SaveNodeToScriptableObject(SkillsTreeBaseNode node, SkillsTr
     }
     
     private static void LoadNodes(SkillsTreeSystemGraphSaveData graphData, SkillsTreeContainer skillstreeContainer)
-{
-    foreach (var nodeData in graphData.Nodes)
     {
-        List<SkillsTreeChoiceSaveData> choices = CloneNodeChoices(nodeData.Choices);
-        SkillsTreeBaseNode node = _graphView.CreateNode(nodeData.Name, nodeData.SkillsTreeType, nodeData.Position, false);
-        node.Setup(nodeData, choices);
-
-        // Load the corresponding Skill ScriptableObject
-        Skill skillstree = null;
-        if (!string.IsNullOrEmpty(nodeData.GroupID))
+        foreach (var nodeData in graphData.Nodes)
         {
-            // Check _loadedGroups, not graphData, as graphData.Groups might not be in order
-            if (_loadedGroups.ContainsKey(nodeData.GroupID))
+            List<SkillsTreeChoiceSaveData> choices = CloneNodeChoices(nodeData.Choices);
+            SkillsTreeBaseNode node = _graphView.CreateNode(nodeData.Name, nodeData.SkillsTreeType, nodeData.Position, false);
+            node.Setup(nodeData, choices);
+
+            Skill skillstree = null;
+            if (!string.IsNullOrEmpty(nodeData.GroupID))
             {
-                skillstree = skillstreeContainer.GetGroupSkill(_loadedGroups[nodeData.GroupID].title, nodeData.Name);
+                if (_loadedGroups.ContainsKey(nodeData.GroupID))
+                {
+                    skillstree = skillstreeContainer.GetGroupSkill(_loadedGroups[nodeData.GroupID].title, nodeData.Name);
+                }
             }
+            else
+            {
+                skillstree = skillstreeContainer.GetUngroupedSkill(nodeData.Name);
+            }
+
+            if (skillstree != null)
+            {
+                node.Skill = skillstree;
+                node.RefreshFromSkill();
+                _graphView.RegisterNodeSkillMapping(node.ID, skillstree);
+                SkillChangeMonitor.TrackSkill(skillstree);
+            }
+
+            node.Draw();
+            _loadedNodes.Add(node.ID, node);
+
+            if (string.IsNullOrEmpty(nodeData.GroupID))
+                continue;
+
+            SkillsTreeSystemGroup group = _loadedGroups[nodeData.GroupID];
+            node.ChangeGroup(group);
+            group.AddElement(node);
         }
-        else
-        {
-            skillstree = skillstreeContainer.GetUngroupedSkill(nodeData.Name);
-        }
-
-        if (skillstree != null)
-        {
-            // --- REVISED LOAD LOGIC ---
-            
-            // 1. Set the skill reference on the node
-            node.Skill = skillstree;
-            
-            // 2. Use your existing extension method to pull all data from skill to node
-            node.RefreshFromSkill(); 
-            
-            // 3. Register mapping
-            _graphView.RegisterNodeSkillMapping(node.ID, skillstree);
-            
-            // 4. Track for further changes
-            SkillChangeMonitor.TrackSkill(skillstree);
-        }
-
-        // Draw AFTER applying the data
-        node.Draw();
-
-        _loadedNodes.Add(node.ID, node);
-
-        if (string.IsNullOrEmpty(nodeData.GroupID))
-            continue;
-
-        SkillsTreeSystemGroup group = _loadedGroups[nodeData.GroupID];
-        node.ChangeGroup(group);
-        group.AddElement(node);
     }
-}
-
-    /*
-    private static void ApplySkillDataToNode(SkillsTreeBaseNode node, Skill skillstree)
-    {
-        // Apply Skill data to the node
-        node.Text = skillstree.Description;
-        
-        // You can add more data mapping here as needed
-        // For example:
-        // node.SomeField = skillstree.UnlockCost;
-        // node.AnotherField = skillstree.Tier;
-    }
-    */
 
     private static void LoadGroups(SkillsTreeSystemGraphSaveData graphData) {
         foreach (var groupData in graphData.Groups) {
@@ -435,12 +491,33 @@ private static void SaveNodeToScriptableObject(SkillsTreeBaseNode node, SkillsTr
 
     private static void CreateStaticFolders() {
         FoldersUtility.CreateEditorFolder("Assets/_Project/Editor/SkillsTreeSystem", "Graphs");
-        FoldersUtility.CreateEditorFolder("Assets", "ScriptableObjects");
+        FoldersUtility.CreateEditorFolder("Assets/_Project", "ScriptableObjects");
         FoldersUtility.CreateEditorFolder("Assets/_Project/ScriptableObjects", "SkillsTree");
         FoldersUtility.CreateEditorFolder("Assets/_Project/ScriptableObjects/SkillsTree", _graphFileName);
 
         FoldersUtility.CreateEditorFolder(_graphFolderPath, "Global");
         FoldersUtility.CreateEditorFolder(_graphFolderPath, "Groups");
         FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Global", "SkillsTree");
+    }
+    
+    /// <summary>
+    /// Handles renaming the container (graph) itself
+    /// </summary>
+    public static void RenameContainer(string oldName, string newName)
+    {
+        string oldPath = $"Assets/_Project/ScriptableObjects/SkillsTree/{oldName}";
+        string newPath = $"Assets/_Project/ScriptableObjects/SkillsTree/{newName}";
+        
+        if (AssetDatabase.IsValidFolder(oldPath))
+        {
+            Debug.Log($"Renaming container folder from '{oldName}' to '{newName}'");
+            FoldersUtility.RenameEditorFolder(oldPath, newName);
+        }
+        
+        // Rename the graph save data asset
+        AssetsUtility.RenameAsset("Assets/_Project/Editor/SkillsTreeSystem/Graphs", oldName, newName);
+        
+        // Rename the container asset
+        AssetsUtility.RenameAsset(newPath, oldName, newName);
     }
 }

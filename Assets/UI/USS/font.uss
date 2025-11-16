@@ -1,0 +1,32 @@
+.font {
+    color: rgb(255, 255, 255);
+    -unity-font: url("project://database/Assets/Fonts/backissuesbb_ot/BackIssuesBB_boldital.otf?fileID=12800000&guid=4a41f9fc0a6e74ffe9df0d6c256df031&type=3#BackIssuesBB_boldital");
+}
+
+.sm {
+    font-size: 12px;
+}
+
+.md {
+    font-size: 16px;
+}
+
+.lg {
+    font-size: 24px;
+}
+
+.header {
+    -unity-font: url("project://database/Assets/Fonts/backissuesbb_ot/BackIssuesBB_boldital.otf?fileID=12800000&guid=4a41f9fc0a6e74ffe9df0d6c256df031&type=3#BackIssuesBB_boldital");
+    font-size: 24px;
+}
+
+.slider {
+    padding-top: 0;
+    padding-right: 0;
+    padding-bottom: 0;
+    padding-left: 0;
+    margin-top: 0;
+    margin-right: 0;
+    margin-bottom: 0;
+    margin-left: 0;
+}

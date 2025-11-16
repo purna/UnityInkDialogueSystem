@@ -6,17 +6,13 @@ using System.Linq;
 [CustomEditor(typeof(SkillTreeTrigger))]
 public class SkillTreeTriggerEditor : Editor
 {
+    // Base class properties
     private SerializedProperty visualCueProp;
     private SerializedProperty emoteAnimatorProp;
-    private SerializedProperty skillsTreeControllerProp;
-    private SerializedProperty skillsTreeContainerProp;
-    private SerializedProperty selectedGroupProp;
-    private SerializedProperty selectedSkillNameProp;
     private SerializedProperty triggerOnEnterProp;
     private SerializedProperty requiresInputProp;
     private SerializedProperty interactKeyProp;
     private SerializedProperty canTriggerMultipleTimesProp;
-    private SerializedProperty toggleWithInteractKeyProp;
     private SerializedProperty interactPromptProp;
     private SerializedProperty promptTextComponentProp;
     private SerializedProperty promptTextProp;
@@ -24,6 +20,19 @@ public class SkillTreeTriggerEditor : Editor
     private SerializedProperty displayDurationProp;
     private SerializedProperty fadeOutDurationProp;
     private SerializedProperty loopPromptProp;
+    private SerializedProperty promptLeftOffsetProp;
+    private SerializedProperty promptRightOffsetProp;
+    private SerializedProperty promptVerticalOffsetProp;
+    private SerializedProperty continuousPositionUpdateProp;
+    private SerializedProperty showDebugLogsProp;
+    private SerializedProperty playEmoteOnTriggerProp;
+
+    // Derived class properties
+    private SerializedProperty skillsTreeControllerProp;
+    private SerializedProperty skillsTreeContainerProp;
+    private SerializedProperty selectedGroupProp;
+    private SerializedProperty selectedSkillNameProp;
+    private SerializedProperty toggleWithInteractKeyProp;
 
     private int selectedGroupIndex = 0;
     private int selectedSkillIndex = 0;
@@ -32,17 +41,13 @@ public class SkillTreeTriggerEditor : Editor
 
     private void OnEnable()
     {
+        // Base class properties
         visualCueProp = serializedObject.FindProperty("visualCue");
         emoteAnimatorProp = serializedObject.FindProperty("emoteAnimator");
-        skillsTreeControllerProp = serializedObject.FindProperty("skillsTreeController");
-        skillsTreeContainerProp = serializedObject.FindProperty("skillsTreeContainer");
-        selectedGroupProp = serializedObject.FindProperty("selectedGroup");
-        selectedSkillNameProp = serializedObject.FindProperty("selectedSkillName");
         triggerOnEnterProp = serializedObject.FindProperty("triggerOnEnter");
         requiresInputProp = serializedObject.FindProperty("requiresInput");
         interactKeyProp = serializedObject.FindProperty("interactKey");
         canTriggerMultipleTimesProp = serializedObject.FindProperty("canTriggerMultipleTimes");
-        toggleWithInteractKeyProp = serializedObject.FindProperty("toggleWithInteractKey");
         interactPromptProp = serializedObject.FindProperty("interactPrompt");
         promptTextComponentProp = serializedObject.FindProperty("promptTextComponent");
         promptTextProp = serializedObject.FindProperty("promptText");
@@ -50,6 +55,19 @@ public class SkillTreeTriggerEditor : Editor
         displayDurationProp = serializedObject.FindProperty("displayDuration");
         fadeOutDurationProp = serializedObject.FindProperty("fadeOutDuration");
         loopPromptProp = serializedObject.FindProperty("loopPrompt");
+        promptLeftOffsetProp = serializedObject.FindProperty("promptLeftOffset");
+        promptRightOffsetProp = serializedObject.FindProperty("promptRightOffset");
+        promptVerticalOffsetProp = serializedObject.FindProperty("promptVerticalOffset");
+        continuousPositionUpdateProp = serializedObject.FindProperty("continuousPositionUpdate");
+        showDebugLogsProp = serializedObject.FindProperty("showDebugLogs");
+        playEmoteOnTriggerProp = serializedObject.FindProperty("playEmoteOnTrigger");
+
+        // Derived class properties
+        skillsTreeControllerProp = serializedObject.FindProperty("skillsTreeController");
+        skillsTreeContainerProp = serializedObject.FindProperty("skillsTreeContainer");
+        selectedGroupProp = serializedObject.FindProperty("selectedGroup");
+        selectedSkillNameProp = serializedObject.FindProperty("selectedSkillName");
+        toggleWithInteractKeyProp = serializedObject.FindProperty("toggleWithInteractKey");
     }
 
     public override void OnInspectorGUI()
@@ -71,6 +89,7 @@ public class SkillTreeTriggerEditor : Editor
         // Emote Animator Header
         EditorGUILayout.LabelField("Emote Animator", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(emoteAnimatorProp, new GUIContent("Animator (Optional)"));
+        EditorGUILayout.PropertyField(playEmoteOnTriggerProp, new GUIContent("Play Emote On Trigger"));
         EditorGUILayout.Space();
 
         // Trigger Settings Header (Moved up for better workflow)
@@ -80,26 +99,17 @@ public class SkillTreeTriggerEditor : Editor
         // UI Prompt Section
         if (requiresInputProp.boolValue && !triggerOnEnterProp.boolValue)
         {
-            EditorGUILayout.LabelField("UI Prompt", EditorStyles.boldLabel);
-            EditorGUILayout.PropertyField(interactPromptProp, new GUIContent("Prompt GameObject"));
-            EditorGUILayout.PropertyField(promptTextComponentProp, new GUIContent("Text Component"));
-            EditorGUILayout.PropertyField(promptTextProp, new GUIContent("Prompt Message"));
-            
-            EditorGUILayout.Space(5);
-            EditorGUILayout.LabelField("Fade Animation", EditorStyles.miniBoldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(fadeInDurationProp, new GUIContent("Fade In Duration"));
-            EditorGUILayout.PropertyField(displayDurationProp, new GUIContent("Display Duration"));
-            EditorGUILayout.PropertyField(fadeOutDurationProp, new GUIContent("Fade Out Duration"));
-            EditorGUILayout.PropertyField(loopPromptProp, new GUIContent("Loop Animation"));
-            EditorGUI.indentLevel--;
-            
+            DrawUIPromptSettings();
             EditorGUILayout.Space();
         }
 
         // Skill Tree Settings Header
         DrawSkillTreeSettings();
 
+        EditorGUILayout.Space();
+
+        // Feedback Settings
+        DrawFeedbackSettings();
         EditorGUILayout.Space();
 
         // Utility Buttons
@@ -166,6 +176,76 @@ public class SkillTreeTriggerEditor : Editor
         EditorGUILayout.PropertyField(canTriggerMultipleTimesProp, new GUIContent(
             "Can Trigger Multiple Times",
             "If FALSE, trigger only works once. If TRUE, can be triggered every time player enters."));
+    }
+
+    private void DrawUIPromptSettings()
+    {
+        EditorGUILayout.LabelField("UI Prompt", EditorStyles.boldLabel);
+        
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        
+        // Basic Prompt Settings
+        EditorGUILayout.LabelField("Basic Settings", EditorStyles.miniBoldLabel);
+        EditorGUILayout.PropertyField(interactPromptProp, new GUIContent("Prompt GameObject"));
+        EditorGUILayout.PropertyField(promptTextComponentProp, new GUIContent("Text Component"));
+        EditorGUILayout.PropertyField(promptTextProp, new GUIContent("Prompt Message"));
+        
+        EditorGUILayout.Space(8);
+        
+        // Position Settings
+        EditorGUILayout.LabelField("Dynamic Positioning", EditorStyles.miniBoldLabel);
+        EditorGUI.indentLevel++;
+        
+        EditorGUILayout.PropertyField(promptLeftOffsetProp, new GUIContent(
+            "Left Offset",
+            "Horizontal offset when prompt appears on the left side of trigger"));
+        
+        EditorGUILayout.PropertyField(promptRightOffsetProp, new GUIContent(
+            "Right Offset", 
+            "Horizontal offset when prompt appears on the right side of trigger"));
+        
+        EditorGUILayout.PropertyField(promptVerticalOffsetProp, new GUIContent(
+            "Vertical Offset",
+            "Additional vertical offset for the prompt"));
+        
+        EditorGUILayout.PropertyField(continuousPositionUpdateProp, new GUIContent(
+            "Continuous Update",
+            "Update prompt position every frame (enable for moving triggers)"));
+        
+        EditorGUI.indentLevel--;
+        
+        EditorGUILayout.Space(8);
+        
+        // Animation Settings
+        EditorGUILayout.LabelField("Fade Animation", EditorStyles.miniBoldLabel);
+        EditorGUI.indentLevel++;
+        EditorGUILayout.PropertyField(fadeInDurationProp, new GUIContent("Fade In Duration"));
+        EditorGUILayout.PropertyField(displayDurationProp, new GUIContent("Display Duration"));
+        EditorGUILayout.PropertyField(fadeOutDurationProp, new GUIContent("Fade Out Duration"));
+        EditorGUILayout.PropertyField(loopPromptProp, new GUIContent("Loop Animation"));
+        EditorGUI.indentLevel--;
+        
+        EditorGUILayout.EndVertical();
+        
+        // Show positioning help
+        if (interactPromptProp.objectReferenceValue != null)
+        {
+            EditorGUILayout.Space(5);
+            EditorGUILayout.HelpBox(
+                "💡 Positioning Tip:\n" +
+                "The prompt automatically positions itself on the side with more screen space. " +
+                "Adjust the Left/Right offsets to control how far from the trigger it appears. " +
+                "Negative left values move it left, positive right values move it right.",
+                MessageType.Info);
+        }
+    }
+
+    private void DrawFeedbackSettings()
+    {
+        EditorGUILayout.LabelField("Feedback Settings", EditorStyles.boldLabel);
+        EditorGUILayout.PropertyField(showDebugLogsProp, new GUIContent(
+            "Show Debug Logs",
+            "Print detailed logs to console for debugging"));
     }
 
     private void DrawSkillTreeSettings()

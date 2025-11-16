@@ -6,15 +6,19 @@ using TMPro;
 /// <summary>
 /// Centralized typewriter effect for dialogue text.
 /// Handles character-by-character display with rich text support.
+/// Supports both ScreenSpace and WorldSpace canvases.
 /// </summary>
 public class TypewriterEffect : MonoBehaviour
 {
     [Header("Settings")]
     [SerializeField] private float typingSpeed = 0.04f;
 
-    private TextMeshProUGUI textComponent;
-
+    [Header("Unified DialogueUI Reference")]
     [SerializeField] private DialogueUI dialogueUI;
+    
+    // Active text component (set dynamically based on mode)
+    private TextMeshProUGUI activeTextComponent;
+    
     private Coroutine typewriterCoroutine;
     private bool isTyping = false;
     private bool skipRequested = false;
@@ -28,11 +32,35 @@ public class TypewriterEffect : MonoBehaviour
 
     private void Awake()
     {
-        textComponent = dialogueUI.GetDialogueTextComponent();
-        
-        if (textComponent == null)
+        // Don't set textComponent in Awake - it will be set when DialogueUI switches modes
+        if (dialogueUI == null)
         {
-            Debug.LogError("[TypewriterEffect] No TextMeshProUGUI component found!");
+            dialogueUI = GetComponent<DialogueUI>();
+            if (dialogueUI == null)
+            {
+                Debug.LogError("[TypewriterEffect] No DialogueUI component found!");
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Update the active text component when mode changes
+    /// Called by DialogueUI when switching between ScreenSpace/WorldSpace
+    /// </summary>
+    public void UpdateTextComponent()
+    {
+        if (dialogueUI != null)
+        {
+            activeTextComponent = dialogueUI.GetDialogueTextComponent();
+            
+            if (activeTextComponent == null)
+            {
+                Debug.LogWarning("[TypewriterEffect] Failed to get text component from DialogueUI");
+            }
+            else
+            {
+                Debug.Log($"[TypewriterEffect] Updated text component to: {activeTextComponent.gameObject.name}");
+            }
         }
     }
 
@@ -41,7 +69,7 @@ public class TypewriterEffect : MonoBehaviour
     /// </summary>
     public void Initialize(TextMeshProUGUI target)
     {
-        textComponent = target;
+        activeTextComponent = target;
     }
 
     /// <summary>
@@ -57,7 +85,10 @@ public class TypewriterEffect : MonoBehaviour
     /// </summary>
     public void TypeText(string text, Action<int, char> onCharTyped = null, Action onComplete = null)
     {
-        if (textComponent == null)
+        // Update text component reference before typing
+        UpdateTextComponent();
+        
+        if (activeTextComponent == null)
         {
             Debug.LogError("[TypewriterEffect] TextMeshProUGUI component is null!");
             return;
@@ -110,7 +141,7 @@ public class TypewriterEffect : MonoBehaviour
     /// </summary>
     private IEnumerator TypeTextCoroutine(string text)
     {
-        if (textComponent == null || string.IsNullOrEmpty(text))
+        if (activeTextComponent == null || string.IsNullOrEmpty(text))
         {
             onTypingComplete?.Invoke();
             yield break;
@@ -120,8 +151,8 @@ public class TypewriterEffect : MonoBehaviour
         skipRequested = false;
 
         // Set the full text but hide all characters
-        textComponent.text = text;
-        textComponent.maxVisibleCharacters = 0;
+        activeTextComponent.text = text;
+        activeTextComponent.maxVisibleCharacters = 0;
 
         int visibleCharCount = 0;
         int totalCharacters = text.Length;
@@ -133,7 +164,7 @@ public class TypewriterEffect : MonoBehaviour
             if (skipRequested)
             {
                 // Instantly show all text
-                textComponent.maxVisibleCharacters = totalCharacters;
+                activeTextComponent.maxVisibleCharacters = totalCharacters;
                 break;
             }
 
@@ -153,7 +184,7 @@ public class TypewriterEffect : MonoBehaviour
                     visibleCharCount = tagEndIndex + 1;
                     
                     // Update visible characters to include the tag
-                    textComponent.maxVisibleCharacters = visibleCharCount;
+                    activeTextComponent.maxVisibleCharacters = visibleCharCount;
                     
                     // Don't wait for tags, continue immediately
                     continue;
@@ -161,7 +192,7 @@ public class TypewriterEffect : MonoBehaviour
             }
 
             // Show the next character
-            textComponent.maxVisibleCharacters = visibleCharCount + 1;
+            activeTextComponent.maxVisibleCharacters = visibleCharCount + 1;
 
             // Trigger character typed callback (for audio)
             onCharacterTyped?.Invoke(visibleCharCount, currentChar);
@@ -174,7 +205,7 @@ public class TypewriterEffect : MonoBehaviour
         }
 
         // Ensure all text is visible
-        textComponent.maxVisibleCharacters = totalCharacters;
+        activeTextComponent.maxVisibleCharacters = totalCharacters;
 
         // Mark as complete
         isTyping = false;
@@ -192,10 +223,12 @@ public class TypewriterEffect : MonoBehaviour
     {
         Stop();
         
-        if (textComponent != null)
+        UpdateTextComponent();
+        
+        if (activeTextComponent != null)
         {
-            textComponent.text = text;
-            textComponent.maxVisibleCharacters = text.Length;
+            activeTextComponent.text = text;
+            activeTextComponent.maxVisibleCharacters = text.Length;
         }
         
         onTypingComplete?.Invoke();
@@ -208,10 +241,12 @@ public class TypewriterEffect : MonoBehaviour
     {
         Stop();
         
-        if (textComponent != null)
+        UpdateTextComponent();
+        
+        if (activeTextComponent != null)
         {
-            textComponent.text = "";
-            textComponent.maxVisibleCharacters = 0;
+            activeTextComponent.text = "";
+            activeTextComponent.maxVisibleCharacters = 0;
         }
     }
 }

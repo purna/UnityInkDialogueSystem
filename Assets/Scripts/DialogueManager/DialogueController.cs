@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 /// <summary>
 /// Main controller for the dialogue system 
-/// Matches LevelController pattern with player control integration
+/// Supports both ScreenSpace and WorldSpace dialogue via unified DialogueUI
 /// </summary>
 public class DialogueController : MonoBehaviour
 {
@@ -35,7 +35,14 @@ public class DialogueController : MonoBehaviour
 
     [Header("System References")]
     [SerializeField] private DialogueManager dialogueManager;
+    
+    [Header("Unified UI Reference")]
+    [Tooltip("Single DialogueUI that manages both ScreenSpace and WorldSpace canvases")]
     [SerializeField] private DialogueUI dialogueUI;
+    
+    [Header("Typewriter Reference")]
+    [Tooltip("TypewriterEffect component")]
+    [SerializeField] private TypewriterEffect typewriter;
 
     [Header("Auto Start Settings")]
     [SerializeField] private bool initializeOnStart = false;
@@ -78,10 +85,24 @@ public class DialogueController : MonoBehaviour
             }
         }
 
-        // Try to find dialogue UI if not assigned
+        // Try to find unified DialogueUI if not assigned
         if (dialogueUI == null)
         {
             dialogueUI = FindObjectOfType<DialogueUI>();
+            if (dialogueUI == null)
+            {
+                Debug.LogWarning("[DialogueController] No DialogueUI found in scene!");
+            }
+        }
+        
+        // Try to find typewriter if not assigned
+        if (typewriter == null && dialogueUI != null)
+        {
+            typewriter = dialogueUI.GetComponent<TypewriterEffect>();
+            if (typewriter == null)
+            {
+                Debug.LogWarning("[DialogueController] DialogueUI has no TypewriterEffect component!");
+            }
         }
 
         // Find player controller
@@ -126,7 +147,7 @@ public class DialogueController : MonoBehaviour
             if (dialogueUI != null)
                 dialogueUI.gameObject.SetActive(false);
                 
-            Debug.Log("[DialogueController] Dialogue UI initialized but hidden. Waiting for trigger.");
+            Debug.Log("[DialogueController] DialogueUI initialized but hidden. Waiting for trigger.");
         }
     }
 
@@ -175,17 +196,27 @@ public class DialogueController : MonoBehaviour
     /// </summary>
     public void ShowDialogue()
     {
-        Debug.Log("[DialogueController] ShowDialogue() called");
+        ShowDialogue(null);
+    }
+    
+    /// <summary>
+    /// Shows the dialogue UI and optionally attaches to NPC
+    /// </summary>
+    public void ShowDialogue(Transform npcTransform)
+    {
+        Debug.Log($"[DialogueController] ShowDialogue() called - Mode: {_setupMode}");
         
         if (dialogueUI != null)
         {
+            // Configure the DialogueUI for the current mode and NPC
+            dialogueUI.SetupMode(_setupMode, npcTransform);
             dialogueUI.gameObject.SetActive(true);
             _isDialogueOpen = true;
-            Debug.Log("[DialogueController] ✓ Main dialogue UI activated");
+            Debug.Log($"[DialogueController] ✓ {_setupMode} dialogue UI activated");
         }
         else
         {
-            Debug.LogWarning("[DialogueController] dialogueUI is not assigned!");
+            Debug.LogWarning($"[DialogueController] DialogueUI is not assigned!");
         }
 
         // Disable player movement
@@ -205,7 +236,7 @@ public class DialogueController : MonoBehaviour
         {
             dialogueUI.gameObject.SetActive(false);
             _isDialogueOpen = false;
-            Debug.Log("[DialogueController] Dialogue UI hidden");
+            Debug.Log($"[DialogueController] {_setupMode} Dialogue UI hidden");
         }
 
         // Re-enable player movement
@@ -231,6 +262,43 @@ public class DialogueController : MonoBehaviour
     }
 
     /// <summary>
+    /// Changes the setup mode at runtime
+    /// </summary>
+    public void SetSetupMode(DialogueSetupMode mode)
+    {
+        bool wasOpen = _isDialogueOpen;
+        
+        // Hide current UI
+        if (wasOpen)
+            HideDialogue();
+        
+        // Switch mode
+        _setupMode = mode;
+        
+        Debug.Log($"[DialogueController] Setup mode changed to: {_setupMode}");
+        
+        // Show new UI if dialogue was open
+        if (wasOpen)
+            ShowDialogue();
+    }
+
+    /// <summary>
+    /// Gets the currently active DialogueUI
+    /// </summary>
+    public DialogueUI GetActiveDialogueUI()
+    {
+        return dialogueUI;
+    }
+    
+    /// <summary>
+    /// Gets the currently active TypewriterEffect
+    /// </summary>
+    public TypewriterEffect GetActiveTypewriter()
+    {
+        return typewriter;
+    }
+
+    /// <summary>
     /// Starts the dialogue assigned in the inspector
     /// Can be called from Unity Events or code
     /// </summary>
@@ -242,7 +310,7 @@ public class DialogueController : MonoBehaviour
             return;
         }
 
-        StartDialogueInternal(dialogue, emoteAnimator);
+        StartDialogueInternal(dialogue, emoteAnimator, null);
     }
 
     /// <summary>
@@ -256,7 +324,7 @@ public class DialogueController : MonoBehaviour
             return;
         }
 
-        StartDialogueInternal(dialogue, customEmoteAnimator);
+        StartDialogueInternal(dialogue, customEmoteAnimator, null);
     }
 
     /// <summary>
@@ -283,7 +351,7 @@ public class DialogueController : MonoBehaviour
         {
             // Update the dialogue reference for DialogueManager
             dialogue = startDialogue;
-            StartDialogueInternal(startDialogue, emoteAnimator);
+            StartDialogueInternal(startDialogue, emoteAnimator, null);
         }
         else
         {
@@ -297,13 +365,21 @@ public class DialogueController : MonoBehaviour
     /// </summary>
     public void TriggerDialogue(Dialogue dialogueToStart)
     {
-        TriggerDialogue(dialogueToStart, emoteAnimator);
+        TriggerDialogue(dialogueToStart, emoteAnimator, null);
     }
 
     /// <summary>
     /// Triggers a specific dialogue with custom animator at runtime
     /// </summary>
     public void TriggerDialogue(Dialogue dialogueToStart, Animator customEmoteAnimator)
+    {
+        TriggerDialogue(dialogueToStart, customEmoteAnimator, null);
+    }
+    
+    /// <summary>
+    /// Triggers a specific dialogue with optional NPC transform for WorldSpace attachment
+    /// </summary>
+    public void TriggerDialogue(Dialogue dialogueToStart, Animator customEmoteAnimator, Transform npcTransform)
     {
         if (dialogueToStart == null)
         {
@@ -313,7 +389,7 @@ public class DialogueController : MonoBehaviour
 
         // Update the dialogue reference
         dialogue = dialogueToStart;
-        StartDialogueInternal(dialogueToStart, customEmoteAnimator);
+        StartDialogueInternal(dialogueToStart, customEmoteAnimator, npcTransform);
     }
 
     /// <summary>
@@ -378,9 +454,9 @@ public class DialogueController : MonoBehaviour
     }
 
     /// <summary>
-    /// Internal method to start dialogue with animator support
+    /// Internal method to start dialogue with animator support and NPC transform
     /// </summary>
-    private void StartDialogueInternal(Dialogue dialogueToStart, Animator customEmoteAnimator)
+    private void StartDialogueInternal(Dialogue dialogueToStart, Animator customEmoteAnimator, Transform npcTransform)
     {
         if (dialogueToStart == null)
         {
@@ -391,30 +467,43 @@ public class DialogueController : MonoBehaviour
         // Update the current dialogue reference
         dialogue = dialogueToStart;
 
-        // Show the UI if not already shown
+        // Show the UI if not already shown (with NPC attachment if WorldSpace)
         if (!_isDialogueOpen)
         {
-            ShowDialogue();
+            ShowDialogue(npcTransform);
+        }
+        else
+        {
+            // UI is already open, but we might need to reconfigure it for WorldSpace
+            if (_setupMode == DialogueSetupMode.WorldSpace && dialogueUI != null)
+            {
+                dialogueUI.SetupMode(_setupMode, npcTransform);
+            }
         }
 
         // Invoke the event BEFORE starting dialogue (so player gets disabled first)
         OnDialogueStarted?.Invoke();
         Debug.Log("<color=orange>[DialogueController]</color> OnDialogueStarted event invoked!");
 
-        // Start via DialogueManager (preferred method) with animator
-        if (dialogueManager != null)
+        // Get the UI reference
+        if (dialogueUI != null)
         {
-            dialogueManager.StartDialogue(this, customEmoteAnimator);
-        }
-        // Fallback: Use DialogueUI directly (no animator support in this path)
-        else if (dialogueUI != null)
-        {
-            Debug.LogWarning("[DialogueController] Starting via DialogueUI fallback - Ink nodes may not work correctly!");
-            dialogueUI.ShowDialogue(dialogueToStart);
+            // Update DialogueManager's UI reference
+            if (dialogueManager != null)
+            {
+                dialogueManager.SetDialogueUI(dialogueUI);
+                dialogueManager.StartDialogue(this, customEmoteAnimator);
+            }
+            // Fallback: Use DialogueUI directly (no animator support in this path)
+            else
+            {
+                Debug.LogWarning("[DialogueController] Starting via DialogueUI fallback - Ink nodes may not work correctly!");
+                dialogueUI.ShowDialogue(dialogueToStart);
+            }
         }
         else
         {
-            Debug.LogWarning("No DialogueManager or DialogueUI assigned!");
+            Debug.LogWarning($"[DialogueController] No DialogueUI assigned!");
         }
     }
 
@@ -468,6 +557,11 @@ public class DialogueController : MonoBehaviour
     /// Get the current emote animator
     /// </summary>
     public Animator GetEmoteAnimator() => emoteAnimator;
+
+    /// <summary>
+    /// Get the current setup mode
+    /// </summary>
+    public DialogueSetupMode GetSetupMode() => _setupMode;
 
     // Public getters for inspector/editor use
     public DialogueContainer GetDialogueContainer() => dialogueContainer;

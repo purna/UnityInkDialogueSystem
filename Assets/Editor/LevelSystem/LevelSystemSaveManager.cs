@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Experimental.GraphView;
+using UnityEngine;
 
 public static class LevelSystemSaveManager {
     private static LevelSystemGraphView _graphView;
@@ -51,9 +52,10 @@ public static class LevelSystemSaveManager {
     #region Groups
     private static void SaveGroups(LevelSystemGraphSaveData graphData, LevelContainer levelContainer) {
         List<string> groupNames = new();
+        
         foreach (var group in _groups) {
             SaveGroupToGraph(group, graphData);
-            SaveGroupToScriptableObject(group, levelContainer);
+            SaveGroupToScriptableObject(group, levelContainer, graphData);
             groupNames.Add(group.title);
         }
 
@@ -70,10 +72,29 @@ public static class LevelSystemSaveManager {
         graphData.AddGroup(groupData);
     }
 
-    private static void SaveGroupToScriptableObject(LevelSystemGroup group, LevelContainer levelContainer) {
+    private static void SaveGroupToScriptableObject(LevelSystemGroup group, LevelContainer levelContainer, LevelSystemGraphSaveData graphData) {
         string groupName = group.title;
-        FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Groups", groupName);
-        FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Groups/{groupName}", "Level");
+        string groupPath = $"{_graphFolderPath}/Groups/{groupName}";
+        
+        // Check if this group was renamed
+        string oldGroupName = FindOldGroupName(group.ID, graphData);
+        if (!string.IsNullOrEmpty(oldGroupName) && oldGroupName != groupName)
+        {
+            // Rename the folder
+            string oldGroupPath = $"{_graphFolderPath}/Groups/{oldGroupName}";
+            if (AssetDatabase.IsValidFolder(oldGroupPath))
+            {
+                Debug.Log($"Renaming level group folder from '{oldGroupName}' to '{groupName}'");
+                FoldersUtility.RenameEditorFolder(oldGroupPath, groupName);
+                groupPath = $"{_graphFolderPath}/Groups/{groupName}";
+            }
+        }
+        else
+        {
+            // Create folders if they don't exist
+            FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Groups", groupName);
+            FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Groups/{groupName}", "Level");
+        }
 
         LevelGroup levelGroup = AssetsUtility.CreateAsset<LevelGroup>($"{_graphFolderPath}/Groups/{groupName}", groupName);
         levelGroup.Initialize(groupName);
@@ -81,6 +102,18 @@ public static class LevelSystemSaveManager {
         _createdLevelGroups.Add(group.ID, levelGroup);
 
         levelGroup.Save();
+    }
+
+    private static string FindOldGroupName(string groupID, LevelSystemGraphSaveData graphData)
+    {
+        foreach (var oldGroup in graphData.Groups)
+        {
+            if (oldGroup.ID == groupID)
+            {
+                return oldGroup.Name;
+            }
+        }
+        return null;
     }
 
     private static void UpdateOldGroups(List<string> currentGroupNames, LevelSystemGraphSaveData graphData) {
@@ -102,8 +135,7 @@ public static class LevelSystemSaveManager {
 
         foreach (var node in _nodes) {
             SaveNodeToGraph(node, graphData);
-            SaveNodeToScriptableObject(node, levelContainer);
-            node.Level = _createdLevels[node.ID];
+            SaveNodeToScriptableObject(node, levelContainer, graphData);
             if (node.Group != null) {
                 if (groupedNodeNames.ContainsKey(node.Group.ID))
                     groupedNodeNames[node.Group.ID].Add(node.LevelName);
@@ -124,7 +156,6 @@ public static class LevelSystemSaveManager {
     {
         List<LevelChoiceSaveData> choices = CloneNodeChoices(node.Choices);
 
-        // Create the base save data
         LevelNodeSaveData nodeData = new LevelNodeSaveData(
             node.ID,
             node.LevelName,
@@ -135,56 +166,60 @@ public static class LevelSystemSaveManager {
             node.GetPosition().position
         );
 
-        // NOW, update it with the Level data from the SO
-        // This ensures the save data matches the SO
         if (node.Level != null)
         {
-            // This method already exists in LevelNodeSaveData!
             nodeData.UpdateFromLevel(node.Level, AssetDatabase.GetAssetPath(node.Level));
         }
 
         graphData.AddNode(nodeData);
     }
 
-    private static void SaveNodeToScriptableObject(LevelBaseNode node, LevelContainer levelContainer) {
-    Level level;
-    string path;
-    string levelName = node.LevelName;
+    private static void SaveNodeToScriptableObject(LevelBaseNode node, LevelContainer levelContainer, LevelSystemGraphSaveData graphData) {
+        Level level;
+        string path;
+        string levelName = node.LevelName;
 
-    if (node.Group != null) {
-        path = $"{_graphFolderPath}/Groups/{node.Group.title}/Level";
-    } else {
-        path = $"{_graphFolderPath}/Global/Level";
-    }
-
-    // Try to get the Level from the node's reference first
-    // This is the SO that the inspector was modifying
-    level = node.Level; 
-
-    if (level == null)
-    {
-        // No reference, try to load from asset path (legacy/safety check)
-        level = AssetsUtility.LoadAsset<Level>(path, levelName);
-    }
-
-    if (level == null) 
-    {
-        // --- CREATE NEW Level ---
-        // Asset truly doesn't exist, create a new one
         if (node.Group != null) {
-                level = AssetsUtility.CreateAsset<Level>($"{_graphFolderPath}/Groups/{node.Group.title}/Level", node.LevelName);
-                levelContainer.AddLevelToGroup(_createdLevelGroups[node.Group.ID], level);
-
+            path = $"{_graphFolderPath}/Groups/{node.Group.title}/Level";
         } else {
-                level = AssetsUtility.CreateAsset<Level>($"{_graphFolderPath}/Global/Level", node.LevelName);
-                levelContainer.AddUngroupedLevel(level);
-
+            path = $"{_graphFolderPath}/Global/Level";
         }
 
-            // Initialize the new Level using data from the node
+        // Check if node was renamed
+        string oldNodeName = FindOldNodeName(node.ID, graphData);
+        bool wasRenamed = !string.IsNullOrEmpty(oldNodeName) && oldNodeName != levelName;
+
+        // Try to get the Level from the node's reference first
+        level = node.Level;
+
+        if (level == null)
+        {
+            // Try loading with old name if it was renamed
+            if (wasRenamed)
+            {
+                level = AssetsUtility.LoadAsset<Level>(path, oldNodeName);
+            }
+            
+            if (level == null)
+            {
+                level = AssetsUtility.LoadAsset<Level>(path, levelName);
+            }
+        }
+
+        if (level == null) 
+        {
+            // --- CREATE NEW LEVEL ---
+            if (node.Group != null) {
+                level = AssetsUtility.CreateAsset<Level>($"{_graphFolderPath}/Groups/{node.Group.title}/Level", node.LevelName);
+                levelContainer.AddLevelToGroup(_createdLevelGroups[node.Group.ID], level);
+            } else {
+                level = AssetsUtility.CreateAsset<Level>($"{_graphFolderPath}/Global/Level", node.LevelName);
+                levelContainer.AddUngroupedLevel(level);
+            }
+
             level.Initialize(
                 node.LevelName,
-                node.Text, // node.Text is the description
+                node.Text,
                 node.Icon,
                 node.LockedIcon,
                 node.UnlockedIcon,
@@ -194,85 +229,95 @@ public static class LevelSystemSaveManager {
                 node.LevelIndex,
                 node.CompletionThreshold,
                 node.MaxAttempts,
-                new List<Level>(), // Prerequisites
-                new List<Level>(), // Children
+                new List<Level>(),
+                new List<Level>(),
                 node.GetPosition().position
-
-
             );
 
-             // Set scene data if available
             if (node.GameScene != null)
             {
                 level.UpdateGameScene(node.GameScene);
             }
             
-             // Set level type/scene type if available
             if (node.LevelSceneType != default)
             {
                 level.UpdateLevelSceneType(node.LevelSceneType);
             }
-    }
-    else
-    {
-        // --- UPDATE EXISTING Level ---
-        // TODO: Handle asset rename if node.LevelName != level.LevelName
-        // AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(level), node.LevelName);
-        
-        // Update ALL properties from the node to the Level SO
-        level.UpdateName(node.LevelName);
-        level.UpdateDescription(node.Text);
-        level.UpdatePosition(node.GetPosition().position);
-        
-      // Update visual properties
+        }
+        else
+        {
+            // --- UPDATE EXISTING LEVEL ---
+            
+            // Handle rename
+            if (wasRenamed)
+            {
+                Debug.Log($"Renaming level asset from '{oldNodeName}' to '{levelName}'");
+                string assetPath = AssetDatabase.GetAssetPath(level);
+                AssetDatabase.RenameAsset(assetPath, levelName);
+            }
+            
+            // Handle group change (move to different folder)
+            string currentAssetPath = AssetDatabase.GetAssetPath(level);
+            string expectedPath = $"{path}/{levelName}.asset";
+            
+            if (currentAssetPath != expectedPath)
+            {
+                Debug.Log($"Moving level asset from '{currentAssetPath}' to '{expectedPath}'");
+                string error = AssetDatabase.MoveAsset(currentAssetPath, expectedPath);
+                if (!string.IsNullOrEmpty(error))
+                {
+                    Debug.LogError($"Failed to move asset: {error}");
+                }
+            }
+            
+            level.UpdateName(node.LevelName);
+            level.UpdateDescription(node.Text);
+            level.UpdatePosition(node.GetPosition().position);
+            
             level.UpdateVisualData(
                 node.Icon,
                 node.LockedIcon,
                 node.UnlockedIcon,
                 node.CompletedIcon
             );
-        
-        // Update level properties
+            
             level.UpdateLevelProperties(
                 node.Tier,
                 node.LevelIndex,
                 node.CompletionThreshold,
                 node.MaxAttempts
             );
-        
-        // Update scene reference if available
-        if (node.GameScene != null)
+            
+            if (node.GameScene != null)
+            {
+                level.UpdateGameScene(node.GameScene);
+            }
+            
+            level.UpdateLevelSceneType(node.LevelSceneType);
+        }
+
+        if (!_createdLevels.ContainsKey(node.ID))
         {
-            level.UpdateGameScene(node.GameScene);
+            _createdLevels.Add(node.ID, level);
         }
         
-        // Update level type
-        level.UpdateLevelSceneType(node.LevelSceneType);
+        _graphView.RegisterNodeLevelMapping(node.ID, level);
+        node.Level = level;
+        
+        level.Save();
     }
 
-    // ALWAYS ensure the level is registered in the container
-    // (This is what was missing!)
-    if (node.Group != null) {
-        levelContainer.AddLevelToGroup(_createdLevelGroups[node.Group.ID], level);
-    } else {
-        levelContainer.AddUngroupedLevel(level);
-    }
-
-    // Add to dictionary for connection-linking
-    if (!_createdLevels.ContainsKey(node.ID))
+    private static string FindOldNodeName(string nodeID, LevelSystemGraphSaveData graphData)
     {
-        _createdLevels.Add(node.ID, level);
+        foreach (var oldNode in graphData.Nodes)
+        {
+            if (oldNode.ID == nodeID)
+            {
+                return oldNode.Name;
+            }
+        }
+        return null;
     }
-    
-    _graphView.RegisterNodeLevelMapping(node.ID, level);
-    
-    // This is the most important line, ensuring the node
-    // holds the reference to the single source of truth.
-    node.Level = level; 
-    
-    level.Save();
-}
-    
 
     private static List<LevelChoiceSaveData> CloneNodeChoices(IEnumerable<LevelChoiceSaveData> originalChoices) {
         List<LevelChoiceSaveData> choices = new();
@@ -290,12 +335,10 @@ public static class LevelSystemSaveManager {
                 if (string.IsNullOrEmpty(nodeChoice.NodeID))
                     continue;
 
-                // Add the connected Level as a child
                 Level childLevel = _createdLevels[nodeChoice.NodeID];
                 if (childLevel != null && !level.Children.Contains(childLevel)) {
                     level.Children.Add(childLevel);
                     
-                    // Also add this Level as a prerequisite to the child
                     if (!childLevel.Prerequisites.Contains(level)) {
                         childLevel.Prerequisites.Add(level);
                         childLevel.Save();
@@ -305,13 +348,6 @@ public static class LevelSystemSaveManager {
                 level.Save();
             }
         }
-    }
-
-    private static List<LevelChoiceData> ConvertNodeChoicesToLevelChoices(IEnumerable<LevelChoiceSaveData> nodeChoices) {
-        List<LevelChoiceData> levelChoices = new();
-        foreach (var nodeChoice in nodeChoices)
-            levelChoices.Add(nodeChoice.ToLevelChoice());
-        return levelChoices;
     }
 
     private static void UpdateOldUngroupedNodes(List<string> currentNodeNames, LevelSystemGraphSaveData graphData) {
@@ -351,7 +387,6 @@ public static class LevelSystemSaveManager {
         });
     }
     #endregion
-
 
     #region Load
     public static void Load()
@@ -393,11 +428,9 @@ public static class LevelSystemSaveManager {
             LevelBaseNode node = _graphView.CreateNode(nodeData.Name, nodeData.LevelType, nodeData.Position, false);
             node.Setup(nodeData, choices);
 
-            // Load the corresponding Level ScriptableObject
             Level level = null;
             if (!string.IsNullOrEmpty(nodeData.GroupID))
             {
-                // Check _loadedGroups, not graphData, as graphData.Groups might not be in order
                 if (_loadedGroups.ContainsKey(nodeData.GroupID))
                 {
                     level = levelContainer.GetGroupLevel(_loadedGroups[nodeData.GroupID].title, nodeData.Name);
@@ -410,21 +443,14 @@ public static class LevelSystemSaveManager {
 
             if (level != null)
             {
-                // --- REVISED LOAD LOGIC ---
-
-                // 1. Set the Level reference on the node (this pulls all data from Level to node)
                 node.Level = level;
-
-                // 2. Register mapping
+                // Setting node.Level property should automatically refresh the node
+                // If there's a specific refresh method, use it here
                 _graphView.RegisterNodeLevelMapping(node.ID, level);
-
-                // 3. Track for further changes
                 LevelChangeMonitor.TrackLevel(level);
             }
 
-            // Draw AFTER applying the data
             node.Draw();
-
             _loadedNodes.Add(node.ID, node);
 
             if (string.IsNullOrEmpty(nodeData.GroupID))
@@ -468,12 +494,33 @@ public static class LevelSystemSaveManager {
 
     private static void CreateStaticFolders() {
         FoldersUtility.CreateEditorFolder("Assets/_Project/Editor/LevelSystem", "Graphs");
-        FoldersUtility.CreateEditorFolder("Assets", "ScriptableObjects");
+        FoldersUtility.CreateEditorFolder("Assets/_Project", "ScriptableObjects");
         FoldersUtility.CreateEditorFolder("Assets/_Project/ScriptableObjects", "Level");
         FoldersUtility.CreateEditorFolder("Assets/_Project/ScriptableObjects/Level", _graphFileName);
 
         FoldersUtility.CreateEditorFolder(_graphFolderPath, "Global");
         FoldersUtility.CreateEditorFolder(_graphFolderPath, "Groups");
         FoldersUtility.CreateEditorFolder($"{_graphFolderPath}/Global", "Level");
+    }
+    
+    /// <summary>
+    /// Handles renaming the container (graph) itself
+    /// </summary>
+    public static void RenameContainer(string oldName, string newName)
+    {
+        string oldPath = $"Assets/_Project/ScriptableObjects/Level/{oldName}";
+        string newPath = $"Assets/_Project/ScriptableObjects/Level/{newName}";
+        
+        if (AssetDatabase.IsValidFolder(oldPath))
+        {
+            Debug.Log($"Renaming level container folder from '{oldName}' to '{newName}'");
+            FoldersUtility.RenameEditorFolder(oldPath, newName);
+        }
+        
+        // Rename the graph save data asset
+        AssetsUtility.RenameAsset("Assets/_Project/Editor/LevelSystem/Graphs", oldName, newName);
+        
+        // Rename the container asset
+        AssetsUtility.RenameAsset(newPath, oldName, newName);
     }
 }

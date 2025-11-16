@@ -4,22 +4,20 @@ using UnityEngine;
 public class DialogueManager : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private DialogueUI _dialogueUI;
     [SerializeField] private DialogueInkManager _inkManager;
 
     [Header("Input Settings")]
     [SerializeField] private bool useReturnKey = true;
     [SerializeField] private bool useMouseClick = true;
     [SerializeField] private bool useSpaceKey = true;
-    
-    // REMOVED: playerEmoteAnimator - now passed via DialogueTrigger
-    // REMOVED: audioSource - DialogueUI handles all audio
-    // REMOVED: player - external systems handle via events
+
+    // Runtime reference to the active DialogueUI (set by DialogueController)
+    private DialogueUI _activeDialogueUI;
 
     private Dialogue _nowDialogue;
     private bool _isWaitingForChoice = false;
     private bool _isWaitingForInk = false;
-    private Animator _currentEmoteAnimator; // Stored when dialogue starts
+    private Animator _currentEmoteAnimator;
 
     // Events for external systems to subscribe to
     public event Action DialogueStarted;
@@ -28,15 +26,15 @@ public class DialogueManager : MonoBehaviour
     public event Action<string> OnCustomFunction;
     public event Action<string> OnGiveItem;
     public event Action<string> OnRemoveItem;
-    public event Action<string, string> OnPlayAnimation; // animatorName, animationName
+    public event Action<string, string> OnPlayAnimation;
     public event Action<string> OnPlaySound;
-    public event Action<string, int> OnUpdateQuest; // questName, progress
+    public event Action<string, int> OnUpdateQuest;
     public event Action<Vector3> OnTeleportPlayer;
-    public event Action<string, Vector3> OnSpawnNPC; // npcName, position
-    public event Action<string> OnShowUI; // uiName
-    public event Action<string> OnHideUI; // uiName
-    public event Action<string, object> OnSetVariable; // variableName, value
-    public event Action<string> OnTriggerEvent; // eventName
+    public event Action<string, Vector3> OnSpawnNPC;
+    public event Action<string> OnShowUI;
+    public event Action<string> OnHideUI;
+    public event Action<string, object> OnSetVariable;
+    public event Action<string> OnTriggerEvent;
     public event Action OnPausePlayer;
     public event Action OnResumePlayer;
 
@@ -45,21 +43,52 @@ public class DialogueManager : MonoBehaviour
 
     private void Awake()
     {
-        if (_dialogueUI == null)
-        {
-            _dialogueUI = FindObjectOfType<DialogueUI>();
-        }
-
-        if (_dialogueUI == null)
-        {
-            Debug.LogWarning("DialogueUI not found! DialogueManager requires a DialogueUI component.");
-        }
-
         _inkManager = DialogueInkManager.GetInstance();
         if (_inkManager == null)
         {
             Debug.LogWarning("DialogueInkManager.GetInstance() returned null. Ink nodes will not function.");
         }
+    }
+
+    // ============================================
+    // == UI MANAGEMENT ==
+    // ============================================
+
+    /// <summary>
+    /// Set the active DialogueUI at runtime (called by DialogueController)
+    /// This allows switching between ScreenSpace and WorldSpace UIs
+    /// </summary>
+    public void SetDialogueUI(DialogueUI dialogueUI)
+    {
+        if (dialogueUI == null)
+        {
+            Debug.LogWarning("[DialogueManager] Attempted to set null DialogueUI!");
+            return;
+        }
+
+        _activeDialogueUI = dialogueUI;
+        Debug.Log($"[DialogueManager] Active DialogueUI set to: {dialogueUI.gameObject.name}");
+    }
+
+    /// <summary>
+    /// Get the currently active DialogueUI
+    /// </summary>
+    public DialogueUI GetDialogueUI()
+    {
+        return _activeDialogueUI;
+    }
+
+    /// <summary>
+    /// Validate that we have an active DialogueUI
+    /// </summary>
+    private bool ValidateDialogueUI()
+    {
+        if (_activeDialogueUI == null)
+        {
+            Debug.LogWarning("[DialogueManager] No active DialogueUI set! Call SetDialogueUI() first.");
+            return false;
+        }
+        return true;
     }
 
     // ============================================
@@ -89,6 +118,12 @@ public class DialogueManager : MonoBehaviour
             Debug.LogWarning("Cannot start null dialogue!");
             return;
         }
+
+        if (!ValidateDialogueUI())
+        {
+            Debug.LogError("[DialogueManager] Cannot start dialogue - no DialogueUI set!");
+            return;
+        }
         
         _currentEmoteAnimator = emoteAnimator;
         SetDialogue(dialogue);
@@ -102,6 +137,12 @@ public class DialogueManager : MonoBehaviour
         if (container == null)
         {
             Debug.LogWarning("DialogueContainer is null!");
+            return;
+        }
+
+        if (!ValidateDialogueUI())
+        {
+            Debug.LogError("[DialogueManager] Cannot start dialogue - no DialogueUI set!");
             return;
         }
         
@@ -151,7 +192,7 @@ public class DialogueManager : MonoBehaviour
                 _isWaitingForInk = false;
                 ProgressDialogue();
             }
-            return; // Don't process any other input while Ink is active
+            return;
         }
 
         // Don't process input if waiting for choice or no dialogue active
@@ -159,7 +200,6 @@ public class DialogueManager : MonoBehaviour
             return;
 
         // IMPORTANT: Only handle input for non-Ink nodes
-        // Ink nodes handle their own input in DialogueInkManager
         if (_nowDialogue.Type == DialogueType.Ink)
             return;
     }
@@ -182,7 +222,6 @@ public class DialogueManager : MonoBehaviour
 
     private void SetDialogue(Dialogue dialogue)
     {
-        // Store previous state BEFORE updating _nowDialogue
         bool wasDialogueActive = _nowDialogue != null;
         
         _nowDialogue = dialogue;
@@ -193,7 +232,7 @@ public class DialogueManager : MonoBehaviour
             return;
         }
 
-        // Invoke DialogueStarted when starting NEW dialogue (not progressing existing)
+        // Invoke DialogueStarted when starting NEW dialogue
         if (!wasDialogueActive)
         {
             Debug.Log("<color=green>[DialogueManager]</color> First dialogue set - invoking DialogueStarted event!");
@@ -229,9 +268,13 @@ public class DialogueManager : MonoBehaviour
                 if (_inkManager != null)
                 {
                     _isWaitingForInk = true;
-                    if (_dialogueUI != null) { _dialogueUI.EndDialogue(); } 
                     
-                    // Use stored emote animator
+                    // Hide the active dialogue UI during Ink playback
+                    if (_activeDialogueUI != null) 
+                    { 
+                        _activeDialogueUI.EndDialogue(); 
+                    } 
+                    
                     _inkManager.EnterDialogueMode(
                         dialogue.InkJsonAsset, 
                         _currentEmoteAnimator,
@@ -247,28 +290,32 @@ public class DialogueManager : MonoBehaviour
                 return;
 
             case DialogueType.MultipleChoice:
-                // Set waiting flag BEFORE showing UI
                 _isWaitingForChoice = true;
                 Debug.Log($"<color=cyan>[SetDialogue]</color> Multiple Choice Node - Setting _isWaitingForChoice = TRUE");
                 Debug.Log($"<color=cyan>[SetDialogue]</color> Number of choices: {dialogue.Choices.Count}");
                 
-                // Show the dialogue with choices in UI
-                if (_dialogueUI != null)
+                if (_activeDialogueUI != null)
                 {
-                    _dialogueUI.ShowDialogue(dialogue);
+                    _activeDialogueUI.ShowDialogue(dialogue);
+                }
+                else
+                {
+                    Debug.LogError("[DialogueManager] Cannot show dialogue - no active DialogueUI!");
                 }
                 return;
 
             case DialogueType.SingleChoice:
             default:
-                // Reset waiting flag for non-choice dialogues
                 _isWaitingForChoice = false;
                 Debug.Log($"<color=green>[SetDialogue]</color> Normal dialogue - Setting _isWaitingForChoice = FALSE");
                 
-                // Show normal dialogue in UI
-                if (_dialogueUI != null)
+                if (_activeDialogueUI != null)
                 {
-                    _dialogueUI.ShowDialogue(dialogue);
+                    _activeDialogueUI.ShowDialogue(dialogue);
+                }
+                else
+                {
+                    Debug.LogError("[DialogueManager] Cannot show dialogue - no active DialogueUI!");
                 }
                 break;
         }
@@ -300,9 +347,9 @@ public class DialogueManager : MonoBehaviour
         _isWaitingForInk = false;
         _currentEmoteAnimator = null;
 
-        if (_dialogueUI != null)
+        if (_activeDialogueUI != null)
         {
-            _dialogueUI.EndDialogue();
+            _activeDialogueUI.EndDialogue();
         }
 
         DialogueEnded?.Invoke();
@@ -455,7 +502,6 @@ public class DialogueManager : MonoBehaviour
     {
         Debug.Log($"<color=magenta>[External Function]</color> Play Animation: {animationData}");
         
-        // Parse format: "AnimatorName:AnimationName"
         string[] parts = animationData.Split(':');
         if (parts.Length >= 2)
         {
@@ -480,7 +526,6 @@ public class DialogueManager : MonoBehaviour
     {
         Debug.Log($"<color=magenta>[External Function]</color> Update Quest: {questData}");
         
-        // Parse format: "QuestName:Progress"
         string[] parts = questData.Split(':');
         if (parts.Length >= 2)
         {
@@ -500,7 +545,6 @@ public class DialogueManager : MonoBehaviour
     {
         Debug.Log($"<color=magenta>[External Function]</color> Teleport Player: {positionData}");
         
-        // Parse format: "x,y,z"
         string[] parts = positionData.Split(',');
         if (parts.Length >= 3)
         {
@@ -522,7 +566,6 @@ public class DialogueManager : MonoBehaviour
     {
         Debug.Log($"<color=magenta>[External Function]</color> Spawn NPC: {npcData}");
         
-        // Parse format: "NPCName:x,y,z"
         string[] parts = npcData.Split(':');
         if (parts.Length >= 2)
         {
@@ -560,7 +603,6 @@ public class DialogueManager : MonoBehaviour
     {
         Debug.Log($"<color=magenta>[External Function]</color> Set Variable: {variableData}");
         
-        // Parse format: "VarName:Value"
         string[] parts = variableData.Split(':');
         if (parts.Length >= 2)
         {
@@ -569,7 +611,6 @@ public class DialogueManager : MonoBehaviour
             
             OnSetVariable?.Invoke(varName, varValue);
             
-            // Integrate with DialogueVariableManager
             if (DialogueVariableManager.Instance != null)
             {
                 DialogueVariableManager.Instance.SetVariable(varName, varValue);

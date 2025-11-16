@@ -3,8 +3,20 @@ using TMPro;
 using System.Collections;
 
 /// <summary>
+/// Position modes for WorldSpace dialogue relative to NPC
+/// </summary>
+public enum WorldSpaceDialoguePosition
+{
+    Above,
+    Below,
+    Left,
+    Right,
+    Auto // Automatically choose best position based on screen edges
+}
+
+/// <summary>
 /// Triggers dialogue when player enters the trigger zone
-/// Matches LevelTrigger pattern with proper prompt management
+/// Supports NPC transform attachment for WorldSpace mode with smart positioning
 /// </summary>
 public class DialogueTrigger : MonoBehaviour
 {
@@ -19,6 +31,22 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private DialogueContainer dialogueContainer;
     [SerializeField] private string selectedGroupName;
     [SerializeField] private string selectedDialogueName;
+    
+    [Header("World Space Settings")]
+    [Tooltip("Optional: NPC transform to attach WorldSpace dialogue to. If not set, uses this trigger's transform.")]
+    [SerializeField] private Transform npcTransform;
+    
+    [Tooltip("Position of dialogue relative to NPC. Auto will choose best position based on screen edges.")]
+    [SerializeField] private WorldSpaceDialoguePosition dialoguePosition = WorldSpaceDialoguePosition.Auto;
+    
+    [Tooltip("Horizontal distance from NPC")]
+    [SerializeField] private float horizontalOffset = 2f;
+    
+    [Tooltip("Vertical distance from NPC")]
+    [SerializeField] private float verticalOffset = 2.5f;
+    
+    [Tooltip("Margin from screen edges (0-1, percentage of screen)")]
+    [SerializeField][Range(0f, 0.5f)] private float screenEdgeMargin = 0.15f;
 
     [Header("Trigger Settings")]
     [Tooltip("If TRUE, opens dialogue immediately when player enters (ignores input requirement)")]
@@ -29,7 +57,7 @@ public class DialogueTrigger : MonoBehaviour
     [Tooltip("If FALSE, trigger only works once. If TRUE, can be triggered multiple times.")]
     [SerializeField] private bool canTriggerMultipleTimes = true;
     [Tooltip("If TRUE, pressing the interact key again will close the dialogue")]
-    [SerializeField] private bool toggleWithInteractKey = true;
+    [SerializeField] private bool toggleWithInteractKey = false;
 
     [Header("UI Prompt")]
     [SerializeField] private GameObject interactPrompt;
@@ -39,6 +67,20 @@ public class DialogueTrigger : MonoBehaviour
     [SerializeField] private float displayDuration = 2f;
     [SerializeField] private float fadeOutDuration = 0.3f;
     [SerializeField] private bool loopPrompt = true;
+    
+    [Header("Dynamic Prompt Positioning")]
+    [Tooltip("Horizontal offset for prompt when positioned on the left")]
+    [SerializeField] private float promptLeftOffset = -3.5f;
+    [Tooltip("Horizontal offset for prompt when positioned on the right")]
+    [SerializeField] private float promptRightOffset = 3.5f;
+    [Tooltip("Vertical offset for prompt when positioned above")]
+    [SerializeField] private float promptAboveOffset = 3.5f;
+    [Tooltip("Vertical offset for prompt when positioned below")]
+    [SerializeField] private float promptBelowOffset = 3.5f;
+    [Tooltip("Additional vertical offset for the prompt")]
+    [SerializeField] private float promptVerticalOffset = 0.5f;
+    [Tooltip("Update prompt position every frame (enable for moving triggers)")]
+    [SerializeField] private bool continuousPositionUpdate = false;
 
     private bool playerInRange;
     private bool hasTriggered;
@@ -48,6 +90,9 @@ public class DialogueTrigger : MonoBehaviour
     private Dialogue cachedDialogue;
     private Coroutine promptCoroutine;
     private CanvasGroup promptCanvasGroup;
+    private RectTransform promptRectTransform;
+    private Canvas promptCanvas;
+    private Camera mainCamera;
 
     public bool IsPlayerInRange => playerInRange;
 
@@ -57,6 +102,8 @@ public class DialogueTrigger : MonoBehaviour
         hasTriggered = false;
         dialogueWasOpenedByThisTrigger = false;
         hasShownPromptThisEntry = false;
+        
+        mainCamera = Camera.main;
 
         if (visualCue != null)
         {
@@ -73,6 +120,9 @@ public class DialogueTrigger : MonoBehaviour
                 promptCanvasGroup = interactPrompt.AddComponent<CanvasGroup>();
             }
             promptCanvasGroup.alpha = 0f;
+            
+            promptRectTransform = interactPrompt.GetComponent<RectTransform>();
+            promptCanvas = interactPrompt.GetComponentInParent<Canvas>();
 
             if (promptTextComponent != null)
             {
@@ -157,11 +207,7 @@ public class DialogueTrigger : MonoBehaviour
             visualCue.SetActive(true);
         }
 
-        // Show interact prompt ONLY if:
-        // 1. We require input
-        // 2. Not auto-triggering
-        // 3. Dialogue is NOT already open (or wasn't opened by this trigger)
-        // 4. Haven't shown prompt this entry yet
+        // Show interact prompt ONLY if appropriate
         bool isDialogueOpen = IsDialogueOpen();
         bool shouldShowPrompt = requiresInput && !triggerOnEnter && (!isDialogueOpen || !dialogueWasOpenedByThisTrigger) && !hasShownPromptThisEntry;
 
@@ -170,6 +216,7 @@ public class DialogueTrigger : MonoBehaviour
             if (interactPrompt != null && !interactPrompt.activeSelf)
             {
                 interactPrompt.SetActive(true);
+                UpdatePromptPosition(); // Position when first shown
 
                 if (promptCoroutine == null)
                 {
@@ -177,6 +224,11 @@ public class DialogueTrigger : MonoBehaviour
                     promptCoroutine = StartCoroutine(PromptFadeLoop());
                     hasShownPromptThisEntry = true;
                 }
+            }
+            else if (continuousPositionUpdate && interactPrompt != null && interactPrompt.activeSelf)
+            {
+                // Update position every frame if enabled (for moving triggers)
+                UpdatePromptPosition();
             }
         }
         else
@@ -186,6 +238,72 @@ public class DialogueTrigger : MonoBehaviour
             {
                 StopPrompt();
             }
+        }
+    }
+
+    /// <summary>
+    /// Positions the prompt on the side of the trigger furthest from screen edges (left or right only)
+    /// </summary>
+    private void UpdatePromptPosition()
+    {
+        if (interactPrompt == null || promptRectTransform == null || mainCamera == null)
+            return;
+
+        // Get trigger position in screen space
+        Vector3 triggerWorldPos = transform.position;
+        Vector3 triggerScreenPos = mainCamera.WorldToScreenPoint(triggerWorldPos);
+
+        // Get screen dimensions
+        float screenWidth = Screen.width;
+
+        // Calculate distances to left and right edges
+        float distToLeft = triggerScreenPos.x;
+        float distToRight = screenWidth - triggerScreenPos.x;
+
+        // Determine horizontal offset (left = -3.5, right = +3.5)
+        float horizontalOffset;
+        if (distToLeft > distToRight)
+        {
+            // More space on left, position to the left
+            horizontalOffset = promptLeftOffset;
+        }
+        else
+        {
+            // More space on right, position to the right
+            horizontalOffset = promptRightOffset;
+        }
+
+        // For UI elements, we work with the RectTransform's anchoredPosition
+        if (promptCanvas != null)
+        {
+            if (promptCanvas.renderMode == RenderMode.ScreenSpaceOverlay || promptCanvas.renderMode == RenderMode.ScreenSpaceCamera)
+            {
+                // For screen space canvases, convert world position to screen space first
+                Vector3 screenPos = mainCamera.WorldToScreenPoint(triggerWorldPos);
+                
+                // Convert screen position to canvas local position
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    promptCanvas.transform as RectTransform,
+                    screenPos,
+                    promptCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : promptCanvas.worldCamera,
+                    out Vector2 localPoint
+                );
+                
+                // Apply the fixed offsets directly to the anchored position
+                promptRectTransform.anchoredPosition = new Vector2(localPoint.x + horizontalOffset, localPoint.y + promptVerticalOffset);
+            }
+            else // World Space
+            {
+                // For world space, calculate world position and apply
+                Vector3 promptWorldPos = triggerWorldPos + new Vector3(horizontalOffset, promptVerticalOffset, 0f);
+                promptRectTransform.position = promptWorldPos;
+            }
+        }
+        else
+        {
+            // Fallback: calculate world position
+            Vector3 promptWorldPos = triggerWorldPos + new Vector3(horizontalOffset, promptVerticalOffset, 0f);
+            promptRectTransform.position = promptWorldPos;
         }
     }
 
@@ -260,6 +378,144 @@ public class DialogueTrigger : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Calculate the smart position for WorldSpace dialogue based on NPC position and screen edges
+    /// </summary>
+    private Vector3 CalculateDialogueOffset(Transform npc)
+    {
+        if (Camera.main == null)
+        {
+            Debug.LogWarning("[DialogueTrigger] No main camera found, using default offset");
+            return new Vector3(0, verticalOffset, 0);
+        }
+
+        // Get NPC's viewport position (0-1 range)
+        Vector3 viewportPos = Camera.main.WorldToViewportPoint(npc.position);
+        
+        WorldSpaceDialoguePosition finalPosition = dialoguePosition;
+        
+        // Auto mode: choose best position based on screen location
+        if (dialoguePosition == WorldSpaceDialoguePosition.Auto)
+        {
+            finalPosition = DetermineAutoPosition(viewportPos);
+        }
+        // Override position if NPC is near screen edges
+        else
+        {
+            finalPosition = CheckEdgeOverrides(viewportPos, dialoguePosition);
+        }
+        
+        // Calculate offset based on final position
+        return GetOffsetForPosition(finalPosition, viewportPos);
+    }
+
+    /// <summary>
+    /// Automatically determine best position based on NPC's screen position
+    /// </summary>
+    private WorldSpaceDialoguePosition DetermineAutoPosition(Vector3 viewportPos)
+    {
+        // Check if near top or bottom edges
+        bool nearTop = viewportPos.y > (1f - screenEdgeMargin);
+        bool nearBottom = viewportPos.y < screenEdgeMargin;
+        
+        // Check if near left or right edges
+        bool nearLeft = viewportPos.x < screenEdgeMargin;
+        bool nearRight = viewportPos.x > (1f - screenEdgeMargin);
+        
+        // Priority: avoid screen edges
+        if (nearTop && nearBottom)
+        {
+            // In center vertically, place to the side
+            return viewportPos.x < 0.5f ? WorldSpaceDialoguePosition.Right : WorldSpaceDialoguePosition.Left;
+        }
+        else if (nearTop)
+        {
+            // Near top, place below or to the side
+            if (nearLeft) return WorldSpaceDialoguePosition.Right;
+            if (nearRight) return WorldSpaceDialoguePosition.Left;
+            return WorldSpaceDialoguePosition.Below;
+        }
+        else if (nearBottom)
+        {
+            // Near bottom, place above or to the side
+            if (nearLeft) return WorldSpaceDialoguePosition.Right;
+            if (nearRight) return WorldSpaceDialoguePosition.Left;
+            return WorldSpaceDialoguePosition.Above;
+        }
+        else if (nearLeft)
+        {
+            // Near left edge, place to the right
+            return WorldSpaceDialoguePosition.Right;
+        }
+        else if (nearRight)
+        {
+            // Near right edge, place to the left
+            return WorldSpaceDialoguePosition.Left;
+        }
+        
+        // Default: place based on screen quadrant
+        if (viewportPos.y > 0.5f)
+            return WorldSpaceDialoguePosition.Below; // NPC in top half, show below
+        else
+            return WorldSpaceDialoguePosition.Above; // NPC in bottom half, show above
+    }
+
+    /// <summary>
+    /// Check if manual position needs to be overridden due to screen edges
+    /// </summary>
+    private WorldSpaceDialoguePosition CheckEdgeOverrides(Vector3 viewportPos, WorldSpaceDialoguePosition requestedPosition)
+    {
+        bool nearTop = viewportPos.y > (1f - screenEdgeMargin);
+        bool nearBottom = viewportPos.y < screenEdgeMargin;
+        bool nearLeft = viewportPos.x < screenEdgeMargin;
+        bool nearRight = viewportPos.x > (1f - screenEdgeMargin);
+        
+        switch (requestedPosition)
+        {
+            case WorldSpaceDialoguePosition.Above:
+                if (nearTop) return WorldSpaceDialoguePosition.Below;
+                break;
+                
+            case WorldSpaceDialoguePosition.Below:
+                if (nearBottom) return WorldSpaceDialoguePosition.Above;
+                break;
+                
+            case WorldSpaceDialoguePosition.Left:
+                if (nearLeft) return WorldSpaceDialoguePosition.Right;
+                break;
+                
+            case WorldSpaceDialoguePosition.Right:
+                if (nearRight) return WorldSpaceDialoguePosition.Left;
+                break;
+        }
+        
+        return requestedPosition;
+    }
+
+    /// <summary>
+    /// Get the offset vector for a specific position
+    /// </summary>
+    private Vector3 GetOffsetForPosition(WorldSpaceDialoguePosition position, Vector3 viewportPos)
+    {
+        switch (position)
+        {
+            case WorldSpaceDialoguePosition.Above:
+                return new Vector3(0, promptAboveOffset, 0);
+                
+            case WorldSpaceDialoguePosition.Below:
+                return new Vector3(0, -promptBelowOffset, 0);
+                
+            case WorldSpaceDialoguePosition.Left:
+                return new Vector3(-horizontalOffset, verticalOffset * 0.5f, 0);
+                
+            case WorldSpaceDialoguePosition.Right:
+                return new Vector3(horizontalOffset, verticalOffset * 0.5f, 0);
+                
+            default:
+                return new Vector3(0, verticalOffset, 0);
+        }
+    }
+
     private void TriggerDialogue()
     {
         Debug.Log($"[DialogueTrigger:{gameObject.name}] TriggerDialogue() called");
@@ -276,8 +532,21 @@ public class DialogueTrigger : MonoBehaviour
             return;
         }
 
-        // Trigger the dialogue with optional emote animator
-        dialogueController.TriggerDialogue(cachedDialogue, emoteAnimator);
+        // Use npcTransform if specified, otherwise use trigger's transform for WorldSpace
+        Transform targetNPC = npcTransform != null ? npcTransform : transform;
+        
+        // Calculate smart offset for WorldSpace mode
+        Vector3 offset = CalculateDialogueOffset(targetNPC);
+        
+        // Apply offset to DialogueUI (we'll need to update DialogueUI to accept offset)
+        DialogueUI dialogueUI = dialogueController.GetActiveDialogueUI();
+        if (dialogueUI != null)
+        {
+            dialogueUI.SetWorldSpaceOffset(offset);
+        }
+
+        // Trigger the dialogue with optional emote animator and NPC transform
+        dialogueController.TriggerDialogue(cachedDialogue, emoteAnimator, targetNPC);
         
         hasTriggered = true;
         dialogueWasOpenedByThisTrigger = true;
@@ -291,7 +560,7 @@ public class DialogueTrigger : MonoBehaviour
         // Hide prompts after opening
         HideAllPrompts();
 
-        Debug.Log($"[DialogueTrigger:{gameObject.name}] ✓ Dialogue started: {cachedDialogue.Name}");
+        Debug.Log($"[DialogueTrigger:{gameObject.name}] ✓ Dialogue started: {cachedDialogue.Name} at offset: {offset}");
     }
 
     private void CloseDialogue()
@@ -316,7 +585,6 @@ public class DialogueTrigger : MonoBehaviour
         hasShownPromptThisEntry = false;
 
         // Reset the flag when entering fresh
-        // But only if UI is not currently open
         if (!IsDialogueOpen())
         {
             dialogueWasOpenedByThisTrigger = false;
@@ -351,7 +619,6 @@ public class DialogueTrigger : MonoBehaviour
         }
         
         // Reset the "opened by this trigger" flag
-        // This allows the prompt to show again when returning
         dialogueWasOpenedByThisTrigger = false;
     }
 
@@ -390,11 +657,45 @@ public class DialogueTrigger : MonoBehaviour
     }
 
     /// <summary>
+    /// Set the NPC transform for WorldSpace attachment at runtime
+    /// </summary>
+    public void SetNPCTransform(Transform npc)
+    {
+        npcTransform = npc;
+        Debug.Log($"[DialogueTrigger:{gameObject.name}] NPC Transform set to: {(npc != null ? npc.name : "null")}");
+    }
+    
+    /// <summary>
+    /// Set the dialogue position mode at runtime
+    /// </summary>
+    public void SetDialoguePosition(WorldSpaceDialoguePosition position)
+    {
+        dialoguePosition = position;
+    }
+    
+    /// <summary>
+    /// Set custom offsets at runtime
+    /// </summary>
+    public void SetOffsets(float horizontal, float vertical)
+    {
+        horizontalOffset = horizontal;
+        verticalOffset = vertical;
+    }
+
+    /// <summary>
     /// Get the cached dialogue reference
     /// </summary>
     public Dialogue GetCachedDialogue()
     {
         return cachedDialogue;
+    }
+    
+    /// <summary>
+    /// Get current dialogue position setting
+    /// </summary>
+    public WorldSpaceDialoguePosition GetDialoguePosition()
+    {
+        return dialoguePosition;
     }
 
     #endregion
@@ -435,6 +736,25 @@ public class DialogueTrigger : MonoBehaviour
             }
         }
 
+        // Draw dialogue position indicator in WorldSpace mode
+        if (dialogueController != null && dialogueController.GetSetupMode() == DialogueSetupMode.WorldSpace)
+        {
+            Transform targetNPC = npcTransform != null ? npcTransform : transform;
+            Vector3 offset = new Vector3(0, verticalOffset, 0); // Preview position
+            
+            // Simple preview - actual position will be calculated at runtime
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(targetNPC.position + offset, 0.3f);
+            Gizmos.DrawLine(targetNPC.position, targetNPC.position + offset);
+        }
+        
+        // Draw prompt position preview in editor
+        if (interactPrompt != null && Application.isPlaying && playerInRange)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(interactPrompt.transform.position, 0.2f);
+        }
+
         #if UNITY_EDITOR
         if (dialogueContainer != null)
         {
@@ -443,6 +763,18 @@ public class DialogueTrigger : MonoBehaviour
                 label += $"\nGroup: {selectedGroupName}";
             if (!string.IsNullOrEmpty(selectedDialogueName))
                 label += $"\nDialogue: {selectedDialogueName}";
+            
+            // Show NPC info if WorldSpace
+            if (dialogueController != null && dialogueController.GetSetupMode() == DialogueSetupMode.WorldSpace)
+            {
+                if (npcTransform != null)
+                    label += $"\nNPC: {npcTransform.name}";
+                else
+                    label += "\nNPC: [Using Trigger]";
+                    
+                label += $"\nPosition: {dialoguePosition}";
+                label += $"\nOffset: H:{horizontalOffset} V:{verticalOffset}";
+            }
             
             if (triggerOnEnter)
                 label += "\n[AUTO TRIGGER]";

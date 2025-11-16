@@ -1,7 +1,3 @@
-// ============================================
-// COMPLETE UPDATED DialogueUI.cs
-// ============================================
-
 using System; 
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,21 +5,57 @@ using TMPro;
 using System.Collections.Generic;
 using System.Collections;
 
+/// <summary>
+/// Unified DialogueUI that manages both ScreenSpace and WorldSpace canvases
+/// Switches between them based on DialogueSetupMode
+/// </summary>
 public class DialogueUI : MonoBehaviour
 {
-    /* UI References */
-    [Header("UI Components")]
-    [SerializeField] private GameObject dialoguePanel;
-    [SerializeField] private TextMeshProUGUI dialogueText;
-    [SerializeField] private TextMeshProUGUI speakerNameText;
-    [SerializeField] private Image characterIcon;
-    [SerializeField] private Transform choicesContainer;
-    [SerializeField] private Button choiceButtonPrefab;
-    [SerializeField] private Button continueButton;
+    /* Canvas References */
+    [Header("Canvas Setup")]
+    [SerializeField] private Canvas screenSpaceCanvas;
+    [SerializeField] private Canvas worldSpaceCanvas;
+    
+    // Current active canvas (set at runtime)
+    private Canvas activeCanvas;
+    
+    /* UI References - Screen Space */
+    [Header("Screen Space UI Components")]
+    [SerializeField] private GameObject screenSpaceDialoguePanel;
+    [SerializeField] private TextMeshProUGUI screenSpaceDialogueText;
+    [SerializeField] private TextMeshProUGUI screenSpaceSpeakerNameText;
+    [SerializeField] private Image screenSpaceCharacterIcon;
+    [SerializeField] private Transform screenSpaceChoicesContainer;
+    [SerializeField] private Button screenSpaceChoiceButtonPrefab;
+    [SerializeField] private Button screenSpaceContinueButton;
+    [SerializeField] private Animator screenSpacePortraitAnimator;
+    [SerializeField] private Animator screenSpaceLayoutAnimator;
+    
+    /* UI References - World Space */
+    [Header("World Space UI Components")]
+    [SerializeField] private GameObject worldSpaceDialoguePanel;
+    [SerializeField] private TextMeshProUGUI worldSpaceDialogueText;
+    [SerializeField] private TextMeshProUGUI worldSpaceSpeakerNameText;
+    [SerializeField] private Image worldSpaceCharacterIcon;
+    [SerializeField] private Transform worldSpaceChoicesContainer;
+    [SerializeField] private Button worldSpaceChoiceButtonPrefab;
+    [SerializeField] private Button worldSpaceContinueButton;
+    [SerializeField] private Animator worldSpacePortraitAnimator;
+    [SerializeField] private Animator worldSpaceLayoutAnimator;
+    
+    /* Active Component References (set dynamically) */
+    private GameObject dialoguePanel;
+    private TextMeshProUGUI dialogueText;
+    private TextMeshProUGUI speakerNameText;
+    private Image characterIcon;
+    private Transform choicesContainer;
+    private Button choiceButtonPrefab;
+    private Button continueButton;
+    private Animator portraitAnimator;
+    private Animator layoutAnimator;
 
     [Header("Typewriter Effect")]
     [SerializeField] private TypewriterEffect typewriterEffect;
-    //[SerializeField] private float typingSpeed = 0.04f;
     
     [Header("Audio")]
     [SerializeField] private DialogueAudioInfoSO defaultAudioInfo;
@@ -32,10 +64,6 @@ public class DialogueUI : MonoBehaviour
     private DialogueAudioInfoSO currentAudioInfo;
     private Dictionary<string, DialogueAudioInfoSO> audioInfoDictionary;
     private AudioSource audioSource;
-    
-    [Header("Ink Animators")]
-    [SerializeField] private Animator portraitAnimator;
-    [SerializeField] private Animator layoutAnimator;
 
     [Header("Dialogue System")]
     [SerializeField] private DialogueManager dialogueManager;
@@ -44,6 +72,14 @@ public class DialogueUI : MonoBehaviour
     [SerializeField] private bool useReturnKey = true;
     [SerializeField] private bool useMouseClick = true;
     [SerializeField] private bool useSpaceKey = true;
+    
+    [Header("World Space Settings")]
+    [SerializeField] private Vector3 worldSpaceOffset = new Vector3(0, 2.5f, 0);
+    [SerializeField] private bool worldSpaceFaceCamera = true;
+    
+    // Runtime custom offset (set by DialogueTrigger for smart positioning)
+    private Vector3 customWorldSpaceOffset;
+    private bool hasCustomOffset = false;
 
     private Dialogue currentDialogue;
     private List<Button> activeChoiceButtons = new List<Button>();
@@ -55,9 +91,12 @@ public class DialogueUI : MonoBehaviour
     private bool inputSubmitDetected = false;
     private bool inputInteractDetected = false;
     private bool inputMouseDetected = false;
+    
+    // Track current mode and NPC attachment
+    private DialogueSetupMode currentMode = DialogueSetupMode.ScreenSpace;
+    private Transform attachedNPC = null;
 
     // Public getters
-    //public float GetTypingSpeed() => typingSpeed;
     public TextMeshProUGUI GetDialogueTextComponent() => dialogueText;
     public TextMeshProUGUI GetSpeakerNameComponent() => speakerNameText;
     public void ShowContinueIcon() => continueButton?.gameObject.SetActive(true);
@@ -66,40 +105,19 @@ public class DialogueUI : MonoBehaviour
     public void PlayLayoutAnimation(string stateName) => layoutAnimator?.Play(stateName);
     public void ShowPanel() => dialoguePanel?.SetActive(true);
     public void HidePanel() => dialoguePanel?.SetActive(false);
-    
-    /// <summary>
-    /// Check if input was consumed this frame (prevents double-processing)
-    /// </summary>
     public bool WasInputConsumedThisFrame() => inputConsumedThisFrame;
-    
-    /// <summary>
-    /// Get the audio source for external use (Ink manager)
-    /// </summary>
     public AudioSource GetAudioSource() => audioSource;
-    
-    /// <summary>
-    /// Public method to play dialogue sound (for Ink manager to use)
-    /// </summary>
-    public void PlayTypingSound(int charIndex, char character)
-    {
-        PlayDialogueSound(charIndex, character);
-    }
 
     private void Start()
     {
-        if (dialoguePanel != null)
-            dialoguePanel.SetActive(false);
-
-        if (continueButton != null)
-        {
-            continueButton.onClick.AddListener(OnContinueClicked);
-            continueButton.gameObject.SetActive(false);
-            Debug.Log("<color=green>[DialogueUI.Start]</color> Continue button listener registered");
-        }
-        else
-        {
-            Debug.LogWarning("<color=red>[DialogueUI.Start]</color> Continue button is NULL!");
-        }
+        // Initialize with ScreenSpace by default
+        SetupMode(DialogueSetupMode.ScreenSpace);
+        
+        // Hide both panels initially
+        if (screenSpaceDialoguePanel != null)
+            screenSpaceDialoguePanel.SetActive(false);
+        if (worldSpaceDialoguePanel != null)
+            worldSpaceDialoguePanel.SetActive(false);
 
         if (dialogueManager == null)
             dialogueManager = FindObjectOfType<DialogueManager>();
@@ -107,249 +125,303 @@ public class DialogueUI : MonoBehaviour
         if (dialogueManager != null)
             dialogueManager.DialogueEnded += OnDialogueEnded;
 
-        // Initialize audio system
         InitializeAudioSystem();
     }
 
-
-    // REPLACE the Update() method in DialogueUI.cs with this:
-
-private void Update()
-{
-    // Reset per-frame input guard
-    inputConsumedThisFrame = false;
-
-    // Get input state
-    inputSubmitDetected = InputManager.GetInstance().GetSubmitPressed();
-    inputInteractDetected = InputManager.GetInstance().GetInteractPressed();
-    inputMouseDetected = Input.GetMouseButtonDown(0);
-    
-    canProgress = Input.GetKeyDown(KeyCode.Space) || 
-                  Input.GetKeyDown(KeyCode.Return) || 
-                  inputMouseDetected || 
-                  inputSubmitDetected || 
-                  inputInteractDetected;
-
-    // --------------------------
-    // CHOICE SELECTION INPUT (Both Graph and Ink)
-    // --------------------------
-    
-    // Check if we have ANY active choices (graph-based OR Ink)
-    bool hasGraphChoices = activeChoiceButtons != null && activeChoiceButtons.Count > 0;
-    bool hasInkChoices = activeInkChoiceButtons != null && activeInkChoiceButtons.Count > 0;
-    bool hasAnyChoices = hasGraphChoices || hasInkChoices;
-
-    if (isWaitingForChoice || hasAnyChoices)
+    /// <summary>
+    /// Switch between ScreenSpace and WorldSpace modes
+    /// Called by DialogueController before starting dialogue
+    /// </summary>
+    public void SetupMode(DialogueSetupMode mode, Transform npcTransform = null)
     {
-        if (canProgress)
-        {
-            Debug.Log("<color=cyan>[DialogueUI.Update]</color> Submit input detected while waiting for choice");
-
-            GameObject selectedObject = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
-
-            if (selectedObject != null)
-            {
-                Button selectedButton = selectedObject.GetComponent<Button>();
-                if (selectedButton != null)
-                {
-                    Debug.Log("<color=lime>[DialogueUI.Update]</color> Invoking selected button via Submit");
-                    selectedButton.onClick.Invoke();
-                    inputConsumedThisFrame = true;
-                    return; // Stop here — handled input
-                }
-                else
-                {
-                    Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> Selected object has no Button component");
-                }
-            }
-            else
-            {
-                // No button selected - try to select the first available choice
-                Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> No UI button selected, attempting to select first choice");
-                
-                if (hasGraphChoices && activeChoiceButtons[0] != null)
-                {
-                    UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(activeChoiceButtons[0].gameObject);
-                }
-                else if (hasInkChoices && activeInkChoiceButtons[0] != null)
-                {
-                    UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(activeInkChoiceButtons[0].gameObject);
-                }
-                return;
-            }
-        }
-
-        // Numeric shortcuts (1–9) for quick choice selection
-        for (int i = 0; i < 9; i++)
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
-            {
-                int index = i;
-                
-                // Try graph choices first
-                if (hasGraphChoices && index < activeChoiceButtons.Count)
-                {
-                    Button btn = activeChoiceButtons[index];
-                    if (btn != null)
-                    {
-                        Debug.Log($"<color=lime>[DialogueUI.Update]</color> Numeric key selected graph choice {index + 1}");
-                        btn.onClick.Invoke();
-                        inputConsumedThisFrame = true;
-                        return;
-                    }
-                }
-                // Then try Ink choices
-                else if (hasInkChoices && index < activeInkChoiceButtons.Count)
-                {
-                    Button btn = activeInkChoiceButtons[index];
-                    if (btn != null)
-                    {
-                        Debug.Log($"<color=lime>[DialogueUI.Update]</color> Numeric key selected Ink choice {index + 1}");
-                        btn.onClick.Invoke();
-                        inputConsumedThisFrame = true;
-                        return;
-                    }
-                }
-            }
-        }
-
-        // Don't continue to dialogue progression if we have choices
-        if (hasAnyChoices)
-            return;
-    }
-
-    // --------------------------
-    // DIALOGUE PROGRESSION INPUT
-    // --------------------------
-    if (dialogueManager == null || !dialogueManager.IsDialogueActive)
-        return;
-
-    if (inputConsumedThisFrame)
-        return;
-
-    // Don't handle progression if we're in Ink mode (Ink handles its own progression)
-    if (dialogueManager.CurrentDialogue != null && dialogueManager.CurrentDialogue.Type == DialogueType.Ink)
-        return;
+        currentMode = mode;
         
-    // Handle dialogue progression for graph-based system
-    bool progressInput = (useSpaceKey && Input.GetKeyDown(KeyCode.Space)) ||
-                         (useReturnKey && Input.GetKeyDown(KeyCode.Return)) ||
-                         InputManager.GetInstance().GetSubmitPressed() || 
-                         InputManager.GetInstance().GetInteractPressed();
-
-    if (progressInput)
-    {
-        Debug.Log("<color=yellow>[DialogueUI.Update]</color> Progress input detected");
-        inputConsumedThisFrame = true;
-        OnInputPressed();
+        if (mode == DialogueSetupMode.ScreenSpace)
+        {
+            SetupScreenSpace();
+        }
+        else
+        {
+            SetupWorldSpace(npcTransform);
+        }
+        
+        // IMPORTANT: Update typewriter's text component reference
+        if (typewriterEffect != null)
+        {
+            typewriterEffect.UpdateTextComponent();
+        }
+        
+        Debug.Log($"[DialogueUI] Switched to {mode} mode");
     }
-}
-/*
-private void Update()
-{
-    // Reset per-frame input guard
-    inputConsumedThisFrame = false;
 
-    // --------------------------
-    // CHOICE SELECTION INPUT
-    // --------------------------
-    if (isWaitingForChoice)
+    private void SetupScreenSpace()
     {
+        activeCanvas = screenSpaceCanvas;
+        dialoguePanel = screenSpaceDialoguePanel;
+        dialogueText = screenSpaceDialogueText;
+        speakerNameText = screenSpaceSpeakerNameText;
+        characterIcon = screenSpaceCharacterIcon;
+        choicesContainer = screenSpaceChoicesContainer;
+        choiceButtonPrefab = screenSpaceChoiceButtonPrefab;
+        continueButton = screenSpaceContinueButton;
+        portraitAnimator = screenSpacePortraitAnimator;
+        layoutAnimator = screenSpaceLayoutAnimator;
+        
+        // Detach from NPC if previously attached
+        if (attachedNPC != null && worldSpaceCanvas != null)
+        {
+            worldSpaceCanvas.transform.SetParent(transform);
+            attachedNPC = null;
+        }
+        
+        // Setup continue button listener
+        if (continueButton != null)
+        {
+            continueButton.onClick.RemoveAllListeners();
+            continueButton.onClick.AddListener(OnContinueClicked);
+            continueButton.gameObject.SetActive(false);
+        }
+        
+        // Hide WorldSpace, ensure ScreenSpace is ready
+        if (worldSpaceDialoguePanel != null)
+            worldSpaceDialoguePanel.SetActive(false);
+    }
+
+    private void SetupWorldSpace(Transform npcTransform)
+    {
+        activeCanvas = worldSpaceCanvas;
+        dialoguePanel = worldSpaceDialoguePanel;
+        dialogueText = worldSpaceDialogueText;
+        speakerNameText = worldSpaceSpeakerNameText;
+        characterIcon = worldSpaceCharacterIcon;
+        choicesContainer = worldSpaceChoicesContainer;
+        choiceButtonPrefab = worldSpaceChoiceButtonPrefab;
+        continueButton = worldSpaceContinueButton;
+        portraitAnimator = worldSpacePortraitAnimator;
+        layoutAnimator = worldSpaceLayoutAnimator;
+        
+        // Setup continue button listener
+        if (continueButton != null)
+        {
+            continueButton.onClick.RemoveAllListeners();
+            continueButton.onClick.AddListener(OnContinueClicked);
+            continueButton.gameObject.SetActive(false);
+        }
+        
+        // Hide ScreenSpace
+        if (screenSpaceDialoguePanel != null)
+            screenSpaceDialoguePanel.SetActive(false);
+        
+        // Attach to NPC if provided
+        if (npcTransform != null && worldSpaceCanvas != null)
+        {
+            AttachToNPC(npcTransform);
+        }
+    }
+
+    /// <summary>
+    /// Attach the WorldSpace canvas to an NPC transform
+    /// </summary>
+    public void AttachToNPC(Transform npcTransform)
+    {
+        if (worldSpaceCanvas == null)
+        {
+            Debug.LogWarning("[DialogueUI] Cannot attach to NPC - WorldSpace canvas not assigned!");
+            return;
+        }
+        
+        attachedNPC = npcTransform;
+        worldSpaceCanvas.transform.SetParent(npcTransform);
+        
+        // Use custom offset if set, otherwise use default
+        Vector3 offsetToUse = hasCustomOffset ? customWorldSpaceOffset : worldSpaceOffset;
+        worldSpaceCanvas.transform.localPosition = offsetToUse;
+        
+        // Make canvas face camera
+        if (worldSpaceFaceCamera && Camera.main != null)
+        {
+            worldSpaceCanvas.transform.LookAt(Camera.main.transform);
+            worldSpaceCanvas.transform.Rotate(0, 180, 0);
+        }
+        
+        Debug.Log($"[DialogueUI] Attached to NPC: {npcTransform.name} with offset: {offsetToUse}");
+    }
+
+    /// <summary>
+    /// Set custom WorldSpace offset (called by DialogueTrigger for smart positioning)
+    /// </summary>
+    public void SetWorldSpaceOffset(Vector3 offset)
+    {
+        customWorldSpaceOffset = offset;
+        hasCustomOffset = true;
+        
+        // If already attached to NPC, update position immediately
+        if (attachedNPC != null && worldSpaceCanvas != null)
+        {
+            worldSpaceCanvas.transform.localPosition = offset;
+        }
+        
+        Debug.Log($"[DialogueUI] Custom WorldSpace offset set to: {offset}");
+    }
+    
+    /// <summary>
+    /// Reset to default WorldSpace offset
+    /// </summary>
+    public void ResetWorldSpaceOffset()
+    {
+        customWorldSpaceOffset = Vector3.zero;
+        hasCustomOffset = false;
+        
+        // If attached to NPC, reset to default position
+        if (attachedNPC != null && worldSpaceCanvas != null)
+        {
+            worldSpaceCanvas.transform.localPosition = worldSpaceOffset;
+        }
+        
+        Debug.Log("[DialogueUI] Reset to default WorldSpace offset");
+    }
+
+    /// <summary>
+    /// Detach WorldSpace canvas from NPC
+    /// </summary>
+    public void DetachFromNPC()
+    {
+        if (attachedNPC != null && worldSpaceCanvas != null)
+        {
+            worldSpaceCanvas.transform.SetParent(transform);
+            attachedNPC = null;
+            
+            // Reset custom offset when detaching
+            hasCustomOffset = false;
+            customWorldSpaceOffset = Vector3.zero;
+            
+            Debug.Log("[DialogueUI] Detached from NPC");
+        }
+    }
+
+    private void LateUpdate()
+    {
+        // Keep WorldSpace dialogue facing camera
+        if (currentMode == DialogueSetupMode.WorldSpace && 
+            attachedNPC != null && 
+            worldSpaceCanvas != null && 
+            worldSpaceFaceCamera &&
+            dialoguePanel != null &&
+            dialoguePanel.activeSelf &&
+            Camera.main != null)
+        {
+            worldSpaceCanvas.transform.LookAt(Camera.main.transform);
+            worldSpaceCanvas.transform.Rotate(0, 180, 0);
+        }
+    }
+
+    private void Update()
+    {
+        inputConsumedThisFrame = false;
+
         inputSubmitDetected = InputManager.GetInstance().GetSubmitPressed();
         inputInteractDetected = InputManager.GetInstance().GetInteractPressed();
         inputMouseDetected = Input.GetMouseButtonDown(0);
-    
-        canProgress = Input.GetKeyDown(KeyCode.Space) || Input.GetKeyDown(KeyCode.Return) || inputMouseDetected || inputSubmitDetected || inputInteractDetected;
+        
+        canProgress = Input.GetKeyDown(KeyCode.Space) || 
+                      Input.GetKeyDown(KeyCode.Return) || 
+                      inputMouseDetected || 
+                      inputSubmitDetected || 
+                      inputInteractDetected;
 
-        if (canProgress)
+        // CHOICE SELECTION INPUT (Both Graph and Ink)
+        bool hasGraphChoices = activeChoiceButtons != null && activeChoiceButtons.Count > 0;
+        bool hasInkChoices = activeInkChoiceButtons != null && activeInkChoiceButtons.Count > 0;
+        bool hasAnyChoices = hasGraphChoices || hasInkChoices;
+
+        if (isWaitingForChoice || hasAnyChoices)
         {
-            Debug.Log("<color=cyan>[DialogueUI.Update]</color> Submit input detected while waiting for choice");
-
-            GameObject selectedObject = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
-
-            if (selectedObject != null)
+            if (canProgress)
             {
-                Button selectedButton = selectedObject.GetComponent<Button>();
-                if (selectedButton != null)
+                GameObject selectedObject = UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject;
+
+                if (selectedObject != null)
                 {
-                    Debug.Log("<color=lime>[DialogueUI.Update]</color> Invoking selected button via Submit");
-                    selectedButton.onClick.Invoke();
-                    inputConsumedThisFrame = true;
-                    return; // Stop here — handled input
+                    Button selectedButton = selectedObject.GetComponent<Button>();
+                    if (selectedButton != null)
+                    {
+                        selectedButton.onClick.Invoke();
+                        inputConsumedThisFrame = true;
+                        return;
+                    }
                 }
                 else
                 {
-                    Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> Selected object has no Button component");
+                    // Auto-select first choice
+                    if (hasGraphChoices && activeChoiceButtons[0] != null)
+                    {
+                        UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(activeChoiceButtons[0].gameObject);
+                    }
+                    else if (hasInkChoices && activeInkChoiceButtons[0] != null)
+                    {
+                        UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(activeInkChoiceButtons[0].gameObject);
+                    }
+                    return;
                 }
             }
-            else
-            {
-                Debug.LogWarning("<color=orange>[DialogueUI.Update]</color> No UI button selected while waiting for choice!");
-            }
-        }
 
-        // Also allow numeric shortcuts (1–9) for quick choice selection
-        for (int i = 0; i < 9; i++)
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1 + i))
+            // Numeric shortcuts (1–9)
+            for (int i = 0; i < 9; i++)
             {
-                int index = i;
-                if (index < activeChoiceButtons.Count)
+                if (Input.GetKeyDown(KeyCode.Alpha1 + i))
                 {
-                    Button btn = activeChoiceButtons[index];
-                    if (btn != null)
+                    int index = i;
+                    
+                    if (hasGraphChoices && index < activeChoiceButtons.Count)
                     {
-                        Debug.Log($"<color=lime>[DialogueUI.Update]</color> Numeric key selected choice {index + 1}");
-                        btn.onClick.Invoke();
-                        inputConsumedThisFrame = true;
-                        return;
+                        Button btn = activeChoiceButtons[index];
+                        if (btn != null)
+                        {
+                            btn.onClick.Invoke();
+                            inputConsumedThisFrame = true;
+                            return;
+                        }
+                    }
+                    else if (hasInkChoices && index < activeInkChoiceButtons.Count)
+                    {
+                        Button btn = activeInkChoiceButtons[index];
+                        if (btn != null)
+                        {
+                            btn.onClick.Invoke();
+                            inputConsumedThisFrame = true;
+                            return;
+                        }
                     }
                 }
-                else if (index < activeInkChoiceButtons.Count)
-                {
-                    Button btn = activeInkChoiceButtons[index];
-                    if (btn != null)
-                    {
-                        Debug.Log($"<color=lime>[DialogueUI.Update]</color> Numeric key selected Ink choice {index + 1}");
-                        btn.onClick.Invoke();
-                        inputConsumedThisFrame = true;
-                        return;
-                    }
-                }
             }
+
+            if (hasAnyChoices)
+                return;
         }
 
-        // Don’t continue to dialogue progression if we’re waiting for a choice
-        return;
-    }
+        // DIALOGUE PROGRESSION INPUT
+        if (dialogueManager == null || !dialogueManager.IsDialogueActive)
+            return;
 
-    // --------------------------
-    // DIALOGUE PROGRESSION INPUT
-    // --------------------------
-    if (dialogueManager == null || !dialogueManager.IsDialogueActive)
-        return;
+        if (inputConsumedThisFrame)
+            return;
 
-    if (inputConsumedThisFrame)
-        return;
-
+        // Don't handle progression if we're in Ink mode
         if (dialogueManager.CurrentDialogue != null && dialogueManager.CurrentDialogue.Type == DialogueType.Ink)
             return;
-        
+            
+        bool progressInput = (useSpaceKey && Input.GetKeyDown(KeyCode.Space)) ||
+                             (useReturnKey && Input.GetKeyDown(KeyCode.Return)) ||
+                             InputManager.GetInstance().GetSubmitPressed() || 
+                             InputManager.GetInstance().GetInteractPressed();
 
-    // You can also handle dialogue progression through InputManager if desired:
-    bool progressInput = (useSpaceKey && Input.GetKeyDown(KeyCode.Space)) ||
-                         (useReturnKey && Input.GetKeyDown(KeyCode.Return)) ||
-                         InputManager.GetInstance().GetSubmitPressed() || 
-                         InputManager.GetInstance().GetInteractPressed()  ;
-
-    if (progressInput)
-    {
-        Debug.Log("<color=yellow>[DialogueUI.Update]</color> Progress input detected");
-        inputConsumedThisFrame = true;
-        OnInputPressed();
+        if (progressInput)
+        {
+            inputConsumedThisFrame = true;
+            OnInputPressed();
+        }
     }
-}
-*/
+
     private void InitializeAudioSystem()
     {
         audioSource = gameObject.AddComponent<AudioSource>();
@@ -357,7 +429,6 @@ private void Update()
         if (defaultAudioInfo != null)
             currentAudioInfo = defaultAudioInfo;
 
-        // Initialize audio dictionary
         audioInfoDictionary = new Dictionary<string, DialogueAudioInfoSO>();
 
         if (defaultAudioInfo != null)
@@ -373,9 +444,6 @@ private void Update()
         }
     }
 
-    /// <summary>
-    /// Set the current audio info by ID (can be called by Ink tags)
-    /// </summary>
     public void SetCurrentAudioInfo(string id)
     {
         if (audioInfoDictionary == null)
@@ -390,9 +458,6 @@ private void Update()
             Debug.LogWarning($"Failed to find audio info for id: {id}");
     }
 
-    /// <summary>
-    /// Reset audio to default
-    /// </summary>
     public void ResetAudioToDefault()
     {
         if (defaultAudioInfo != null)
@@ -421,38 +486,31 @@ private void Update()
         if (dialoguePanel != null)
             dialoguePanel.SetActive(true);
 
+        // Apply character settings
+        if (dialogue.Character != null)
+        {
+            if (speakerNameText != null)
+                speakerNameText.text = dialogue.Character.Name;
 
-   // Apply character settings
-if (dialogue.Character != null)
-{
-    // Set speaker name
-    if (speakerNameText != null)
-        speakerNameText.text = dialogue.Character.Name;
+            string animationState = dialogue.Character.GetAnimationStateForEmotion(dialogue.Emotion);
+            
+            if (!string.IsNullOrEmpty(animationState) && portraitAnimator != null)
+            {
+                PlayPortraitAnimation(animationState);
+            }
+            
+            if (layoutAnimator != null)
+            {
+                PlayLayoutAnimation(dialogue.Character.DefaultLayoutString);
+            }
 
-    // Get the animation state for this emotion
-    string animationState = dialogue.Character.GetAnimationStateForEmotion(dialogue.Emotion);
-    
-    // Play the portrait animation
-    if (!string.IsNullOrEmpty(animationState) && portraitAnimator != null)
-    {
-        PlayPortraitAnimation(animationState);
-    }
-    
-    // Apply default layout
-    if (layoutAnimator != null)
-    {
-        PlayLayoutAnimation(dialogue.Character.DefaultLayoutString);
-    }
+            if (characterIcon != null)
+            {
+                characterIcon.sprite = dialogue.Character.GetEmotionSprite(dialogue.Emotion);
+                characterIcon.gameObject.SetActive(true);
+            }
+        }
 
-    // Set character icon (graph-based system uses sprites)
-    if (characterIcon != null)
-    {
-        characterIcon.sprite = dialogue.Character.GetEmotionSprite(dialogue.Emotion);
-        characterIcon.gameObject.SetActive(true);
-    }
-}
-
-        // UPDATED: Use TypewriterEffect
         if (typewriterEffect != null && dialogueText != null)
         {
             HideContinueIcon();
@@ -471,98 +529,16 @@ if (dialogue.Character != null)
         }
 
         ClearInkChoices();
-
-        // Reset audio to default for each new dialogue node
         ResetAudioToDefault();
     }
-        /*  
-        ///
-        /// Orginal Typewritter effect
-        /// 
-    public IEnumerator DisplayLine(string line)
+
+    public void PlayTypingSound(int charIndex, char character)
     {
-        dialogueText.text = line;
-        dialogueText.maxVisibleCharacters = 0;
-
-        if (continueButton != null) 
-            continueButton.gameObject.SetActive(false);
-        
-        ClearChoices();
-        isWaitingForChoice = false;
-        
-        bool isAddingRichTextTag = false;
-
-        // The line below should be changed to use a 'for' loop for better control over the index
-        int i = 0;
-        int totalVisibleCharacters = line.Length;
-    
-    while (i < totalVisibleCharacters)
-    {
-        char letter = line[i];
-
-        // 1. Check for input to skip typing (Mouse click is included here)
-        if (useSpaceKey && Input.GetKeyDown(KeyCode.Space) ||
-            useReturnKey && Input.GetKeyDown(KeyCode.Return) ||
-            (useMouseClick && Input.GetMouseButtonDown(0)) ||
-            (useReturnKey && InputManager.GetInstance().GetSubmitPressed()) ||
-            (useSpaceKey &&InputManager.GetInstance().GetInteractPressed()) )
-        {
-            // *** FIX 1: Set maxVisibleCharacters to the full length and BREAK the loop ***
-            dialogueText.maxVisibleCharacters = line.Length;
-            inputConsumedThisFrame = true; // Consume input to prevent double-processing
-            break;
-        }
-
-            // 2. Handle Rich Text Tags (e.g., <color=red>text</color>)
-            if (line[i] == '<')
-            {
-                // Find the end of the tag (the '>')
-                int tagEndIndex = line.IndexOf('>', i);
-
-                if (tagEndIndex != -1)
-                {
-                    // Calculate how many characters the tag occupies
-                    int tagLength = tagEndIndex - i + 1;
-
-                    // CRITICAL FIX: Advance the internal index past the tag
-                    i = tagEndIndex + 1;
-
-                    // Also advance the visible characters count for the tag itself
-                    dialogueText.maxVisibleCharacters = Mathf.Min(i, totalVisibleCharacters);
-
-                    // Do NOT yield, tags should appear instantly
-                    continue; // Skip the rest of the loop and start the next iteration
-                }
-            }
-        
-        // 3. Handle Normal Character Typing
-        
-        // Play typing sound before showing the character
-        PlayDialogueSound(i, line[i]);
-        
-        // Show the character
-        dialogueText.maxVisibleCharacters++;
-        i++; // Move to the next character
-        
-        // Yield for the typing speed
-        yield return new WaitForSeconds(typingSpeed);
+        PlayDialogueSound(charIndex, character);
     }
 
-    // --- The code below runs ONLY after the loop finishes (either by completing or by 'break') ---
-    
-    // Ensure all text is visible (Redundant if break was hit, but safe)
-    dialogueText.maxVisibleCharacters = line.Length; 
-    
-    // *** FIX 2: Set the coroutine to null and show buttons/continue icon ***
-    displayLineCoroutine = null;
-    ShowButtons(); // This will enable the continue button or choices
-
-
-    }
-        */
     private void PlayDialogueSound(int currentDisplayedCharacterCount, char currentCharacter)
     {
-        // Safety checks
         if (currentAudioInfo == null || audioSource == null)
             return;
 
@@ -576,7 +552,6 @@ if (dialogue.Character != null)
         float maxPitch = currentAudioInfo.maxPitch;
         bool stopAudioSource = currentAudioInfo.stopAudioSource;
 
-        // Play sound based on frequency
         if (currentDisplayedCharacterCount % frequencyLevel == 0)
         {
             if (stopAudioSource)
@@ -586,12 +561,10 @@ if (dialogue.Character != null)
 
             if (makePredictable)
             {
-                // Predictable audio from character hash
                 int hashCode = currentCharacter.GetHashCode();
                 int predictableIndex = hashCode % dialogueTypingSoundClips.Length;
                 soundClip = dialogueTypingSoundClips[predictableIndex];
 
-                // Predictable pitch
                 int minPitchInt = (int)(minPitch * 100);
                 int maxPitchInt = (int)(maxPitch * 100);
                 int pitchRangeInt = maxPitchInt - minPitchInt;
@@ -609,7 +582,6 @@ if (dialogue.Character != null)
             }
             else
             {
-                // Random audio
                 int randomIndex = UnityEngine.Random.Range(0, dialogueTypingSoundClips.Length);
                 soundClip = dialogueTypingSoundClips[randomIndex];
                 audioSource.pitch = UnityEngine.Random.Range(minPitch, maxPitch);
@@ -681,7 +653,6 @@ if (dialogue.Character != null)
             activeChoiceButtons.Add(btn);
         }
         
-        // Auto-select first button for keyboard/controller navigation
         if (activeChoiceButtons.Count > 0)
         {
             StartCoroutine(SelectFirstButton(activeChoiceButtons[0]));
@@ -718,7 +689,7 @@ if (dialogue.Character != null)
     private void OnChoiceSelected(Dialogue nextDialogue)
     {
         isWaitingForChoice = false;
-        inputConsumedThisFrame = true; // Consume input to prevent DialogueManager from processing it
+        inputConsumedThisFrame = true;
         
         if (dialogueManager != null)
             dialogueManager.SelectDialogue(nextDialogue);
@@ -728,9 +699,6 @@ if (dialogue.Character != null)
             EndDialogue();
     }
 
-    /// <summary>
-    /// Clears any choice buttons created by Ink.
-    /// </summary>
     public void ClearInkChoices()
     {
         foreach (Button btn in activeInkChoiceButtons)
@@ -744,10 +712,7 @@ if (dialogue.Character != null)
         activeInkChoiceButtons.Clear();
     }
 
-    /// <summary>
-    /// Creates and displays choice buttons from an Ink story.
-    /// </summary>
-    public void DisplayInkChoices(List<Ink.Runtime.Choice> choices, Action<int> onChoiceSelected)
+   public void DisplayInkChoices(List<Ink.Runtime.Choice> choices, Action<int> onChoiceSelected)
     {
         ClearInkChoices();
         HideContinueIcon();
@@ -758,10 +723,8 @@ if (dialogue.Character != null)
             return;
         }
 
-        // CRITICAL FIX: Check if there are actually choices before proceeding
         if (choices == null || choices.Count == 0)
         {
-            // No choices to display, show continue icon instead
             ShowContinueIcon();
             return;
         }
@@ -775,32 +738,26 @@ if (dialogue.Character != null)
             if (btnText != null)
                 btnText.text = choice.text;
 
-            // CRITICAL FIX: Use the index from the choices list (i), not choice.index
-            // choice.index is the filtered index from story.currentChoices
-            // but we need the actual choice index for story.ChooseChoiceIndex()
-            int choiceIndex = i;
-            btn.onClick.AddListener(() => onChoiceSelected(choiceIndex));
+            // CRITICAL: Use choice.index (the original index) not the filtered index
+            int originalChoiceIndex = choice.index;
+            btn.onClick.AddListener(() => onChoiceSelected(originalChoiceIndex));
 
             activeInkChoiceButtons.Add(btn);
         }
 
-        // CRITICAL FIX: Only select first choice if buttons were actually created
         if (activeInkChoiceButtons.Count > 0)
         {
             StartCoroutine(SelectFirstInkChoice());
         }
     }
-    
     private IEnumerator SelectFirstInkChoice() 
     {
-        // CRITICAL FIX: Double-check the list isn't empty
         if (activeInkChoiceButtons == null || activeInkChoiceButtons.Count == 0)
             yield break;
 
         UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
         yield return new WaitForEndOfFrame();
         
-        // CRITICAL FIX: Check again after waiting
         if (activeInkChoiceButtons != null && activeInkChoiceButtons.Count > 0 && activeInkChoiceButtons[0] != null)
         {
             UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(activeInkChoiceButtons[0].gameObject);
@@ -822,37 +779,35 @@ if (dialogue.Character != null)
             StopCoroutine(displayLineCoroutine);
             displayLineCoroutine = null;
         }
+        
+        // Detach from NPC when dialogue ends
+        if (currentMode == DialogueSetupMode.WorldSpace)
+        {
+            DetachFromNPC();
+        }
 
         Debug.Log("Dialogue ended");
     }
 
     private void OnContinueClicked()
     {
-        Debug.Log("<color=magenta>[DialogueUI.OnContinueClicked]</color> Continue button clicked!");
         OnInputPressed();
     }
 
-    /// <summary>
-    /// Central method for handling input - skips typing or advances dialogue
-    /// </summary>
-public void OnInputPressed()
-{
-    if (typewriterEffect != null && typewriterEffect.IsTyping)
+    public void OnInputPressed()
     {
-        // Skip typewriter effect
-        typewriterEffect.Skip();
-        Debug.Log("<color=green>[DialogueUI]</color> Skipped typewriter");
-    }
-    else
-    {
-        // Progress to next dialogue
-        if (dialogueManager != null)
+        if (typewriterEffect != null && typewriterEffect.IsTyping)
         {
-            Debug.Log("<color=green>[DialogueUI]</color> Progressing dialogue");
-            dialogueManager.ProgressDialogue();
+            typewriterEffect.Skip();
+        }
+        else
+        {
+            if (dialogueManager != null)
+            {
+                dialogueManager.ProgressDialogue();
+            }
         }
     }
-}
 
     private void OnDialogueEnded()
     {

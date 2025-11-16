@@ -1,9 +1,6 @@
-// old verion
-
 using UnityEngine;
 using TMPro;
 using System.Collections;
-using UnityEngine.UI;
 
 /// <summary>
 /// Triggers the level UI when player enters the trigger zone
@@ -22,8 +19,6 @@ public class LevelTrigger : MonoBehaviour
     [SerializeField] private LevelController levelController;
     [SerializeField] private LevelContainer levelContainer;
     [SerializeField] private LevelGroup selectedGroup;
-
-
     [Tooltip("Leave empty to show all levels, or specify a level to auto-select it")]
     [SerializeField] private string selectedLevelName;
 
@@ -38,14 +33,6 @@ public class LevelTrigger : MonoBehaviour
     [Tooltip("If TRUE, pressing the interact key again will close the level UI")]
     [SerializeField] private bool toggleWithInteractKey = true;
 
-    [Header("System References")]
-    [SerializeField] private LevelManager levelManager;
-    [SerializeField] private GameObject levelUI;
-
-    [Header("Auto Start Settings")]
-    [SerializeField] private bool startLeveleOnStart = false;
-    [SerializeField] private float startDelay = 0f;
-
     [Header("UI Prompt")]
     [SerializeField] private GameObject interactPrompt;
     [SerializeField] private TextMeshProUGUI promptTextComponent;
@@ -54,36 +41,27 @@ public class LevelTrigger : MonoBehaviour
     [SerializeField] private float displayDuration = 2f;
     [SerializeField] private float fadeOutDuration = 0.3f;
     [SerializeField] private bool loopPrompt = true;
+    
+    [Header("Dynamic Prompt Positioning")]
+    [Tooltip("Horizontal offset for prompt when positioned on the left")]
+    [SerializeField] private float promptLeftOffset = -3.5f;
+    [Tooltip("Horizontal offset for prompt when positioned on the right")]
+    [SerializeField] private float promptRightOffset = 3.5f;
+    [Tooltip("Additional vertical offset for the prompt")]
+    [SerializeField] private float promptVerticalOffset = 0.5f;
+    [Tooltip("Update prompt position every frame (enable for moving triggers)")]
+    [SerializeField] private bool continuousPositionUpdate = false;
 
-
-
-
-    [Header("Tooltip Panel")]
-    [SerializeField] private SkillTooltip _skillTooltip;
-
-    [Header("Details Panel")]
-    [SerializeField] private GameObject _detailsPanel;
-    [SerializeField] private SkillTooltip _detailsPanelTooltip;
-
-
-    [Header("Close Button")]
-    [SerializeField] private Button _closeButton;
-    [SerializeField] private bool _allowCloseWithKey = true;
-    [SerializeField] private KeyCode _closeKey = KeyCode.Escape;
-
-    [Header("Player Control")]
-    [SerializeField] private GameObject _playerObject;
-    [SerializeField] private bool _disablePlayerWhenOpen = true;
-
-
-     private bool playerInRange;
+    private bool playerInRange;
     private bool hasTriggered;
     private bool levelWasOpenedByThisTrigger;
     private bool hasShownPromptThisEntry;
-
     private Level cachedLevel;
     private Coroutine promptCoroutine;
     private CanvasGroup promptCanvasGroup;
+    private RectTransform promptRectTransform;
+    private Canvas promptCanvas;
+    private Camera mainCamera;
 
     public bool IsPlayerInRange => playerInRange;
 
@@ -93,6 +71,8 @@ public class LevelTrigger : MonoBehaviour
         hasTriggered = false;
         levelWasOpenedByThisTrigger = false;
         hasShownPromptThisEntry = false;
+        
+        mainCamera = Camera.main;
 
         if (visualCue != null)
         {
@@ -102,14 +82,17 @@ public class LevelTrigger : MonoBehaviour
         if (interactPrompt != null)
         {
             interactPrompt.SetActive(false);
-
+            
             promptCanvasGroup = interactPrompt.GetComponent<CanvasGroup>();
             if (promptCanvasGroup == null)
             {
                 promptCanvasGroup = interactPrompt.AddComponent<CanvasGroup>();
             }
             promptCanvasGroup.alpha = 0f;
-
+            
+            promptRectTransform = interactPrompt.GetComponent<RectTransform>();
+            promptCanvas = interactPrompt.GetComponentInParent<Canvas>();
+            
             if (promptTextComponent != null)
             {
                 promptTextComponent.text = promptText;
@@ -156,31 +139,31 @@ public class LevelTrigger : MonoBehaviour
         }
     }
 
-private void Update()
+    private void Update()
     {
         // Handle input when player is in range
         if (playerInRange && requiresInput && !triggerOnEnter)
         {
             if (Input.GetKeyDown(interactKey))
             {
-                Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Key '{interactKey}' pressed!");
+                Debug.Log($"[LevelTrigger:{gameObject.name}] Key '{interactKey}' pressed!");
                 
-                // Check if skill tree is currently open
-                bool isThisSkillTreeOpen = IsLevelOpen();
+                // Check if level UI is currently open
+                bool isThisLevelOpen = IsLevelOpen();
                 
-                if (isThisSkillTreeOpen && toggleWithInteractKey && levelWasOpenedByThisTrigger)
+                if (isThisLevelOpen && toggleWithInteractKey && levelWasOpenedByThisTrigger)
                 {
-                    // Close the skill tree
+                    // Close the level UI
                     CloseLevel();
                 }
-                else if (!isThisSkillTreeOpen && (canTriggerMultipleTimes || !hasTriggered))
+                else if (!isThisLevelOpen && (canTriggerMultipleTimes || !hasTriggered))
                 {
-                    // Open the skill tree
+                    // Open the level UI
                     TriggerLevel();
                 }
                 else
                 {
-                    Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Cannot interact (triggered: {hasTriggered}, treeOpen: {isThisSkillTreeOpen})");
+                    Debug.Log($"[LevelTrigger:{gameObject.name}] Cannot interact (triggered: {hasTriggered}, levelOpen: {isThisLevelOpen})");
                 }
             }
         }
@@ -201,7 +184,7 @@ private void Update()
         // Show interact prompt ONLY if:
         // 1. We require input
         // 2. Not auto-triggering
-        // 3. Skill tree is NOT already open (or wasn't opened by this trigger)
+        // 3. Level UI is NOT already open (or wasn't opened by this trigger)
         // 4. Haven't shown prompt this entry yet
         bool isLevelOpen = IsLevelOpen();
         bool shouldShowPrompt = requiresInput && !triggerOnEnter && (!isLevelOpen || !levelWasOpenedByThisTrigger) && !hasShownPromptThisEntry;
@@ -211,6 +194,7 @@ private void Update()
             if (interactPrompt != null && !interactPrompt.activeSelf)
             {
                 interactPrompt.SetActive(true);
+                UpdatePromptPosition(); // Position when first shown
 
                 if (promptCoroutine == null)
                 {
@@ -219,10 +203,15 @@ private void Update()
                     hasShownPromptThisEntry = true;
                 }
             }
+            else if (continuousPositionUpdate && interactPrompt != null && interactPrompt.activeSelf)
+            {
+                // Update position every frame if enabled (for moving triggers)
+                UpdatePromptPosition();
+            }
         }
         else
         {
-            // Hide prompt if tree is open
+            // Hide prompt if UI is open
             if (interactPrompt != null && interactPrompt.activeSelf && isLevelOpen)
             {
                 StopPrompt();
@@ -230,7 +219,73 @@ private void Update()
         }
     }
 
-        private bool IsLevelOpen()
+    /// <summary>
+    /// Positions the prompt on the side of the trigger furthest from screen edges (left or right only)
+    /// </summary>
+    private void UpdatePromptPosition()
+    {
+        if (interactPrompt == null || promptRectTransform == null || mainCamera == null)
+            return;
+
+        // Get trigger position in screen space
+        Vector3 triggerWorldPos = transform.position;
+        Vector3 triggerScreenPos = mainCamera.WorldToScreenPoint(triggerWorldPos);
+
+        // Get screen dimensions
+        float screenWidth = Screen.width;
+
+        // Calculate distances to left and right edges
+        float distToLeft = triggerScreenPos.x;
+        float distToRight = screenWidth - triggerScreenPos.x;
+
+        // Determine horizontal offset (left = -3.5, right = +3.5)
+        float horizontalOffset;
+        if (distToLeft > distToRight)
+        {
+            // More space on left, position to the left
+            horizontalOffset = promptLeftOffset;
+        }
+        else
+        {
+            // More space on right, position to the right
+            horizontalOffset = promptRightOffset;
+        }
+
+        // For UI elements, we work with the RectTransform's anchoredPosition
+        if (promptCanvas != null)
+        {
+            if (promptCanvas.renderMode == RenderMode.ScreenSpaceOverlay || promptCanvas.renderMode == RenderMode.ScreenSpaceCamera)
+            {
+                // For screen space canvases, convert world position to screen space first
+                Vector3 screenPos = mainCamera.WorldToScreenPoint(triggerWorldPos);
+                
+                // Convert screen position to canvas local position
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    promptCanvas.transform as RectTransform,
+                    screenPos,
+                    promptCanvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : promptCanvas.worldCamera,
+                    out Vector2 localPoint
+                );
+                
+                // Apply the fixed offsets directly to the anchored position
+                promptRectTransform.anchoredPosition = new Vector2(localPoint.x + horizontalOffset, localPoint.y + promptVerticalOffset);
+            }
+            else // World Space
+            {
+                // For world space, calculate world position and apply
+                Vector3 promptWorldPos = triggerWorldPos + new Vector3(horizontalOffset, promptVerticalOffset, 0f);
+                promptRectTransform.position = promptWorldPos;
+            }
+        }
+        else
+        {
+            // Fallback: calculate world position
+            Vector3 promptWorldPos = triggerWorldPos + new Vector3(horizontalOffset, promptVerticalOffset, 0f);
+            promptRectTransform.position = promptWorldPos;
+        }
+    }
+
+    private bool IsLevelOpen()
     {
         if (levelController == null)
             return false;
@@ -248,7 +303,7 @@ private void Update()
         StopPrompt();
     }
 
-      private void StopPrompt()
+    private void StopPrompt()
     {
         if (promptCoroutine != null)
         {
@@ -510,6 +565,13 @@ private void Update()
             }
 
             UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, label);
+        }
+        
+        // Draw prompt position preview in editor
+        if (interactPrompt != null && Application.isPlaying && playerInRange)
+        {
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireSphere(interactPrompt.transform.position, 0.2f);
         }
         #endif
     }

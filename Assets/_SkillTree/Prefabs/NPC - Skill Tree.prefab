@@ -192,6 +192,10 @@ MonoBehaviour:
   displayDuration: 2
   fadeOutDuration: 0.3
   loopPrompt: 1
+  promptLeftOffset: -3.5
+  promptRightOffset: 3.5
+  promptVerticalOffset: 0.5
+  continuousPositionUpdate: 0
 --- !u!1 &2757494583195104295
 GameObject:
   m_ObjectHideFlags: 0
@@ -259,8 +263,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 1.5}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 600, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &7431582869590292328
 Canvas:
@@ -365,10 +369,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 7061629982834556730}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 330, y: 0}
-  m_SizeDelta: {x: 500, y: 30}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 50}
+  m_SizeDelta: {x: 600, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3770191818919757460
 CanvasRenderer:
@@ -432,7 +436,7 @@ MonoBehaviour:
   m_fontSizeMin: 14
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
   m_characterSpacing: 0
