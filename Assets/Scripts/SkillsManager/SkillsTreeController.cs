@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Core.Game;
 
 /// <summary>
 /// Main controller for the skill tree UI - handles instantiation and display

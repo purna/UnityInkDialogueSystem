@@ -1,0 +1,187 @@
+/* ============================================================
+   GLOBAL LAYOUT (New Vertical Structure)
+   ============================================================ */
+#Root {
+    flex-grow: 1;
+    flex-direction: column;
+    background-color: rgb(20, 20, 20);
+}
+
+#MainContent {
+    flex-grow: 1;
+    flex-direction: row; /* Canvas Left, Sidebar Right */
+    overflow: hidden;
+}
+
+/* ============================================================
+   HEADER BAR
+   ============================================================ */
+#Header {
+    height: 60px;
+    background-color: rgb(30, 30, 35);
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(50, 50, 50);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 20px;
+    padding-right: 20px;
+    flex-shrink: 0; /* Don't shrink height */
+}
+
+/* Breadcrumb Area */
+#Breadcrumbs {
+    flex-direction: row;
+    align-items: center;
+}
+
+#BreadcrumbSeparator {
+    color: rgb(100, 100, 100);
+    font-size: 18px;
+    margin-left: 10px;
+    margin-right: 10px;
+    -unity-font-style: bold;
+}
+
+/* Home / Campaign Button */
+#HomeLink {
+    flex-direction: row;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0); /* Transparent default */
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0);
+    border-radius: 6px;
+    margin: 0;
+    padding: 6px 12px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+#HomeLink:hover {
+    background-color: rgb(45, 45, 50);
+    border-color: rgb(70, 70, 70);
+}
+
+#HomeLink:active {
+    background-color: rgb(35, 35, 40);
+}
+
+/* World Icon in Header */
+#CurrentWorldContainer {
+    flex-direction: row;
+    align-items: center;
+}
+
+#CurrentViewLabel {
+    color: white;
+    font-size: 18px;
+    -unity-font-style: bold;
+}
+
+/* ============================================================
+   CANVAS AREA
+   ============================================================ */
+.canvas-area {
+    flex-grow: 1;
+    position: relative;
+    background-color: rgb(20, 20, 20);
+    overflow: hidden; 
+}
+
+.connections-layer {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+}
+
+.nodes-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+}
+
+/* Instruction Text */
+#InstructionLabel {
+    position: absolute;
+    bottom: 15px;
+    left: 15px;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 12px;
+    -unity-font-style: italic;
+}
+
+/* ============================================================
+   SIDEBAR (Right Side)
+   ============================================================ */
+.sidebar {
+    width: 300px;
+    background-color: rgb(25, 25, 25);
+    border-left-width: 1px;
+    border-left-color: rgb(60, 60, 60);
+    padding: 20px;
+    justify-content: flex-start;
+    /* Display is toggled via C# */
+}
+
+.sidebar-header-row {
+    flex-direction: row;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.sidebar-icon {
+    width: 60px;
+    height: 60px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(203, 213, 225);
+}
+
+.sidebar-title {
+    font-size: 22px;
+    color: white;
+    -unity-font-style: bold;
+}
+
+.sidebar-status {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: rgb(148, 163, 184);
+    margin-top: 2px;
+}
+
+.sidebar-desc {
+    font-size: 13px;
+    color: rgb(200, 200, 200);
+    white-space: normal;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: rgb(40, 40, 40);
+    border-radius: 5px;
+}
+
+/* ============================================================
+   BUTTONS & STARS
+   ============================================================ */
+.unlock-btn {
+    height: 50px;
+    border-radius: 8px;
+    background-color: rgb(37, 99, 235); /* Blue */
+    color: white;
+    font-size: 18px;
+    -unity-font-style: bold;
+    border-width: 0;
+    margin-top: auto;
+    transition: background-color 0.1s;
+}
+
+.unlock-btn:hover {
+    background-color: rgb(59, 130, 246); /* Lighter Blue */
+}
+
+.unlock-btn:active {
+    background-color: rgb(30, 64, 175); /* Darker Blue */
+}
+
+.unlock-btn:disabled {
+    background-color: rgb(51, 65, 85);
+    color: rgb(100, 116, 139);
+}

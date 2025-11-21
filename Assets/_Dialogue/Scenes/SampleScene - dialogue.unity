@@ -511,196 +511,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 386377050}
   m_CullTransparentMesh: 1
---- !u!1 &448415324
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 448415325}
-  - component: {fileID: 448415328}
-  - component: {fileID: 448415329}
-  - component: {fileID: 448415326}
-  - component: {fileID: 448415330}
-  - component: {fileID: 448415332}
-  - component: {fileID: 448415334}
-  - component: {fileID: 448415333}
-  m_Layer: 0
-  m_Name: DialogueManager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &448415325
+--- !u!4 &448415325 stripped
 Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+  m_PrefabInstance: {fileID: 9007758850705156484}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448415324}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1638022776}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &448415326
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448415324}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e9a61ac454efd45ee8c862db24fd8b21, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &448415328
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448415324}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac9127d8a5c9e4c8fbc1afef500dd485, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _setupMode: 1
-  dialogueContainer: {fileID: 11400000, guid: ab3078607f9144596b7b286217a17024, type: 2}
-  dialogueGroup: {fileID: 11400000, guid: 85e2c13f934754bb48242ce1b7727c2f, type: 2}
-  dialogue: {fileID: 11400000, guid: 766474e2022814868b51f36dd2572820, type: 2}
-  emoteAnimator: {fileID: 0}
-  groupedDialogues: 1
-  startingDialoguesOnly: 1
-  selectedDialogueGroupIndex: 0
-  selectedDialogueIndex: 0
-  dialogueManager: {fileID: 448415329}
-  dialogueUI: {fileID: 448415334}
-  typewriter: {fileID: 448415333}
-  initializeOnStart: 0
-  startDelay: 0
-  _allowCloseWithKey: 1
-  _closeKey: 27
-  _playerObject: {fileID: 1925176081}
-  _disablePlayerWhenOpen: 1
---- !u!114 &448415329
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448415324}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4bec9d6b583e2f148bc72d8f1438d47b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _inkManager: {fileID: 448415326}
-  useReturnKey: 1
-  useMouseClick: 1
-  useSpaceKey: 1
---- !u!114 &448415330
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448415324}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2ff8da84906b84cbd898884174a5a96e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  dialogueManager: {fileID: 448415329}
-  player: {fileID: 1925176081}
-  movementScriptName: CharacterController2D
-  stopVelocity: 1
-  freezeRigidbody: 0
-  additionalScriptNames: []
---- !u!114 &448415332
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448415324}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1d5861f22be684c21b7a2907f21ef8d3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _registeredVariables:
-  - {fileID: 11400000, guid: f58f256217ff043c59e8e5a7116fa048, type: 2}
-  _inkGlobalsJSON: {fileID: 4900000, guid: 887664fee91ae02418ad84c36b9b5e18, type: 3}
-  _enablePersistence: 1
-  _saveKey: DIALOGUE_VARIABLES
---- !u!114 &448415333
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448415324}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9fd3cc19f22c44a52b382dd0b402bbd0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  typingSpeed: 0.04
-  dialogueUI: {fileID: 448415334}
---- !u!114 &448415334
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448415324}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 630fc102aac4b4f20a2cb8c8e96f417b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  screenSpaceCanvas: {fileID: 1201995333}
-  worldSpaceCanvas: {fileID: 1605807008}
-  screenSpaceDialoguePanel: {fileID: 2062698336}
-  screenSpaceDialogueText: {fileID: 1535608625}
-  screenSpaceSpeakerNameText: {fileID: 1420930866}
-  screenSpaceCharacterIcon: {fileID: 1545818429}
-  screenSpaceChoicesContainer: {fileID: 1910963777}
-  screenSpaceChoiceButtonPrefab: {fileID: 61033211581455285, guid: ef5ad8fd03be744e5867c771fdc234e1, type: 3}
-  screenSpaceContinueButton: {fileID: 1126160118}
-  screenSpacePortraitAnimator: {fileID: 1545818431}
-  screenSpaceLayoutAnimator: {fileID: 2062698340}
-  worldSpaceDialoguePanel: {fileID: 180966713}
-  worldSpaceDialogueText: {fileID: 1241443887}
-  worldSpaceSpeakerNameText: {fileID: 217233000}
-  worldSpaceCharacterIcon: {fileID: 1742697833}
-  worldSpaceChoicesContainer: {fileID: 1237556522}
-  worldSpaceChoiceButtonPrefab: {fileID: 61033211581455285, guid: ef5ad8fd03be744e5867c771fdc234e1, type: 3}
-  worldSpaceContinueButton: {fileID: 1427559854}
-  worldSpacePortraitAnimator: {fileID: 1742697832}
-  worldSpaceLayoutAnimator: {fileID: 180966715}
-  typewriterEffect: {fileID: 448415333}
-  defaultAudioInfo: {fileID: 11400000, guid: a8bb328890830284b910f8770777d2bb, type: 2}
-  audioInfos:
-  - {fileID: 11400000, guid: a8bb328890830284b910f8770777d2bb, type: 2}
-  - {fileID: 11400000, guid: 92afdbdd41141c14c80909b5eb68e59d, type: 2}
-  - {fileID: 11400000, guid: cafd91373050aca4c9a4c0937f886e8e, type: 2}
-  makePredictable: 1
-  dialogueManager: {fileID: 448415329}
-  useReturnKey: 0
-  useMouseClick: 1
-  useSpaceKey: 1
-  worldSpaceOffset: {x: 0, y: 2.5, z: 0}
-  worldSpaceFaceCamera: 1
 --- !u!1 &505900349
 GameObject:
   m_ObjectHideFlags: 3
@@ -3791,6 +3606,143 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 252f5035cae61491fb0b79d494e5f0d1, type: 3}
+--- !u!1001 &9007758850705156484
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1638022776}
+    m_Modifications:
+    - target: {fileID: 1344161785630083122, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: player
+      value: 
+      objectReference: {fileID: 1925176081}
+    - target: {fileID: 2024501337638676060, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_Name
+      value: '[DialogueManager]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: worldSpaceCanvas
+      value: 
+      objectReference: {fileID: 1605807008}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: screenSpaceCanvas
+      value: 
+      objectReference: {fileID: 1201995333}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: worldSpaceDialogueText
+      value: 
+      objectReference: {fileID: 1241443887}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: screenSpaceDialogueText
+      value: 
+      objectReference: {fileID: 1535608625}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: worldSpaceCharacterIcon
+      value: 
+      objectReference: {fileID: 1742697833}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: worldSpaceDialoguePanel
+      value: 
+      objectReference: {fileID: 180966713}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: screenSpaceCharacterIcon
+      value: 
+      objectReference: {fileID: 1545818429}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: screenSpaceDialoguePanel
+      value: 
+      objectReference: {fileID: 2062698336}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: worldSpaceContinueButton
+      value: 
+      objectReference: {fileID: 1427559854}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: worldSpaceLayoutAnimator
+      value: 
+      objectReference: {fileID: 180966715}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: screenSpaceContinueButton
+      value: 
+      objectReference: {fileID: 1126160118}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: screenSpaceLayoutAnimator
+      value: 
+      objectReference: {fileID: 2062698340}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: worldSpaceSpeakerNameText
+      value: 
+      objectReference: {fileID: 217233000}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: screenSpaceSpeakerNameText
+      value: 
+      objectReference: {fileID: 1420930866}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: worldSpaceChoicesContainer
+      value: 
+      objectReference: {fileID: 1237556522}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: worldSpacePortraitAnimator
+      value: 
+      objectReference: {fileID: 1742697832}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: screenSpaceChoicesContainer
+      value: 
+      objectReference: {fileID: 1910963777}
+    - target: {fileID: 4597297850336992922, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: screenSpacePortraitAnimator
+      value: 
+      objectReference: {fileID: 1545818431}
+    - target: {fileID: 8494866098592217107, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: _playerObject
+      value: 
+      objectReference: {fileID: 1925176081}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8634865463218505300, guid: 2fe29fb151481482fbd000377518f843, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 2fe29fb151481482fbd000377518f843, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -61,7 +61,8 @@ public class InventoryUI : MonoBehaviour
         canvasGroup.blocksRaycasts = isVisible;
     }
 
-    public void UpdateUI(Dictionary<CollectableUpgradeSO, int> itemCounts)
+    public void UpdateUI(Dictionary<ScriptableObject, int> itemCounts)
+
     {
         if (itemListParent == null || itemTextPrefab == null)
         {
@@ -80,27 +81,27 @@ public class InventoryUI : MonoBehaviour
         int index = 0;
         foreach (var itemPair in itemCounts)
         {
-            CollectableUpgradeSO item = itemPair.Key;
-            int count = itemPair.Value;
-
-            currentItems.Add(item);
-
-            GameObject itemGO = Instantiate(itemTextPrefab, itemListParent);
-            itemGO.SetActive(true);
-
-            // Initialize InventoryItemUI if present
-            InventoryItemUI itemUI = itemGO.GetComponent<InventoryItemUI>();
-            if (itemUI != null)
+            if (itemPair.Key is CollectableUpgradeSO upgrade)
             {
-                itemUI.Initialize(this, item, count, index);
-            }
-            else
-            {
+                int count = itemPair.Value;
+                currentItems.Add(upgrade);
+
+                // Instantiate UI element for upgrade
+                GameObject itemGO = Instantiate(itemTextPrefab, itemListParent);
+                itemGO.SetActive(true);
+
+                // Initialize InventoryItemUI if present
+                InventoryItemUI itemUI = itemGO.GetComponent<InventoryItemUI>();
+                if (itemUI != null)
+                {
+                    itemUI.Initialize(this, upgrade, count, index);
+                }
+                       
                 // Fallback in case InventoryItemUI is not attached
                 Image itemIcon = itemGO.GetComponentInChildren<Image>();
-                if (itemIcon != null && item.ItemIcon != null)
+                if (itemIcon != null && upgrade.ItemIcon != null)
                 {
-                    itemIcon.sprite = item.ItemIcon;
+                    itemIcon.sprite = upgrade.ItemIcon;
                 }
 
                 TMP_Text[] textComponents = itemGO.GetComponentsInChildren<TMP_Text>();
@@ -115,12 +116,12 @@ public class InventoryUI : MonoBehaviour
                 
                 if (itemNameText != null)
                 {
-                    itemNameText.text = item.ItemName;
+                    itemNameText.text = upgrade.ItemName;
                 }
 
                 if (itemDescriptionText != null)
                 {
-                    itemDescriptionText.text = item.ItemDescription;
+                    itemDescriptionText.text = upgrade.ItemDescription;
                 }
 
                 if (itemCountText != null)

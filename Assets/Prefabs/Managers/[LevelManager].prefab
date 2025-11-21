@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2119796111291637940
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7364065269053317706}
+  - component: {fileID: 4981558045260352502}
+  - component: {fileID: 7398925400379578718}
+  - component: {fileID: 301504658885900203}
+  m_Layer: 0
+  m_Name: '[LevelManager]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7364065269053317706
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2119796111291637940}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4981558045260352502
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2119796111291637940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c4fb4475c9984df4a503af526309fde, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _levelContainer: {fileID: 11400000, guid: 8f44aaa6805bc49d2b63ae72f40c7d37, type: 2}
+  _currentLevelPoints: 0
+  _totalLevelPointsEarned: 0
+--- !u!114 &7398925400379578718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2119796111291637940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da51f4ca5407543b89fd26f14834a89a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _setupMode: 0
+  levelContainer: {fileID: 11400000, guid: 8f44aaa6805bc49d2b63ae72f40c7d37, type: 2}
+  levelGroup: {fileID: 11400000, guid: 6b7b56b9dcd2b4b2fb9a084ff489f5a2, type: 2}
+  startingLevel: {fileID: 11400000, guid: 70ad203c6e8df42edb011f23907712b8, type: 2}
+  _manualLevelNodes: []
+  groupedLevels: 1
+  startingLevelsOnly: 1
+  selectedLevelGroupIndex: 0
+  selectedLevelIndex: 0
+  levelManager: {fileID: 4981558045260352502}
+  levelUI: {fileID: 0}
+  initializeOnStart: 1
+  startDelay: 2
+  _levelNodesParent: {fileID: 0}
+  _levelNodePrefab: {fileID: 9183279506104247201, guid: 67923995f1655496b8bdac5f70ffa806, type: 3}
+  _gridLayout: {fileID: 0}
+  _useGridLayout: 1
+  _useLevelPositions: 1
+  _autoGenerateLines: 1
+  _connectionLinePrefab: {fileID: 0}
+  _linesParent: {fileID: 0}
+  _lockedLineColor: {r: 0.3, g: 0.3, b: 0.3, a: 0.5}
+  _unlockedLineColor: {r: 0.2, g: 0.8, b: 0.2, a: 1}
+  _completedLineColor: {r: 1, g: 0.84, b: 0, a: 1}
+  _lineWidth: 3
+  _levelTooltip: {fileID: 0}
+  _detailsPanel: {fileID: 0}
+  _detailsPanelTooltip: {fileID: 0}
+  _detailsTitle: {fileID: 0}
+  _detailsDescription: {fileID: 0}
+  _detailsIcon: {fileID: 0}
+  _detailsStatus: {fileID: 0}
+  _playButton: {fileID: 0}
+  _playButtonText: {fileID: 0}
+  _progressText: {fileID: 0}
+  _progressBar: {fileID: 0}
+  _closeButton: {fileID: 0}
+  _allowCloseWithKey: 1
+  _closeKey: 27
+  _playerObject: {fileID: 0}
+  _disablePlayerWhenOpen: 1
+--- !u!114 &301504658885900203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2119796111291637940}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f7aef35483c2446f5aa71034db8ccaa6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _titleText: {fileID: 0}
+  _descriptionText: {fileID: 0}
+  _statusText: {fileID: 0}
+  _tierText: {fileID: 0}
+  _prerequisitesText: {fileID: 0}
+  _iconImage: {fileID: 0}
+  _backgroundImage: {fileID: 0}
+  _completedBadge: {fileID: 0}
+  _lockedBadge: {fileID: 0}
+  _completedColor: {r: 1, g: 0.84, b: 0, a: 1}
+  _unlockedColor: {r: 0.2, g: 0.8, b: 0.2, a: 1}
+  _lockedColor: {r: 0.8, g: 0.2, b: 0.2, a: 1}
+  _maxWidth: 300
+  _followMouse: 1
+  _offset: {x: 10, y: -10}

@@ -1,0 +1,31 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Editor%20Default%20Resources/SkillsTreeSystem/SkillTreeStyles.uss?fileID=7433441132597879392&amp;guid=32db2b953dcead8438c1a5c36d67e7cf&amp;type=3#SkillTreeStyles" />
+    <ui:VisualElement name="Container" class="container" style="flex-grow: 1; flex-direction: row; background-color: rgb(15, 23, 42);">
+        <ui:VisualElement name="CanvasArea" class="canvas-area" style="flex-grow: 1; position: relative; overflow: hidden;">
+            <ui:VisualElement name="Header" class="header" style="height: 50px; background-color: rgb(30, 41, 59); flex-direction: row; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom-width: 1px; border-bottom-color: rgb(51, 65, 85);">
+                <ui:Label text="Skill Tree System" class="header-title" style="color: rgb(96, 165, 250); font-size: 15px; -unity-font-style: bold;" />
+                <ui:Label name="PointsDisplay" text="0 PTS" class="points-badge" style="color: rgb(250, 204, 21); background-color: rgb(15, 23, 42); padding: 4px 10px; border-radius: 12px; border-width: 1px; border-color: rgb(51, 65, 85); font-size: 10px; -unity-font-style: bold;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="ConnectionsLayer" picking-mode="Ignore" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin-top: 50px;" />
+            <ui:VisualElement name="NodesContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin-top: 50px;" />
+            <ui:Label text="Select a node to view details" style="position: absolute; bottom: 15px; left: 15px; color: rgb(148, 163, 184); font-size: 11px; -unity-font-style: italic;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Sidebar" class="sidebar" style="width: 33%; background-color: rgb(30, 41, 59); border-left-width: 1px; border-left-color: rgb(51, 65, 85); padding: 15px; display: flex; margin-top: 20px; margin-right: 20px; margin-bottom: 20px; margin-left: 20px;">
+            <ui:VisualElement name="InspectorContent">
+                <ui:VisualElement style="flex-direction: row; margin-bottom: 15px; background-color: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 8px; align-items: center;">
+                    <ui:VisualElement name="SidebarIcon" style="width: 35px; height: 35px; margin-right: 10px; -unity-background-scale-mode: scale-to-fit;" />
+                    <ui:VisualElement style="justify-content: center;">
+                        <ui:Label name="SkillName" text="Skill Name" style="font-size: 16px; color: white; -unity-font-style: bold;" />
+                        <ui:Label name="SkillStatus" text="LOCKED" style="font-size: 10px; -unity-font-style: bold; color: rgb(148, 163, 184);" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:Label text="Effect" style="color: rgb(100, 116, 139); font-size: 10px; -unity-font-style: bold; margin-bottom: 4px; text-transform: uppercase;" />
+                <ui:Label name="SkillDescription" text="Description..." style="font-size: 11px; color: rgb(203, 213, 225); white-space: normal; margin-bottom: 8px; padding: 8px; background-color: rgb(15, 23, 42); border-radius: 6px;" />
+                <ui:Label text="Cost" style="color: rgb(100, 116, 139); font-size: 10px; -unity-font-style: bold; margin-bottom: 2px; text-transform: uppercase;" />
+                <ui:Label name="SkillCost" text="2 Points" style="color: rgb(250, 204, 21); font-size: 14px; -unity-font-style: bold; margin-bottom: 8px;" />
+                <ui:Button name="UnlockButton" text="Unlock Skill" class="unlock-btn" style="height: 40px; border-radius: 6px; background-color: rgb(37, 99, 235); color: white; font-size: 14px; -unity-font-style: bold; border-width: 0; margin-top: auto;" />
+            </ui:VisualElement>
+            <ui:Label name="EmptyState" text="Select a node" style="display: none;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

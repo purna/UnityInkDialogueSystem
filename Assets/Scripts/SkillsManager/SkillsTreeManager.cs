@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
+namespace Core.Game
+{
 /// <summary>
 /// Manages the skill tree system, including unlocking skills and managing skill points
 /// </summary>
@@ -210,5 +212,5 @@ public class SkillTreeManager : MonoBehaviour
             return _skillTreeContainer.GetAvailableSkills();
         return new List<Skill>();
     }
-
 }
+} // End namespace Core.Game

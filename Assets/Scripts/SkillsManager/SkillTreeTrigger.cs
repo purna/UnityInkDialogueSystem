@@ -1,10 +1,12 @@
 using UnityEngine;
 using System.Collections;
+using TMPro;
 
 /// <summary>
 /// Triggers the skill tree UI when player enters the trigger zone
 /// Shows visual cues and emote animations, links to specific skill groups/skills
 /// Integrates with SkillsTreeContainer, SkillsTreeGroup, and Skill system
+/// Enhanced with locked/unlocked visual states and feedback
 /// </summary>
 public class SkillTreeTrigger : BaseSkillTrigger
 {
@@ -22,8 +24,30 @@ public class SkillTreeTrigger : BaseSkillTrigger
     [Tooltip("If TRUE, pressing the interact key again will close the skill tree")]
     [SerializeField] public bool toggleWithInteractKey = true;
 
+    [Header("Visual Feedback")]
+    [SerializeField] private SpriteRenderer spriteRenderer;
+    [Tooltip("Sprite to show when skill tree is accessible")]
+    [SerializeField] private Sprite unlockedSprite;
+    [Tooltip("Sprite to show when skill tree is locked (optional)")]
+    [SerializeField] private Sprite lockedSprite;
+    [SerializeField] private ParticleSystem interactParticles;
+    [SerializeField] private AudioClip openSound;
+    [SerializeField] private AudioClip closeSound;
+
+    [Header("Lock Requirements (Optional)")]
+    [Tooltip("If set, requires this skill to be unlocked before trigger can be used")]
+    [SerializeField] private Skill requiredSkill;
+    [Tooltip("If TRUE, checks if required skill is unlocked before allowing interaction")]
+    [SerializeField] private bool enforceRequirement = false;
+
+    [Header("Locked State UI")]
+    [SerializeField] private GameObject lockedPromptObject;
+    [SerializeField] private TextMeshProUGUI lockedPromptText;
+    [SerializeField] private float lockedPromptDisplayTime = 2f;
+
     private bool skillTreeWasOpenedByThisTrigger;
     private Skill cachedSkill;
+    private bool isLocked = false;
 
     protected override void Awake()
     {
@@ -38,9 +62,21 @@ public class SkillTreeTrigger : BaseSkillTrigger
         base.Awake();
     }
 
+    protected virtual void Start()
+    {
+        // Hide locked prompt at start
+        if (lockedPromptObject != null)
+        {
+            lockedPromptObject.SetActive(false);
+        }
+        
+        UpdateVisualState();
+    }
+
     protected override void InitializeReferences()
     {
         CacheSkillReferences();
+        UpdateLockState();
     }
 
     private void CacheSkillReferences()
@@ -80,14 +116,48 @@ public class SkillTreeTrigger : BaseSkillTrigger
         }
     }
 
+    private void UpdateLockState()
+    {
+        if (enforceRequirement && requiredSkill != null)
+        {
+            isLocked = !requiredSkill.IsUnlocked;
+        }
+        else
+        {
+            isLocked = false;
+        }
+
+        UpdateVisualState();
+    }
+
     protected override void HandleInput()
     {
+        // Update lock state each frame in case skill was just unlocked
+        if (enforceRequirement && requiredSkill != null)
+        {
+            bool wasLocked = isLocked;
+            UpdateLockState();
+            
+            // If just unlocked, play unlock effects
+            if (wasLocked && !isLocked)
+            {
+                PlayUnlockEffects();
+            }
+        }
+
         if (playerInRange && requiresInput && !triggerOnEnter)
         {
             if (Input.GetKeyDown(interactKey))
             {
                 if (showDebugLogs)
                     Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Key '{interactKey}' pressed!");
+                
+                // Check if locked
+                if (isLocked)
+                {
+                    ShowLockedPrompt();
+                    return;
+                }
                 
                 // Check if skill tree is currently open
                 bool isThisSkillTreeOpen = IsSkillTreeOpen();
@@ -110,8 +180,31 @@ public class SkillTreeTrigger : BaseSkillTrigger
         }
     }
 
+    protected override void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!other.CompareTag("Player"))
+            return;
+
+        // Check lock state before triggering
+        UpdateLockState();
+        
+        if (isLocked && triggerOnEnter)
+        {
+            // Don't auto-trigger if locked
+            ShowLockedPrompt();
+            return;
+        }
+
+        // Call base implementation
+        base.OnTriggerEnter2D(other);
+    }
+
     protected override bool ShouldShowPrompt()
     {
+        // Don't show prompt if locked
+        if (isLocked)
+            return false;
+
         // Show prompt ONLY if:
         // 1. We require input
         // 2. Not auto-triggering
@@ -146,6 +239,13 @@ public class SkillTreeTrigger : BaseSkillTrigger
         if (showDebugLogs)
             Debug.Log($"[SkillTreeTrigger:{gameObject.name}] OnTriggerActivated() called");
         
+        // Check if locked
+        if (isLocked)
+        {
+            ShowLockedPrompt();
+            return;
+        }
+
         if (skillsTreeController == null)
         {
             Debug.LogWarning($"[SkillTreeTrigger:{gameObject.name}] SkillsTreeController not assigned!");
@@ -181,6 +281,9 @@ public class SkillTreeTrigger : BaseSkillTrigger
         hasTriggered = true;
         skillTreeWasOpenedByThisTrigger = true;
 
+        // Play open effects
+        PlayOpenEffects();
+
         // Play emote
         PlayEmote();
 
@@ -205,6 +308,9 @@ public class SkillTreeTrigger : BaseSkillTrigger
             skillsTreeController.HideSkillTree();
             skillTreeWasOpenedByThisTrigger = false;
             
+            // Play close effects
+            PlayCloseEffects();
+            
             if (showDebugLogs)
                 Debug.Log($"[SkillTreeTrigger:{gameObject.name}] ✓ Skill tree closed");
         }
@@ -225,6 +331,9 @@ public class SkillTreeTrigger : BaseSkillTrigger
 
     protected override void OnPlayerEnter()
     {
+        // Update lock state when player enters
+        UpdateLockState();
+
         // Reset the flag when entering fresh
         // But only if tree is not currently open
         if (!IsSkillTreeOpen())
@@ -240,10 +349,144 @@ public class SkillTreeTrigger : BaseSkillTrigger
         skillTreeWasOpenedByThisTrigger = false;
     }
 
+    /// <summary>
+    /// Updates the visual representation based on lock state
+    /// </summary>
+    private void UpdateVisualState()
+    {
+        if (spriteRenderer == null)
+            return;
+
+        // Determine which sprite to use
+        Sprite targetSprite = null;
+
+        if (isLocked && lockedSprite != null)
+        {
+            // Show locked sprite
+            targetSprite = lockedSprite;
+        }
+        else if (!isLocked && unlockedSprite != null)
+        {
+            // Show unlocked sprite
+            targetSprite = unlockedSprite;
+        }
+        else if (cachedSkill != null)
+        {
+            // Fallback to skill icon if available
+            targetSprite = isLocked ? cachedSkill.LockedIcon : cachedSkill.UnlockedIcon;
+        }
+
+        if (targetSprite != null)
+        {
+            spriteRenderer.sprite = targetSprite;
+        }
+    }
+
+    /// <summary>
+    /// Show locked prompt message to player
+    /// </summary>
+    private void ShowLockedPrompt()
+    {
+        if (lockedPromptObject == null || lockedPromptText == null)
+        {
+            if (showDebugLogs)
+                Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Trigger is locked but no locked prompt configured");
+            return;
+        }
+
+        string message = GetLockedMessage();
+        
+        if (showDebugLogs)
+            Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Showing locked message: {message}");
+        
+        lockedPromptObject.SetActive(true);
+        lockedPromptText.text = message;
+        
+        // Auto-hide after delay
+        StartCoroutine(HideLockedPromptAfterDelay());
+    }
+
+    /// <summary>
+    /// Generate the locked message based on missing requirements
+    /// </summary>
+    private string GetLockedMessage()
+    {
+        if (requiredSkill != null)
+        {
+            return $"Requires '{requiredSkill.SkillName}' to be unlocked first!";
+        }
+
+        return "Skill tree is locked!";
+    }
+
+    private IEnumerator HideLockedPromptAfterDelay()
+    {
+        yield return new WaitForSeconds(lockedPromptDisplayTime);
+        
+        if (lockedPromptObject != null)
+        {
+            lockedPromptObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Play visual and audio effects when opening skill tree
+    /// </summary>
+    private void PlayOpenEffects()
+    {
+        // Play particle effect
+        if (interactParticles != null)
+        {
+            interactParticles.Play();
+        }
+
+        // Play sound effect
+        if (openSound != null)
+        {
+            AudioSource.PlayClipAtPoint(openSound, transform.position);
+        }
+    }
+
+    /// <summary>
+    /// Play audio effect when closing skill tree
+    /// </summary>
+    private void PlayCloseEffects()
+    {
+        // Play sound effect
+        if (closeSound != null)
+        {
+            AudioSource.PlayClipAtPoint(closeSound, transform.position);
+        }
+    }
+
+    /// <summary>
+    /// Play visual and audio effects when unlocking
+    /// </summary>
+    private void PlayUnlockEffects()
+    {
+        if (showDebugLogs)
+            Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Trigger unlocked!");
+
+        // Play particle effect
+        if (interactParticles != null)
+        {
+            interactParticles.Play();
+        }
+
+        // Play sound effect
+        if (openSound != null)
+        {
+            AudioSource.PlayClipAtPoint(openSound, transform.position);
+        }
+
+        UpdateVisualState();
+    }
+
     public override void ResetTrigger()
     {
         base.ResetTrigger();
         skillTreeWasOpenedByThisTrigger = false;
+        UpdateLockState();
     }
 
     #region Public Methods
@@ -275,6 +518,46 @@ public class SkillTreeTrigger : BaseSkillTrigger
         return selectedGroup;
     }
 
+    /// <summary>
+    /// Check if this trigger is currently locked
+    /// </summary>
+    public bool IsLocked()
+    {
+        return isLocked;
+    }
+
+    /// <summary>
+    /// Get the required skill (if any)
+    /// </summary>
+    public Skill GetRequiredSkill()
+    {
+        return requiredSkill;
+    }
+
+    /// <summary>
+    /// Set the required skill at runtime
+    /// </summary>
+    public void SetRequiredSkill(Skill skill, bool enforce = true)
+    {
+        requiredSkill = skill;
+        enforceRequirement = enforce;
+        UpdateLockState();
+    }
+
+    /// <summary>
+    /// Force unlock this trigger (bypasses requirement check)
+    /// </summary>
+    public void ForceUnlock()
+    {
+        enforceRequirement = false;
+        isLocked = false;
+        UpdateVisualState();
+        PlayUnlockEffects();
+
+        if (showDebugLogs)
+            Debug.Log($"[SkillTreeTrigger:{gameObject.name}] Force unlocked");
+    }
+
     #endregion
 
     #region Editor Support
@@ -283,30 +566,45 @@ public class SkillTreeTrigger : BaseSkillTrigger
     {
         base.OnValidate();
         CacheSkillReferences();
+        UpdateLockState();
     }
 
     protected override void DrawCustomGizmoLabels()
     {
         #if UNITY_EDITOR
+        string label = "";
+
+        // Lock status
+        if (isLocked)
+        {
+            label += "[🔒 LOCKED]\n";
+            if (requiredSkill != null)
+                label += $"Requires: {requiredSkill.SkillName}\n";
+        }
+        else if (enforceRequirement && requiredSkill != null)
+        {
+            label += "[✓ UNLOCKED]\n";
+        }
+
         if (skillsTreeContainer != null)
         {
-            string label = $"Skill Tree: {skillsTreeContainer.TreeName}";
+            label += $"Skill Tree: {skillsTreeContainer.TreeName}\n";
             if (selectedGroup != null)
-                label += $"\nGroup: {selectedGroup.GroupName}";
+                label += $"Group: {selectedGroup.GroupName}\n";
             if (!string.IsNullOrEmpty(selectedSkillName))
-                label += $"\nSkill: {selectedSkillName}";
-            
-            if (triggerOnEnter)
-                label += "\n[AUTO TRIGGER]";
-            else if (requiresInput)
-            {
-                label += $"\n[Press {interactKey}]";
-                if (toggleWithInteractKey)
-                    label += " (Toggle)";
-            }
-
-            UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, label);
+                label += $"Skill: {selectedSkillName}\n";
         }
+        
+        if (triggerOnEnter)
+            label += "[AUTO TRIGGER]";
+        else if (requiresInput)
+        {
+            label += $"[Press {interactKey}]";
+            if (toggleWithInteractKey)
+                label += " (Toggle)";
+        }
+
+        UnityEditor.Handles.Label(transform.position + Vector3.up * 2f, label);
         
         // Draw prompt position preview in editor
         if (interactPrompt != null && Application.isPlaying && playerInRange)

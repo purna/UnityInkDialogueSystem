@@ -29,6 +29,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 7170800807063665495}
   - {fileID: 9110903807496273564}
   - {fileID: 6542910151499495729}
   - {fileID: 4417747939139774159}
@@ -120,6 +121,7 @@ GameObject:
   - component: {fileID: 6542910151499495729}
   - component: {fileID: 7205166474324030816}
   - component: {fileID: 5436299365060017517}
+  - component: {fileID: 3487210369851147702}
   m_Layer: 0
   m_Name: Trigger
   m_TagString: Untagged
@@ -201,20 +203,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   visualCue: {fileID: 8325413767622028434}
   emoteAnimator: {fileID: 8287397562903607061}
-  skillTreeManager: {fileID: 0}
-  skillsTreeController: {fileID: 0}
-  abilitiesToUnlock: []
-  skillsToUnlock:
-  - {fileID: 11400000, guid: f20ac823a5fc0432bafc81a6aa627044, type: 2}
-  respectSkillRequirements: 0
-  skillPointsReward: 0
-  addToCurrentOnly: 0
   triggerOnEnter: 1
   requiresInput: 0
   interactKey: 101
   canTriggerMultipleTimes: 0
-  interactPrompt: {fileID: 0}
-  promptTextComponent: {fileID: 0}
+  interactPrompt: {fileID: 1298914491219338872}
+  promptTextComponent: {fileID: 5013749464271968648}
   promptText: Press E to Claim Reward
   fadeInDuration: 0.3
   displayDuration: 2
@@ -226,6 +220,80 @@ MonoBehaviour:
   continuousPositionUpdate: 0
   showDebugLogs: 1
   playEmoteOnTrigger: 1
+  skillTreeManager: {fileID: 0}
+  skillsTreeController: {fileID: 0}
+  requiredSkill: {fileID: 0}
+  requiredSkillName: 
+  abilitiesToUnlock: []
+  skillsToUnlock:
+  - {fileID: 11400000, guid: f20ac823a5fc0432bafc81a6aa627044, type: 2}
+  respectSkillRequirements: 1
+  skillPointsReward: 1
+  addToCurrentOnly: 0
+  collectableRewards: []
+  rewardSpawnOffset: {x: 0, y: 1, z: 0}
+  spriteRenderer: {fileID: 6952655567604704843}
+  unlockParticles: {fileID: 0}
+  unlockSound: {fileID: 0}
+  lockedPromptObject: {fileID: 0}
+  lockedPromptText: {fileID: 0}
+  lockedPromptDisplayTime: 2
+--- !u!114 &3487210369851147702
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1531496996121919757}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6507ec4d6b37249af892176886a99d96, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  requiredSkill: {fileID: 11400000, guid: 2bdfcf5ddbb554a9e8365d362646f7e5, type: 2}
+  requiredSkillName: Increase drop rate
+  collectableRewards:
+  - {fileID: 5787051480251074141, guid: 8357c06ef291cec43bad99b6eab1e1ff, type: 3}
+  - {fileID: 4636044954741591614, guid: cfe69ea904aec1f4a81445ff1add328a, type: 3}
+  skillPointReward: 5
+  spriteRenderer: {fileID: 6952655567604704843}
+  lockedSprite: {fileID: 1961697110, guid: 828e3a41f979c447db6e34ddd83e750f, type: 3}
+  unlockedSprite: {fileID: -715156268, guid: 828e3a41f979c447db6e34ddd83e750f, type: 3}
+  promptObject: {fileID: 1298914491219338872}
+  promptText: {fileID: 5013749464271968648}
+  promptDisplayTime: 2
+--- !u!1 &4362867719484258456
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7170800807063665495}
+  m_Layer: 0
+  m_Name: Effects
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7170800807063665495
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4362867719484258456}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 49804029867685905}
+  m_Father: {fileID: 8877483779841121387}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6919134837876237096
 GameObject:
   m_ObjectHideFlags: 0
@@ -513,7 +581,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Press E to view Skills
+  m_text: Press E to Claim Reward
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: dbd96e28fdecd415fa9144be85d90db4, type: 2}
   m_sharedMaterial: {fileID: 297587786121153943, guid: dbd96e28fdecd415fa9144be85d90db4, type: 2}
@@ -654,7 +722,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_Sprite: {fileID: 7482667652216324306, guid: 48e93eef0688c4a259cb0eddcd8661f7, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -666,3 +734,65 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1001 &7896169076225857762
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7170800807063665495}
+    m_Modifications:
+    - target: {fileID: 7864449814287130764, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_Name
+      value: White Explosion
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+--- !u!4 &49804029867685905 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7864449814287130867, guid: a9f064740af1844719a5516f4d655d81, type: 3}
+  m_PrefabInstance: {fileID: 7896169076225857762}
+  m_PrefabAsset: {fileID: 0}

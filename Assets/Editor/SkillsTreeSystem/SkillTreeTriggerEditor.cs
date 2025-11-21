@@ -34,10 +34,28 @@ public class SkillTreeTriggerEditor : Editor
     private SerializedProperty selectedSkillNameProp;
     private SerializedProperty toggleWithInteractKeyProp;
 
+    // Visual feedback properties
+    private SerializedProperty spriteRendererProp;
+    private SerializedProperty unlockedSpriteProp;
+    private SerializedProperty lockedSpriteProp;
+    private SerializedProperty interactParticlesProp;
+    private SerializedProperty openSoundProp;
+    private SerializedProperty closeSoundProp;
+
+    // Lock requirement properties
+    private SerializedProperty requiredSkillProp;
+    private SerializedProperty enforceRequirementProp;
+
+    // Locked prompt properties
+    private SerializedProperty lockedPromptObjectProp;
+    private SerializedProperty lockedPromptTextProp;
+    private SerializedProperty lockedPromptDisplayTimeProp;
+
     private int selectedGroupIndex = 0;
     private int selectedSkillIndex = 0;
     private string[] groupNames;
     private string[] skillNames;
+    private bool showLockedPromptSettings = false;
 
     private void OnEnable()
     {
@@ -68,6 +86,23 @@ public class SkillTreeTriggerEditor : Editor
         selectedGroupProp = serializedObject.FindProperty("selectedGroup");
         selectedSkillNameProp = serializedObject.FindProperty("selectedSkillName");
         toggleWithInteractKeyProp = serializedObject.FindProperty("toggleWithInteractKey");
+
+        // Visual feedback properties
+        spriteRendererProp = serializedObject.FindProperty("spriteRenderer");
+        unlockedSpriteProp = serializedObject.FindProperty("unlockedSprite");
+        lockedSpriteProp = serializedObject.FindProperty("lockedSprite");
+        interactParticlesProp = serializedObject.FindProperty("interactParticles");
+        openSoundProp = serializedObject.FindProperty("openSound");
+        closeSoundProp = serializedObject.FindProperty("closeSound");
+
+        // Lock requirement properties
+        requiredSkillProp = serializedObject.FindProperty("requiredSkill");
+        enforceRequirementProp = serializedObject.FindProperty("enforceRequirement");
+
+        // Locked prompt properties
+        lockedPromptObjectProp = serializedObject.FindProperty("lockedPromptObject");
+        lockedPromptTextProp = serializedObject.FindProperty("lockedPromptText");
+        lockedPromptDisplayTimeProp = serializedObject.FindProperty("lockedPromptDisplayTime");
     }
 
     public override void OnInspectorGUI()
@@ -81,15 +116,18 @@ public class SkillTreeTriggerEditor : Editor
 
         EditorGUILayout.Space(5);
 
-        // Visual Cue Header
-        EditorGUILayout.LabelField("Visual Cue", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(visualCueProp, new GUIContent("Visual Cue GameObject"));
+        // Visual Feedback Section (NEW - moved to top)
+        DrawVisualFeedbackSection();
         EditorGUILayout.Space();
 
         // Emote Animator Header
         EditorGUILayout.LabelField("Emote Animator", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(emoteAnimatorProp, new GUIContent("Animator (Optional)"));
         EditorGUILayout.PropertyField(playEmoteOnTriggerProp, new GUIContent("Play Emote On Trigger"));
+        EditorGUILayout.Space();
+
+        // Lock Requirements Section (NEW)
+        DrawLockRequirementsSection();
         EditorGUILayout.Space();
 
         // Trigger Settings Header (Moved up for better workflow)
@@ -102,6 +140,10 @@ public class SkillTreeTriggerEditor : Editor
             DrawUIPromptSettings();
             EditorGUILayout.Space();
         }
+
+        // Locked Prompt Settings (NEW - always show)
+        DrawLockedPromptSettings();
+        EditorGUILayout.Space();
 
         // Skill Tree Settings Header
         DrawSkillTreeSettings();
@@ -120,8 +162,12 @@ public class SkillTreeTriggerEditor : Editor
 
     private void DrawConfigurationWarning()
     {
+        SkillTreeTrigger trigger = (SkillTreeTrigger)target;
+        
         bool triggerOnEnter = triggerOnEnterProp.boolValue;
         bool requiresInput = requiresInputProp.boolValue;
+        bool enforceRequirement = enforceRequirementProp.boolValue;
+        Skill requiredSkill = requiredSkillProp.objectReferenceValue as Skill;
 
         if (!triggerOnEnter && !requiresInput)
         {
@@ -129,6 +175,31 @@ public class SkillTreeTriggerEditor : Editor
                 "⚠️ WARNING: Both 'Trigger On Enter' and 'Requires Input' are FALSE!\n" +
                 "This trigger will NEVER activate. Please enable one of them.",
                 MessageType.Error);
+        }
+        else if (enforceRequirement && requiredSkill != null)
+        {
+            if (Application.isPlaying)
+            {
+                bool isLocked = trigger.IsLocked();
+                if (isLocked)
+                {
+                    EditorGUILayout.HelpBox(
+                        $"🔒 LOCKED: Requires '{requiredSkill.SkillName}' to be unlocked first.",
+                        MessageType.Warning);
+                }
+                else
+                {
+                    EditorGUILayout.HelpBox(
+                        $"✓ UNLOCKED: '{requiredSkill.SkillName}' requirement met!",
+                        MessageType.Info);
+                }
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    $"🔒 LOCK MODE: Requires '{requiredSkill.SkillName}' to be unlocked.",
+                    MessageType.Info);
+            }
         }
         else if (triggerOnEnter)
         {
@@ -143,6 +214,102 @@ public class SkillTreeTriggerEditor : Editor
                 $"✓ INPUT MODE: Player must press '{key}' to open skill tree.",
                 MessageType.Info);
         }
+    }
+
+    private void DrawVisualFeedbackSection()
+    {
+        EditorGUILayout.LabelField("Visual Feedback", EditorStyles.boldLabel);
+        
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        
+        EditorGUILayout.PropertyField(spriteRendererProp, new GUIContent(
+            "Sprite Renderer",
+            "Displays locked/unlocked state visually"));
+        
+        if (spriteRendererProp.objectReferenceValue != null)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(unlockedSpriteProp, new GUIContent(
+                "Unlocked Sprite",
+                "Sprite to show when accessible"));
+            
+            EditorGUILayout.PropertyField(lockedSpriteProp, new GUIContent(
+                "Locked Sprite (Optional)",
+                "Sprite to show when locked (falls back to cached skill icon)"));
+            EditorGUI.indentLevel--;
+        }
+        
+        EditorGUILayout.Space(5);
+        
+        EditorGUILayout.PropertyField(interactParticlesProp, new GUIContent(
+            "Interact Particles",
+            "Particle effect to play when opening/unlocking"));
+        
+        EditorGUILayout.PropertyField(openSoundProp, new GUIContent(
+            "Open Sound",
+            "Audio clip to play when skill tree opens"));
+        
+        EditorGUILayout.PropertyField(closeSoundProp, new GUIContent(
+            "Close Sound",
+            "Audio clip to play when skill tree closes"));
+        
+        EditorGUILayout.PropertyField(visualCueProp, new GUIContent(
+            "Additional Visual Cue",
+            "Optional extra GameObject for visual indication"));
+        
+        EditorGUILayout.EndVertical();
+    }
+
+    private void DrawLockRequirementsSection()
+    {
+        EditorGUILayout.LabelField("Lock Requirements (Optional)", EditorStyles.boldLabel);
+        
+        EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+        
+        EditorGUILayout.PropertyField(requiredSkillProp, new GUIContent(
+            "Required Skill",
+            "If set, this skill must be unlocked before trigger can be used"));
+        
+        Skill requiredSkill = requiredSkillProp.objectReferenceValue as Skill;
+        
+        if (requiredSkill != null)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(enforceRequirementProp, new GUIContent(
+                "Enforce Requirement",
+                "If TRUE, checks if required skill is unlocked before allowing interaction"));
+            EditorGUI.indentLevel--;
+            
+            if (enforceRequirementProp.boolValue)
+            {
+                EditorGUILayout.Space(3);
+                EditorGUILayout.BeginHorizontal();
+                
+                // Icon
+                if (requiredSkill.Icon != null)
+                {
+                    Rect iconRect = GUILayoutUtility.GetRect(32, 32, GUILayout.Width(32), GUILayout.Height(32));
+                    GUI.DrawTexture(iconRect, requiredSkill.Icon.texture, ScaleMode.ScaleToFit);
+                    GUILayout.Space(8);
+                }
+                
+                // Info
+                EditorGUILayout.BeginVertical();
+                EditorGUILayout.LabelField($"Required: {requiredSkill.SkillName}", EditorStyles.boldLabel);
+                EditorGUILayout.LabelField($"Tier {requiredSkill.Tier}", EditorStyles.miniLabel);
+                EditorGUILayout.EndVertical();
+                
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+        else
+        {
+            EditorGUILayout.HelpBox(
+                "💡 No requirement set - trigger is always accessible.",
+                MessageType.Info);
+        }
+        
+        EditorGUILayout.EndVertical();
     }
 
     private void DrawTriggerSettings()
@@ -238,6 +405,37 @@ public class SkillTreeTriggerEditor : Editor
                 "Negative left values move it left, positive right values move it right.",
                 MessageType.Info);
         }
+    }
+
+    private void DrawLockedPromptSettings()
+    {
+        showLockedPromptSettings = EditorGUILayout.BeginFoldoutHeaderGroup(showLockedPromptSettings, "Locked Prompt Settings");
+        
+        if (showLockedPromptSettings)
+        {
+            EditorGUI.indentLevel++;
+            
+            EditorGUILayout.HelpBox(
+                "This prompt shows when player tries to interact but the trigger is locked.\n" +
+                "Example: 'Requires Dash to be unlocked first!' (when required skill isn't unlocked)",
+                MessageType.Info);
+            
+            EditorGUILayout.PropertyField(lockedPromptObjectProp, new GUIContent(
+                "Locked Prompt Object",
+                "UI GameObject to show when locked"));
+            
+            EditorGUILayout.PropertyField(lockedPromptTextProp, new GUIContent(
+                "Locked Prompt Text",
+                "TextMeshProUGUI component for the message"));
+            
+            EditorGUILayout.PropertyField(lockedPromptDisplayTimeProp, new GUIContent(
+                "Display Time",
+                "How long to show the locked message"));
+            
+            EditorGUI.indentLevel--;
+        }
+        
+        EditorGUILayout.EndFoldoutHeaderGroup();
     }
 
     private void DrawFeedbackSettings()
@@ -501,6 +699,17 @@ public class SkillTreeTriggerEditor : Editor
             }
             
             EditorGUILayout.EndHorizontal();
+            
+            // Force unlock button (if locked)
+            if (trigger.IsLocked())
+            {
+                EditorGUILayout.Space(5);
+                if (GUILayout.Button("🔓 Force Unlock (Debug)", GUILayout.Height(30)))
+                {
+                    trigger.ForceUnlock();
+                }
+            }
+            
             EditorGUILayout.EndVertical();
             
             // Show current state
@@ -512,6 +721,12 @@ public class SkillTreeTriggerEditor : Editor
             statusStyle.normal.textColor = trigger.IsPlayerInRange ? Color.green : Color.gray;
             EditorGUILayout.LabelField($"Player In Range: {trigger.IsPlayerInRange}", statusStyle);
             
+            // Lock status
+            GUIStyle lockStyle = new GUIStyle(EditorStyles.label);
+            bool isLocked = trigger.IsLocked();
+            lockStyle.normal.textColor = isLocked ? Color.red : Color.green;
+            EditorGUILayout.LabelField($"Is Locked: {isLocked}", lockStyle);
+            
             Skill cachedSkill = trigger.GetCachedSkill();
             if (cachedSkill != null)
             {
@@ -522,6 +737,14 @@ public class SkillTreeTriggerEditor : Editor
             if (cachedGroup != null)
             {
                 EditorGUILayout.LabelField($"Selected Group: {cachedGroup.GroupName}");
+            }
+            
+            Skill requiredSkill = trigger.GetRequiredSkill();
+            if (requiredSkill != null)
+            {
+                GUIStyle reqStyle = new GUIStyle(EditorStyles.label);
+                reqStyle.normal.textColor = requiredSkill.IsUnlocked ? Color.green : Color.yellow;
+                EditorGUILayout.LabelField($"Required Skill: {requiredSkill.SkillName} ({(requiredSkill.IsUnlocked ? "Unlocked" : "Locked")})", reqStyle);
             }
             
             EditorGUILayout.EndVertical();

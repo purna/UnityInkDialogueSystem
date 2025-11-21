@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d25627198ff246d397ae456ca58d735, type: 3}
+  m_Name: CollectableDetectionSkill
+  m_EditorClassIdentifier: 
+  _skillName: Collectable Detection
+  _description: Collectable Detection Description
+  _icon: {fileID: 21300000, guid: 6e50b717ea48c08418fff124f6b20f5d, type: 3}
+  _lockedIcon: {fileID: 0}
+  _unlockedIcon: {fileID: 0}
+  _tier: 0
+  _unlockCost: 0
+  _skillType: 0
+  _value: 0
+  _maxLevel: 1
+  _prerequisites: []
+  _children: []
+  _unlockFunctions:
+  - {fileID: 11400000, guid: 76166bb3cb38a45be9a3146de92cb0ae, type: 2}
+  _position: {x: 0, y: 0}
+  _requiresSpecialKey: 0
+  _requiredKeyName: 
+  requiresSpecialKey: 0
+  requiredKeyName: 
+  detectionRadius: 15
+  showOnMinimap: 1

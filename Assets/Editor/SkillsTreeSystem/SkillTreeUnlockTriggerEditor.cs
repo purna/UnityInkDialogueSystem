@@ -35,11 +35,25 @@ public class SkillTreeUnlockTriggerEditor : Editor
     private SerializedProperty respectSkillRequirementsProp;
     private SerializedProperty skillPointsRewardProp;
     private SerializedProperty addToCurrentOnlyProp;
+    private SerializedProperty collectableRewardsProp;
+    private SerializedProperty rewardSpawnOffsetProp;
+
+    // Visual feedback properties
+    private SerializedProperty spriteRendererProp;
+    private SerializedProperty unlockParticlesProp;
+    private SerializedProperty unlockSoundProp;
+
+    // Locked prompt properties
+    private SerializedProperty lockedPromptObjectProp;
+    private SerializedProperty lockedPromptTextProp;
+    private SerializedProperty lockedPromptDisplayTimeProp;
 
     private ReorderableList abilitiesList;
     private ReorderableList skillsList;
+    private ReorderableList collectableRewardsList;
     private bool showPromptSettings = false;
     private bool showPositioningSettings = false;
+    private bool showLockedPromptSettings = false;
 
     private void OnEnable()
     {
@@ -72,6 +86,18 @@ public class SkillTreeUnlockTriggerEditor : Editor
         respectSkillRequirementsProp = serializedObject.FindProperty("respectSkillRequirements");
         skillPointsRewardProp = serializedObject.FindProperty("skillPointsReward");
         addToCurrentOnlyProp = serializedObject.FindProperty("addToCurrentOnly");
+        collectableRewardsProp = serializedObject.FindProperty("collectableRewards");
+        rewardSpawnOffsetProp = serializedObject.FindProperty("rewardSpawnOffset");
+
+        // Visual feedback properties
+        spriteRendererProp = serializedObject.FindProperty("spriteRenderer");
+        unlockParticlesProp = serializedObject.FindProperty("unlockParticles");
+        unlockSoundProp = serializedObject.FindProperty("unlockSound");
+
+        // Locked prompt properties
+        lockedPromptObjectProp = serializedObject.FindProperty("lockedPromptObject");
+        lockedPromptTextProp = serializedObject.FindProperty("lockedPromptText");
+        lockedPromptDisplayTimeProp = serializedObject.FindProperty("lockedPromptDisplayTime");
 
         // Setup Abilities List
         abilitiesList = new ReorderableList(serializedObject, abilitiesToUnlockProp, true, true, true, true);
@@ -106,6 +132,23 @@ public class SkillTreeUnlockTriggerEditor : Editor
                 GUIContent.none
             );
         };
+
+        // Setup Collectable Rewards List
+        collectableRewardsList = new ReorderableList(serializedObject, collectableRewardsProp, true, true, true, true);
+        collectableRewardsList.drawHeaderCallback = (Rect rect) =>
+        {
+            EditorGUI.LabelField(rect, "Collectable Rewards (Prefabs)");
+        };
+        collectableRewardsList.drawElementCallback = (Rect rect, int index, bool isActive, bool isFocused) =>
+        {
+            SerializedProperty element = collectableRewardsList.serializedProperty.GetArrayElementAtIndex(index);
+            rect.y += 2;
+            EditorGUI.PropertyField(
+                new Rect(rect.x, rect.y, rect.width, EditorGUIUtility.singleLineHeight),
+                element,
+                GUIContent.none
+            );
+        };
     }
 
     public override void OnInspectorGUI()
@@ -119,12 +162,11 @@ public class SkillTreeUnlockTriggerEditor : Editor
 
         EditorGUILayout.Space(5);
 
-        // Visual Cue Header
-        EditorGUILayout.LabelField("Visual Cue", EditorStyles.boldLabel);
-        EditorGUILayout.PropertyField(visualCueProp, new GUIContent("Visual Cue GameObject"));
+        // Visual Feedback Section
+        DrawVisualFeedbackSection();
         EditorGUILayout.Space();
 
-        // Emote Animator Header
+        // Emote Animator
         EditorGUILayout.LabelField("Emote Animator", EditorStyles.boldLabel);
         EditorGUILayout.PropertyField(emoteAnimatorProp, new GUIContent("Animator (Optional)"));
         EditorGUILayout.PropertyField(playEmoteOnTriggerProp, new GUIContent("Play Emote On Trigger"));
@@ -138,6 +180,10 @@ public class SkillTreeUnlockTriggerEditor : Editor
         DrawUnlockSettings();
         EditorGUILayout.Space();
 
+        // Collectable Rewards Section
+        DrawCollectableRewardsSection();
+        EditorGUILayout.Space();
+
         // Trigger Settings
         DrawTriggerSettings();
         EditorGUILayout.Space();
@@ -148,6 +194,10 @@ public class SkillTreeUnlockTriggerEditor : Editor
             DrawUIPromptSettings();
             EditorGUILayout.Space();
         }
+
+        // Locked Prompt Settings (always show)
+        DrawLockedPromptSettings();
+        EditorGUILayout.Space();
 
         // Feedback Settings
         DrawFeedbackSettings();
@@ -163,6 +213,7 @@ public class SkillTreeUnlockTriggerEditor : Editor
     {
         bool triggerOnEnter = triggerOnEnterProp.boolValue;
         bool requiresInput = requiresInputProp.boolValue;
+        bool respectRequirements = respectSkillRequirementsProp.boolValue;
 
         if (!triggerOnEnter && !requiresInput)
         {
@@ -170,6 +221,13 @@ public class SkillTreeUnlockTriggerEditor : Editor
                 "⚠️ WARNING: Both 'Trigger On Enter' and 'Requires Input' are FALSE!\n" +
                 "This trigger will NEVER activate. Please enable one of them.",
                 MessageType.Error);
+        }
+        else if (respectRequirements && skillsToUnlockProp.arraySize > 0)
+        {
+            EditorGUILayout.HelpBox(
+                "🔒 PREREQUISITES MODE: Will check if skills have their prerequisites unlocked.\n" +
+                "Shows locked prompt with missing prerequisite name if requirements aren't met.",
+                MessageType.Info);
         }
         else if (triggerOnEnter)
         {
@@ -184,6 +242,41 @@ public class SkillTreeUnlockTriggerEditor : Editor
                 $"✓ INPUT MODE: Player must press '{key}' to claim rewards.",
                 MessageType.Info);
         }
+    }
+
+    private void DrawVisualFeedbackSection()
+    {
+        EditorGUILayout.LabelField("Visual Feedback", EditorStyles.boldLabel);
+        
+        EditorGUILayout.PropertyField(spriteRendererProp, new GUIContent(
+            "Sprite Renderer",
+            "Will automatically display locked/unlocked icons from the first skill"));
+        
+        if (spriteRendererProp.objectReferenceValue != null && skillsToUnlockProp.arraySize > 0)
+        {
+            SerializedProperty firstSkill = skillsToUnlockProp.GetArrayElementAtIndex(0);
+            if (firstSkill.objectReferenceValue != null)
+            {
+                Skill skill = firstSkill.objectReferenceValue as Skill;
+                EditorGUILayout.HelpBox(
+                    $"💡 Using icons from: {skill.SkillName}\n" +
+                    $"Locked Icon: {(skill.LockedIcon != null ? skill.LockedIcon.name : "None")}\n" +
+                    $"Unlocked Icon: {(skill.UnlockedIcon != null ? skill.UnlockedIcon.name : "None")}",
+                    MessageType.Info);
+            }
+        }
+        
+        EditorGUILayout.PropertyField(unlockParticlesProp, new GUIContent(
+            "Unlock Particles",
+            "Particle effect to play when unlocked"));
+        
+        EditorGUILayout.PropertyField(unlockSoundProp, new GUIContent(
+            "Unlock Sound",
+            "Audio clip to play when unlocked"));
+        
+        EditorGUILayout.PropertyField(visualCueProp, new GUIContent(
+            "Additional Visual Cue",
+            "Optional extra GameObject for visual indication"));
     }
 
     private void DrawSystemReferences()
@@ -220,7 +313,7 @@ public class SkillTreeUnlockTriggerEditor : Editor
         }
         else
         {
-            EditorGUILayout.HelpBox("No rewards configured. Add abilities, skills, or skill points below.", MessageType.Warning);
+            EditorGUILayout.HelpBox("No skill/ability rewards configured. Add abilities, skills, or skill points below.", MessageType.Warning);
         }
         
         EditorGUILayout.Space(5);
@@ -248,19 +341,20 @@ public class SkillTreeUnlockTriggerEditor : Editor
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(respectSkillRequirementsProp, new GUIContent(
                 "Respect Requirements",
-                "If TRUE, uses normal unlock (checks cost/prerequisites). If FALSE, force unlocks."));
+                "If TRUE, checks skill prerequisites. If FALSE, force unlocks."));
             EditorGUI.indentLevel--;
             
             if (respectSkillRequirementsProp.boolValue)
             {
                 EditorGUILayout.HelpBox(
-                    "Requirements Mode: Skills will only unlock if prerequisites are met and player has enough skill points.",
+                    "Requirements Mode: Skills will only unlock if their prerequisites are met.\n" +
+                    "Will show locked prompt with missing prerequisite name if not met.",
                     MessageType.Info);
             }
             else
             {
                 EditorGUILayout.HelpBox(
-                    "Force Unlock Mode: Skills will unlock regardless of prerequisites or cost (useful for story rewards).",
+                    "Force Unlock Mode: Skills will unlock regardless of prerequisites (useful for story rewards).",
                     MessageType.Warning);
             }
         }
@@ -298,13 +392,36 @@ public class SkillTreeUnlockTriggerEditor : Editor
         EditorGUI.indentLevel--;
     }
 
+    private void DrawCollectableRewardsSection()
+    {
+        EditorGUILayout.LabelField("Collectable Rewards", EditorStyles.boldLabel);
+        
+        EditorGUILayout.HelpBox(
+            "💰 Spawn collectable prefabs when unlocked (coins, items, health, etc.)\n" +
+            "Works just like SkillGatedChest rewards!",
+            MessageType.None);
+        
+        collectableRewardsList.DoLayoutList();
+        
+        if (collectableRewardsProp.arraySize > 0)
+        {
+            EditorGUILayout.PropertyField(rewardSpawnOffsetProp, new GUIContent(
+                "Spawn Offset",
+                "Position offset for spawning rewards (relative to trigger)"));
+            
+            EditorGUILayout.HelpBox(
+                $"✓ Will spawn {collectableRewardsProp.arraySize} collectable(s) when unlocked",
+                MessageType.Info);
+        }
+    }
+
     private void DrawTriggerSettings()
     {
         EditorGUILayout.LabelField("Trigger Settings", EditorStyles.boldLabel);
         
         EditorGUILayout.PropertyField(triggerOnEnterProp, new GUIContent(
             "Trigger On Enter",
-            "If TRUE, applies unlocks immediately when player enters"));
+            "If TRUE, applies unlocks immediately when player enters (if prerequisites met)"));
         
         EditorGUILayout.PropertyField(requiresInputProp, new GUIContent(
             "Requires Input",
@@ -338,7 +455,7 @@ public class SkillTreeUnlockTriggerEditor : Editor
 
     private void DrawUIPromptSettings()
     {
-        showPromptSettings = EditorGUILayout.BeginFoldoutHeaderGroup(showPromptSettings, "UI Prompt Settings");
+        showPromptSettings = EditorGUILayout.BeginFoldoutHeaderGroup(showPromptSettings, "UI Prompt Settings (Success)");
         
         if (showPromptSettings)
         {
@@ -368,6 +485,37 @@ public class SkillTreeUnlockTriggerEditor : Editor
                     "Update position every frame (for moving triggers)"));
                 EditorGUI.indentLevel--;
             }
+            
+            EditorGUI.indentLevel--;
+        }
+        
+        EditorGUILayout.EndFoldoutHeaderGroup();
+    }
+
+    private void DrawLockedPromptSettings()
+    {
+        showLockedPromptSettings = EditorGUILayout.BeginFoldoutHeaderGroup(showLockedPromptSettings, "Locked Prompt Settings (When Blocked)");
+        
+        if (showLockedPromptSettings)
+        {
+            EditorGUI.indentLevel++;
+            
+            EditorGUILayout.HelpBox(
+                "This prompt shows when player tries to interact but prerequisites aren't met.\n" +
+                "Example: 'Requires Dash to be unlocked first!' (when skill prerequisites not met)",
+                MessageType.Info);
+            
+            EditorGUILayout.PropertyField(lockedPromptObjectProp, new GUIContent(
+                "Locked Prompt Object",
+                "UI GameObject to show when locked"));
+            
+            EditorGUILayout.PropertyField(lockedPromptTextProp, new GUIContent(
+                "Locked Prompt Text",
+                "TextMeshProUGUI component for the message"));
+            
+            EditorGUILayout.PropertyField(lockedPromptDisplayTimeProp, new GUIContent(
+                "Display Time",
+                "How long to show the locked message"));
             
             EditorGUI.indentLevel--;
         }
@@ -419,6 +567,11 @@ public class SkillTreeUnlockTriggerEditor : Editor
             statusStyle.normal.textColor = trigger.IsPlayerInRange ? Color.green : Color.gray;
             EditorGUILayout.LabelField($"Player In Range: {trigger.IsPlayerInRange}", statusStyle);
             
+            GUIStyle unlockedStyle = new GUIStyle(EditorStyles.label);
+            bool isUnlocked = trigger.HasBeenUnlocked();
+            unlockedStyle.normal.textColor = isUnlocked ? Color.green : Color.yellow;
+            EditorGUILayout.LabelField($"Has Been Unlocked: {isUnlocked}", unlockedStyle);
+            
             GUIStyle triggeredStyle = new GUIStyle(EditorStyles.label);
             triggeredStyle.normal.textColor = trigger.HasTriggered ? Color.yellow : Color.green;
             EditorGUILayout.LabelField($"Has Triggered: {trigger.HasTriggered}", triggeredStyle);
@@ -445,7 +598,8 @@ public class SkillTreeUnlockTriggerEditor : Editor
                 "✓ Trigger is ready! Make sure to:\n" +
                 "• Add a 2D Collider with 'Is Trigger' enabled\n" +
                 "• Set the collider size to your desired trigger area\n" +
-                "• Tag your player GameObject as 'Player'",
+                "• Tag your player GameObject as 'Player'\n" +
+                "• Assign at least one Skill to see locked/unlocked visuals",
                 MessageType.Info);
             
             // Check for collider
@@ -509,6 +663,14 @@ public class SkillTreeUnlockTriggerEditor : Editor
             if (GUILayout.Button("+ Add Skill Slot"))
             {
                 skillsToUnlockProp.arraySize++;
+                serializedObject.ApplyModifiedProperties();
+            }
+            EditorGUILayout.EndHorizontal();
+            
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("+ Add Reward Slot"))
+            {
+                collectableRewardsProp.arraySize++;
                 serializedObject.ApplyModifiedProperties();
             }
             EditorGUILayout.EndHorizontal();

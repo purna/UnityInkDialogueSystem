@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Core.Game;
 
 [RequireComponent(typeof(CircleCollider2D))]
 [RequireComponent(typeof(CollectableTriggerHandler))]

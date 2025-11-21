@@ -1,0 +1,192 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2024501337638676060
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8634865463218505300}
+  - component: {fileID: 8494866098592217107}
+  - component: {fileID: 2535717904790966507}
+  - component: {fileID: 1025916438472192036}
+  - component: {fileID: 1344161785630083122}
+  - component: {fileID: 5889273239844316044}
+  - component: {fileID: 4597297850336992922}
+  - component: {fileID: 1588326782383284613}
+  m_Layer: 0
+  m_Name: '[DialogueManager]'
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8634865463218505300
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2024501337638676060}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8494866098592217107
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2024501337638676060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac9127d8a5c9e4c8fbc1afef500dd485, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _setupMode: 1
+  dialogueContainer: {fileID: 11400000, guid: ab3078607f9144596b7b286217a17024, type: 2}
+  dialogueGroup: {fileID: 11400000, guid: 85e2c13f934754bb48242ce1b7727c2f, type: 2}
+  dialogue: {fileID: 11400000, guid: 766474e2022814868b51f36dd2572820, type: 2}
+  emoteAnimator: {fileID: 0}
+  groupedDialogues: 1
+  startingDialoguesOnly: 1
+  selectedDialogueGroupIndex: 0
+  selectedDialogueIndex: 0
+  dialogueManager: {fileID: 2535717904790966507}
+  dialogueUI: {fileID: 4597297850336992922}
+  typewriter: {fileID: 1588326782383284613}
+  initializeOnStart: 0
+  startDelay: 0
+  _allowCloseWithKey: 1
+  _closeKey: 27
+  _playerObject: {fileID: 0}
+  _disablePlayerWhenOpen: 1
+--- !u!114 &2535717904790966507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2024501337638676060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4bec9d6b583e2f148bc72d8f1438d47b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _inkManager: {fileID: 1025916438472192036}
+  useReturnKey: 1
+  useMouseClick: 1
+  useSpaceKey: 1
+--- !u!114 &1025916438472192036
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2024501337638676060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9a61ac454efd45ee8c862db24fd8b21, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &1344161785630083122
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2024501337638676060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2ff8da84906b84cbd898884174a5a96e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  dialogueManager: {fileID: 2535717904790966507}
+  player: {fileID: 0}
+  movementScriptName: CharacterController2D
+  stopVelocity: 1
+  freezeRigidbody: 0
+  additionalScriptNames: []
+--- !u!114 &5889273239844316044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2024501337638676060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d5861f22be684c21b7a2907f21ef8d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _registeredVariables:
+  - {fileID: 11400000, guid: f58f256217ff043c59e8e5a7116fa048, type: 2}
+  _inkGlobalsJSON: {fileID: 4900000, guid: 887664fee91ae02418ad84c36b9b5e18, type: 3}
+  _enablePersistence: 1
+  _saveKey: DIALOGUE_VARIABLES
+--- !u!114 &4597297850336992922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2024501337638676060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 630fc102aac4b4f20a2cb8c8e96f417b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  screenSpaceCanvas: {fileID: 0}
+  worldSpaceCanvas: {fileID: 0}
+  screenSpaceDialoguePanel: {fileID: 0}
+  screenSpaceDialogueText: {fileID: 0}
+  screenSpaceSpeakerNameText: {fileID: 0}
+  screenSpaceCharacterIcon: {fileID: 0}
+  screenSpaceChoicesContainer: {fileID: 0}
+  screenSpaceChoiceButtonPrefab: {fileID: 61033211581455285, guid: ef5ad8fd03be744e5867c771fdc234e1, type: 3}
+  screenSpaceContinueButton: {fileID: 0}
+  screenSpacePortraitAnimator: {fileID: 0}
+  screenSpaceLayoutAnimator: {fileID: 0}
+  worldSpaceDialoguePanel: {fileID: 0}
+  worldSpaceDialogueText: {fileID: 0}
+  worldSpaceSpeakerNameText: {fileID: 0}
+  worldSpaceCharacterIcon: {fileID: 0}
+  worldSpaceChoicesContainer: {fileID: 0}
+  worldSpaceChoiceButtonPrefab: {fileID: 61033211581455285, guid: ef5ad8fd03be744e5867c771fdc234e1, type: 3}
+  worldSpaceContinueButton: {fileID: 0}
+  worldSpacePortraitAnimator: {fileID: 0}
+  worldSpaceLayoutAnimator: {fileID: 0}
+  typewriterEffect: {fileID: 1588326782383284613}
+  defaultAudioInfo: {fileID: 11400000, guid: a8bb328890830284b910f8770777d2bb, type: 2}
+  audioInfos:
+  - {fileID: 11400000, guid: a8bb328890830284b910f8770777d2bb, type: 2}
+  - {fileID: 11400000, guid: 92afdbdd41141c14c80909b5eb68e59d, type: 2}
+  - {fileID: 11400000, guid: cafd91373050aca4c9a4c0937f886e8e, type: 2}
+  makePredictable: 1
+  dialogueManager: {fileID: 2535717904790966507}
+  useReturnKey: 0
+  useMouseClick: 1
+  useSpaceKey: 1
+  worldSpaceOffset: {x: 0, y: 2.5, z: 0}
+  worldSpaceFaceCamera: 1
+--- !u!114 &1588326782383284613
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2024501337638676060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9fd3cc19f22c44a52b382dd0b402bbd0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  typingSpeed: 0.04
+  dialogueUI: {fileID: 4597297850336992922}

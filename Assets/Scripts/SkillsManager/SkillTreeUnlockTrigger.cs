@@ -1,9 +1,15 @@
 using UnityEngine;
+using TMPro;
+using System.Collections;
 using System.Collections.Generic;
+using Core.Game;
 
 /// <summary>
 /// Triggers skill unlocks, ability unlocks, and skill point rewards when player enters the trigger zone
 /// Can unlock multiple abilities and award skill points in a single trigger
+/// Shows visual cues (sprite, particles) and UI prompts based on lock state
+/// Can require a specific skill to be unlocked before activating (like a skill gate)
+/// Can spawn collectable rewards when unlocked
 /// </summary>
 public class SkillTreeUnlockTrigger : BaseSkillTrigger
 {
@@ -31,6 +37,24 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
     [Tooltip("If TRUE, adds to current points only. If FALSE, also updates total earned.")]
     [SerializeField] public bool addToCurrentOnly = false;
 
+    [Header("Collectable Rewards")]
+    [Tooltip("Collectable prefabs to spawn when unlocked (coins, items, etc.)")]
+    [SerializeField] private GameObject[] collectableRewards;
+    [Tooltip("Offset position for spawning rewards (relative to trigger position)")]
+    [SerializeField] private Vector3 rewardSpawnOffset = Vector3.up;
+
+    [Header("Visual Feedback")]
+    [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private ParticleSystem unlockParticles;
+    [SerializeField] private AudioClip unlockSound;
+    
+    [Header("UI Prompt (For Locked State)")]
+    [SerializeField] private GameObject lockedPromptObject;
+    [SerializeField] private TextMeshProUGUI lockedPromptText;
+    [SerializeField] private float lockedPromptDisplayTime = 2f;
+
+    private bool hasBeenUnlocked = false;
+
     protected override void Awake()
     {
         // Set default prompt text for unlock triggers
@@ -40,6 +64,17 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
         }
 
         base.Awake();
+    }
+
+    protected virtual void Start()
+    {
+        // Hide locked prompt at start
+        if (lockedPromptObject != null)
+        {
+            lockedPromptObject.SetActive(false);
+        }
+        
+        UpdateVisualState();
     }
 
     protected override void InitializeReferences()
@@ -64,6 +99,28 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
         }
     }
 
+    protected override void OnTriggerEnter2D(Collider2D other)
+    {
+        if (!other.CompareTag("Player"))
+            return;
+
+        // If already unlocked, don't do anything
+        if (hasBeenUnlocked && !canTriggerMultipleTimes)
+        {
+            return;
+        }
+
+        // Check if prerequisites are met (if respecting requirements)
+        if (respectSkillRequirements && !CanUnlock())
+        {
+            ShowLockedPrompt();
+            return;
+        }
+
+        // Call base implementation for normal trigger behavior
+        base.OnTriggerEnter2D(other);
+    }
+
     protected override void OnTriggerActivated()
     {
         if (showDebugLogs)
@@ -72,6 +129,13 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
         if (skillTreeManager == null)
         {
             Debug.LogError($"[SkillTreeUnlockTrigger:{gameObject.name}] SkillTreeManager not found! Cannot unlock abilities.");
+            return;
+        }
+
+        // Check prerequisites if respecting requirements
+        if (respectSkillRequirements && !CanUnlock())
+        {
+            ShowLockedPrompt();
             return;
         }
 
@@ -140,11 +204,6 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
         {
             if (addToCurrentOnly)
             {
-                // Only add to current points (e.g., temporary bonus, refund)
-                // This modifies the private field directly through reflection or a new manager method
-                // For now, we'll use AddSkillPoints which updates both
-                // You may want to add a new method to SkillTreeManager: AddCurrentSkillPointsOnly(int amount)
-                
                 if (showDebugLogs)
                     Debug.LogWarning($"[SkillTreeUnlockTrigger:{gameObject.name}] 'addToCurrentOnly' is not fully supported - adds to both current and total");
                 
@@ -152,7 +211,6 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
             }
             else
             {
-                // Normal: add to both current and total earned
                 skillTreeManager.AddSkillPoints(skillPointsReward);
             }
             
@@ -160,8 +218,21 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
                 Debug.Log($"[SkillTreeUnlockTrigger:{gameObject.name}] ✓ Awarded {skillPointsReward} skill points");
         }
 
-        // Mark as triggered
+        // Spawn collectable rewards
+        if (collectableRewards != null && collectableRewards.Length > 0)
+        {
+            SpawnCollectableRewards();
+        }
+
+        // Mark as unlocked
+        hasBeenUnlocked = true;
         hasTriggered = true;
+
+        // Update visual state
+        UpdateVisualState();
+
+        // Play unlock effects
+        PlayUnlockEffects();
 
         // Play emote
         PlayEmote();
@@ -178,8 +249,156 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
         if (showDebugLogs)
         {
             Debug.Log($"[SkillTreeUnlockTrigger:{gameObject.name}] ✓ Trigger complete! " +
-                      $"Unlocked: {unlockedCount} items, Awarded: {skillPointsReward} SP");
+                      $"Unlocked: {unlockedCount} items, Awarded: {skillPointsReward} SP, Spawned: {collectableRewards.Length} collectables");
         }
+    }
+
+    /// <summary>
+    /// Check if all prerequisites are met to unlock this trigger
+    /// Only used when respectSkillRequirements is TRUE
+    /// </summary>
+    private bool CanUnlock()
+    {
+        // If already unlocked and can't trigger multiple times, return false
+        if (hasBeenUnlocked && !canTriggerMultipleTimes)
+            return false;
+
+        // Check if all skills have their prerequisites met
+        if (skillsToUnlock != null && skillsToUnlock.Count > 0)
+        {
+            foreach (Skill skill in skillsToUnlock)
+            {
+                if (skill != null && !skill.CanUnlock())
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Updates the visual representation based on lock state
+    /// Uses the skill's locked/unlocked icons from the Skill ScriptableObject
+    /// </summary>
+    private void UpdateVisualState()
+    {
+        if (spriteRenderer == null)
+            return;
+
+        // Use the first skill's icon if available
+        if (skillsToUnlock != null && skillsToUnlock.Count > 0 && skillsToUnlock[0] != null)
+        {
+            Skill firstSkill = skillsToUnlock[0];
+            spriteRenderer.sprite = hasBeenUnlocked ? firstSkill.UnlockedIcon : firstSkill.LockedIcon;
+        }
+    }
+
+    /// <summary>
+    /// Spawn all collectable rewards at the trigger position
+    /// </summary>
+    private void SpawnCollectableRewards()
+    {
+        foreach (var reward in collectableRewards)
+        {
+            if (reward != null)
+            {
+                Instantiate(reward, transform.position + rewardSpawnOffset, Quaternion.identity);
+                
+                if (showDebugLogs)
+                    Debug.Log($"[SkillTreeUnlockTrigger:{gameObject.name}] ✓ Spawned reward: {reward.name}");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Show locked prompt message to player
+    /// </summary>
+    private void ShowLockedPrompt()
+    {
+        if (lockedPromptObject == null || lockedPromptText == null)
+            return;
+
+        string message = GetLockedMessage();
+        
+        if (showDebugLogs)
+            Debug.Log($"[SkillTreeUnlockTrigger:{gameObject.name}] Showing locked message: {message}");
+        
+        lockedPromptObject.SetActive(true);
+        lockedPromptText.text = message;
+        
+        // Auto-hide after delay
+        StartCoroutine(HideLockedPromptAfterDelay());
+    }
+
+    /// <summary>
+    /// Generate the locked message based on missing prerequisites
+    /// Checks skill prerequisites for missing requirements
+    /// </summary>
+    private string GetLockedMessage()
+    {
+        // Check skill prerequisites (only if respecting requirements)
+        if (respectSkillRequirements && skillsToUnlock != null && skillsToUnlock.Count > 0)
+        {
+            // Check each skill for missing prerequisites
+            foreach (Skill skill in skillsToUnlock)
+            {
+                if (skill != null && !skill.CanUnlock())
+                {
+                    // Find which prerequisite is missing
+                    if (skill.Prerequisites != null && skill.Prerequisites.Count > 0)
+                    {
+                        foreach (Skill prereq in skill.Prerequisites)
+                        {
+                            if (prereq != null && !prereq.IsUnlocked)
+                            {
+                                return $"Requires '{prereq.SkillName}' to be unlocked first!";
+                            }
+                        }
+                    }
+                    
+                    return $"Prerequisites for '{skill.SkillName}' not met!";
+                }
+            }
+        }
+
+        return "Prerequisites not met!";
+    }
+
+    private IEnumerator HideLockedPromptAfterDelay()
+    {
+        yield return new WaitForSeconds(lockedPromptDisplayTime);
+        
+        if (lockedPromptObject != null)
+        {
+            lockedPromptObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Play unlock visual and audio effects
+    /// </summary>
+    private void PlayUnlockEffects()
+    {
+        // Play particle effect
+        if (unlockParticles != null)
+        {
+            unlockParticles.Play();
+        }
+
+        // Play sound effect
+        if (unlockSound != null)
+        {
+            AudioSource.PlayClipAtPoint(unlockSound, transform.position);
+        }
+    }
+
+    public override void ResetTrigger()
+    {
+        base.ResetTrigger();
+        hasBeenUnlocked = false;
+        UpdateVisualState();
     }
 
     #region Public Methods
@@ -246,6 +465,22 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
         return new List<Skill>(skillsToUnlock);
     }
 
+    /// <summary>
+    /// Check if this trigger has been unlocked
+    /// </summary>
+    public bool HasBeenUnlocked()
+    {
+        return hasBeenUnlocked;
+    }
+
+    /// <summary>
+    /// Get the collectable rewards array
+    /// </summary>
+    public GameObject[] GetCollectableRewards()
+    {
+        return collectableRewards;
+    }
+
     #endregion
 
     #region Editor Support
@@ -255,6 +490,11 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
         #if UNITY_EDITOR
         string label = "Skill Unlock Trigger\n";
         
+        if (hasBeenUnlocked)
+            label += "[UNLOCKED]\n";
+        else
+            label += "[LOCKED]\n";
+        
         if (abilitiesToUnlock != null && abilitiesToUnlock.Count > 0)
         {
             label += $"Abilities: {abilitiesToUnlock.Count}\n";
@@ -263,11 +503,20 @@ public class SkillTreeUnlockTrigger : BaseSkillTrigger
         if (skillsToUnlock != null && skillsToUnlock.Count > 0)
         {
             label += $"Skills: {skillsToUnlock.Count}\n";
+            if (skillsToUnlock[0] != null)
+            {
+                label += $"Primary: {skillsToUnlock[0].SkillName}\n";
+            }
         }
         
         if (skillPointsReward > 0)
         {
             label += $"SP Reward: {skillPointsReward}\n";
+        }
+
+        if (collectableRewards != null && collectableRewards.Length > 0)
+        {
+            label += $"Rewards: {collectableRewards.Length}\n";
         }
         
         if (triggerOnEnter)

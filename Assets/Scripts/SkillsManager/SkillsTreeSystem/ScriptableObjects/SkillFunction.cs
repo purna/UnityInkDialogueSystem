@@ -1,4 +1,33 @@
 using UnityEngine;
+using Core.Game;
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SKILL FUNCTION — INSTRUCTIONS
+// ═══════════════════════════════════════════════════════════════════════════
+// PURPOSE:
+// - A SkillFunction runs automatically when a Skill is unlocked or leveled.
+// - Used to apply gameplay effects: stat boosts, abilities, events, etc.
+//
+// WHEN TO USE:
+// - You want a skill to modify stats (damage, health, speed, etc.)
+// - You want a skill to unlock an ability by ID
+// - You want a skill to trigger a custom gameplay event
+//
+// EXAMPLES:
+// - StatModifierFunction → +10% damage, +5 max HP, +speed
+// - UnlockAbilityFunction → unlocks a player ability like Dash, Double Jump
+// - CustomEventFunction → triggers script-defined events for quests or systems
+//
+// WHAT HAPPENS AT RUNTIME:
+// 1. Player unlocks a Skill
+// 2. All SkillFunctions attached to the Skill are executed
+// 3. Each function applies gameplay effects using SkillTreeManager
+//
+// HOW TO CREATE:
+// 1. Right-click → Skill Tree → Functions → (choose type)
+// 2. Fill out the name, description, and parameters
+// 3. Assign to a Skill in the Skill's inspector
+
 
 /// <summary>
 /// Base class for skill functions that execute when a skill is unlocked
@@ -8,61 +37,23 @@ public abstract class SkillFunction : ScriptableObject
     [SerializeField] private string _functionName;
     [SerializeField, TextArea] private string _description;
     
-    public string FunctionName => _functionName;
-    public string Description => _description;
+
+     public string FunctionName
+    {
+        get => _functionName;
+        set => _functionName = value;
+    }
+
+
+    public string Description
+    {
+        get => _description;
+        set => _description = value;
+    }
+
     
     /// <summary>
     /// Execute the function for a Skill
     /// </summary>
     public abstract void Execute(Skill skill);
-}
-
-/// <summary>
-/// Function that modifies a player stat
-/// </summary>
-[CreateAssetMenu(fileName = "StatModifierFunction", menuName = "Skill Tree/Functions/Stat Modifier")]
-public class StatModifierFunction : SkillFunction
-{
-    [SerializeField] private StatType _statType;
-    [SerializeField] private ModifierType _modifierType;
-    [SerializeField] private bool _useSkillValue = true;
-    [SerializeField] private float _customValue;
-    
-    public override void Execute(Skill skill)
-    {
-        float value = _useSkillValue ? skill.GetScaledValue() : _customValue;
-        SkillTreeManager.Instance?.ModifyStat(_statType, _modifierType, value);
-        Debug.Log($"[SkillFunction] Modified {_statType} by {value} ({_modifierType}) for skill '{skill.SkillName}'");
-    }
-}
-
-/// <summary>
-/// Function that unlocks a new ability
-/// </summary>
-[CreateAssetMenu(fileName = "UnlockAbilityFunction", menuName = "Skill Tree/Functions/Unlock Ability")]
-public class UnlockAbilityFunction : SkillFunction
-{
-    [SerializeField] private string _abilityID;
-    
-    public override void Execute(Skill skill)
-    {
-        SkillTreeManager.Instance?.UnlockAbility(_abilityID);
-        Debug.Log($"[SkillFunction] Unlocked ability: {_abilityID} from skill '{skill.SkillName}'");
-    }
-}
-
-/// <summary>
-/// Function that triggers a custom event
-/// </summary>
-[CreateAssetMenu(fileName = "CustomEventFunction", menuName = "Skill Tree/Functions/Custom Event")]
-public class CustomEventFunction : SkillFunction
-{
-    [SerializeField] private string _eventName;
-    [SerializeField] private string _eventParameter;
-    
-    public override void Execute(Skill skill)
-    {
-        SkillTreeManager.Instance?.TriggerCustomEvent(_eventName, _eventParameter, skill);
-        Debug.Log($"[SkillFunction] Triggered event: {_eventName} from skill '{skill.SkillName}'");
-    }
 }

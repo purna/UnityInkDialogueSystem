@@ -61,3 +61,28 @@ public enum ModifierType
     Percentage,     // Adds a percentage (e.g., +15% damage)
     Multiplicative  // Multiplies the value (e.g., x1.5 damage)
 }
+
+/// <summary>
+/// Central lists for abilities and events in the skill tree
+/// </summary>
+public static class SkillTreeReferences
+{
+    // List of all abilities in the game
+    public static readonly string[] abilityOptions = new string[]
+    {
+        "Dash",
+        "DoubleJump",
+        "Fireball",
+        "IceShield",
+        "Heal"
+    };
+
+    // List of all custom events in the game
+    public static readonly string[] eventOptions = new string[]
+    {
+        "OnEnemyKilled",
+        "OnItemCollected",
+        "OnLevelUp",
+        "OnBossDefeated"
+    };
+}

@@ -27,3 +27,7 @@ MonoBehaviour:
   _children: []
   _unlockFunctions: []
   _position: {x: 938, y: -278.5}
+  _requiresSpecialKey: 0
+  _requiredKeyName: 
+  requiresSpecialKey: 0
+  requiredKeyName: 

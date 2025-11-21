@@ -1,0 +1,46 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/Editor%20Default%20Resources/SkillsTreeSystem/SkillTreeStyles.uss?fileID=7433441132597879392&amp;guid=32db2b953dcead8438c1a5c36d67e7cf&amp;type=3#SkillTreeStyles" />
+    <ui:VisualElement name="Root" style="flex-grow: 1; flex-direction: column; background-color: rgb(20, 20, 20);">
+        <ui:VisualElement name="MainContent" style="flex-grow: 1; flex-direction: row; overflow: hidden; height: auto; margin-top: 15%;">
+            <ui:VisualElement name="CanvasArea" class="canvas-area" style="flex-grow: 1; position: relative; overflow: hidden; background-color: rgb(20, 20, 20); height: 100%;">
+                <ui:VisualElement name="ConnectionsLayer" picking-mode="Ignore" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;" />
+                <ui:VisualElement name="NodesContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;" />
+                <ui:Label name="InstructionLabel" text="Navigation..." style="position: absolute; bottom: 15px; left: 15px; color: rgba(255, 255, 255, 0.3); font-size: 11px; -unity-font-style: italic;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Sidebar" class="sidebar" style="width: 35%; background-color: rgb(25, 25, 25); border-left-width: 1px; border-left-color: rgb(60, 60, 60); padding: 20px; display: none; height: 100%; padding-top: 12px; padding-right: 12px; padding-bottom: 12px; padding-left: 12px;">
+                <ui:VisualElement name="InspectorContent">
+                    <ui:VisualElement style="flex-direction: row; margin-bottom: 20px; align-items: center;">
+                        <ui:VisualElement name="SidebarIcon" style="width: 60px; height: 60px; margin-right: 15px; -unity-background-scale-mode: scale-to-fit;" />
+                        <ui:VisualElement>
+                            <ui:Label name="LevelName" text="Level 1-1" style="font-size: 24px; color: white; -unity-font-style: bold;" />
+                            <ui:Label name="LevelStatus" text="LOCKED" style="font-size: 12px; -unity-font-style: bold; color: grey;" />
+                        </ui:VisualElement>
+                    </ui:VisualElement>
+                    <ui:Label text="Mission Brief" style="color: grey; font-size: 10px; -unity-font-style: bold; text-transform: uppercase;" />
+                    <ui:Label name="LevelDesc" text="Desc..." style="font-size: 13px; color: rgb(200, 200, 200); white-space: normal; margin-bottom: 20px; padding: 10px; background-color: rgb(40, 40, 40); border-radius: 5px;" />
+                    <ui:Label text="Performance" style="color: grey; font-size: 10px; -unity-font-style: bold; text-transform: uppercase;" />
+                    <ui:VisualElement style="flex-direction: row; margin-bottom: 30px; margin-top: 5px;">
+                        <ui:VisualElement name="Star1" style="width: 25px; height: 25px; margin-right: 5px; background-color: grey; border-radius: 50%;" />
+                        <ui:VisualElement name="Star2" style="width: 25px; height: 25px; margin-right: 5px; background-color: grey; border-radius: 50%;" />
+                        <ui:VisualElement name="Star3" style="width: 25px; height: 25px; background-color: grey; border-radius: 50%;" />
+                    </ui:VisualElement>
+                    <ui:Button name="PlayButton" text="PLAY LEVEL" style="height: 50px; border-radius: 8px; background-color: rgb(37, 99, 235); color: white; font-size: 18px; -unity-font-style: bold; border-width: 0; margin-top: auto;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="Header" class="header" style="height: 15%; width: 100%; background-color: rgb(30, 30, 35); flex-direction: row; align-items: center; justify-content: space-between; padding: 0 20px; border-bottom-width: 1px; border-bottom-color: rgb(50, 50, 50); flex-shrink: 0;">
+            <ui:VisualElement name="Breadcrumbs" style="flex-direction: row; align-items: center;">
+                <ui:Button name="HomeLink" style="flex-direction: row; align-items: center; background-color: transparent; border-width: 1px; border-color: rgba(0, 0, 0, 0); border-radius: 6px; padding: 6px 12px; margin: 0; cursor: link;">
+                    <ui:VisualElement name="HomeIcon" picking-mode="Ignore" style="width: 20px; height: 20px; margin-right: 8px; -unity-background-scale-mode: scale-to-fit;" />
+                    <ui:Label name="HomeText" text="World Map" picking-mode="Ignore" style="color: rgb(200, 200, 200); font-size: 16px; -unity-font-style: bold;" />
+                </ui:Button>
+                <ui:Label name="BreadcrumbSeparator" text=" &gt; " style="color: rgb(100, 100, 100); font-size: 18px; margin-left: 5px; margin-right: 5px;" />
+                <ui:VisualElement name="CurrentWorldContainer" style="flex-direction: row; align-items: center;">
+                    <ui:VisualElement name="CurrentWorldIcon" style="width: 24px; height: 24px; margin-right: 8px; -unity-background-scale-mode: scale-to-fit;" />
+                    <ui:Label name="CurrentViewLabel" text="Select World" style="color: white; font-size: 18px; -unity-font-style: bold;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:Label name="TotalStars" text="0 Stars" style="color: rgb(255, 215, 0); font-size: 14px; -unity-font-style: bold; flex-wrap: nowrap; align-items: auto;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

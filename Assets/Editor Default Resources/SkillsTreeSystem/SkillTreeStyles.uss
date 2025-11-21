@@ -1,0 +1,235 @@
+/* ============================================================
+   GLOBAL LAYOUT (New Vertical Structure)
+   ============================================================ */
+.container {
+    flex-grow: 1;
+    background-color: rgb(15, 23, 42);
+    flex-direction: row;
+}
+
+/* ============================================================
+   HEADER BAR
+   ============================================================ */
+
+.header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background-color: rgb(30, 41, 59);
+    border-bottom-width: 1px;
+    border-bottom-color: rgb(51, 65, 85);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 20px;
+    padding-right: 20px;
+    z-index: 100;
+}
+
+.header-title {
+    color: rgb(96, 165, 250);
+    font-size: 20px;
+    -unity-font-style: bold;
+}
+
+.header-subtitle {
+    color: rgb(148, 163, 184);
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.points-badge {
+    background-color: rgb(15, 23, 42);
+    border-width: 1px;
+    border-color: rgb(51, 65, 85);
+    border-radius: 15px;
+    padding: 5px 12px;
+    color: rgb(250, 204, 21);
+    -unity-font-style: bold;
+}
+
+/* ============================================================
+   CANVAS AREA
+   ============================================================ */
+
+.canvas-area {
+    flex-grow: 1;
+    position: relative;
+    background-color: rgb(15, 23, 42);
+    overflow: hidden;
+}
+
+.nodes-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-top: 80px;
+}
+
+.connections-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-top: 80px;
+}
+
+.skill-node {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    border-width: 4px;
+    border-color: rgb(51, 65, 85);
+    background-color: rgb(15, 23, 42);
+    justify-content: center;
+    align-items: center;
+    transition: scale 0.2s ease-out-back;
+}
+
+.skill-node:hover {
+    scale: 1.1;
+}
+
+.skill-node-icon {
+    width: 32px;
+    height: 32px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(71, 85, 105);
+}
+
+.cost-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: rgb(255, 255, 255);
+    border-width: 2px;
+    border-color: rgb(15, 23, 42);
+    color: white;
+    font-size: 12px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+}
+
+.node-unlocked {
+    border-color: rgb(234, 179, 8);
+    background-color: rgb(30, 41, 59);
+}
+
+.node-unlocked .skill-node-icon {
+    -unity-background-image-tint-color: rgb(234, 179, 8);
+}
+
+.node-available {
+    border-color: rgb(255, 255, 255);
+    background-color: rgb(30, 41, 59);
+}
+
+.node-available .skill-node-icon {
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.node-selected {
+    border-width: 6px;
+    border-color: rgb(59, 130, 246);
+}
+
+/* ============================================================
+   SIDEBAR (Right Side)
+   ============================================================ */
+
+.sidebar {
+    width: 350px;
+    background-color: rgb(30, 41, 59);
+    border-left-width: 1px;
+    border-left-color: rgb(51, 65, 85);
+    padding: 20px;
+    justify-content: flex-start;
+    display: none;
+}
+
+.sidebar-header-row {
+    flex-direction: row;
+    margin-bottom: 20px;
+    background-color: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+}
+
+.sidebar-icon {
+    width: 50px;
+    height: 50px;
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(203, 213, 225);
+}
+
+.sidebar-title {
+    font-size: 22px;
+    color: white;
+    -unity-font-style: bold;
+}
+
+.sidebar-status {
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: rgb(148, 163, 184);
+    margin-top: 2px;
+}
+
+.sidebar-section-label {
+    color: rgb(100, 116, 139);
+    font-size: 12px;
+    -unity-font-style: bold;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.sidebar-desc {
+    font-size: 14px;
+    color: rgb(203, 213, 225);
+    white-space: normal;
+    margin-bottom: 20px;
+    padding: 10px;
+    background-color: rgb(15, 23, 42);
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: rgb(51, 65, 85);
+}
+
+.sidebar-cost-text {
+    color: rgb(250, 204, 21);
+    font-size: 18px;
+    -unity-font-style: bold;
+    margin-bottom: 20px;
+}
+
+/* ============================================================
+   BUTTONS & STARS
+   ============================================================ */
+.unlock-btn {
+    height: 50px;
+    border-radius: 8px;
+    background-color: rgb(37, 99, 235);
+    color: white;
+    font-size: 18px;
+    -unity-font-style: bold;
+    border-width: 0;
+    margin-top: auto;
+}
+
+.unlock-btn:hover {
+    background-color: rgb(59, 130, 246);
+}
+
+.unlock-btn:disabled {
+    background-color: rgb(51, 65, 85);
+    color: rgb(100, 116, 139);
+}

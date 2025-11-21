@@ -28,3 +28,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 2db39a681629d434a9d7bfb492ecae1b, type: 2}
   _unlockFunctions: []
   _position: {x: 449, y: -246}
+  _requiresSpecialKey: 0
+  _requiredKeyName: 
+  requiresSpecialKey: 0
+  requiredKeyName: 
