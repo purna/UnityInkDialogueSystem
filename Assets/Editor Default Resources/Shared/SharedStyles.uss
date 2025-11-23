@@ -124,31 +124,20 @@
 /* Close Button */
 #SidebarCloseButton {
     position: absolute;
-    top: -10px;
-    right: -10px;
+    top: 10px;
+    right: 10px;
     width: 30px;
     height: 30px;
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
     border-width: 0;
     color: rgb(200, 200, 200);
-    font-size: 12px; 
-    
+    font-size: 14px;
     -unity-font-style: bold;
     padding: 0;
-    
-    /* ADDED: Centers the 'X' inside the circle */
-    justify-content: center;
-    align-items: center;
-    padding-bottom: 2px; /* Visual tweak to center text vertically */
-
     cursor: link;
     transition-property: background-color;
     transition-duration: 0.15s;
-    
-    /* Ensure the button is always on top and clickable */
-    z-index: 100; /* Increased to ensure it sits above content */
-    pointer-events: auto;
 }
 
 #SidebarCloseButton:hover {
@@ -179,156 +168,4 @@
     #Header {
         height: 50px;
     }
-}
-
-/* ============================================================
-   LEVEL MAP SPECIFIC STYLES
-   Import SharedStyles.uss first, then this file
-   ============================================================ */
-
-/* ============================================================
-   BREADCRUMB NAVIGATION
-   ============================================================ */
-#Breadcrumbs {
-    flex-direction: row;
-    align-items: center;
-}
-
-#BreadcrumbSeparator {
-    color: rgb(100, 100, 100);
-    font-size: 18px;
-    margin-left: 10px;
-    margin-right: 10px;
-    -unity-font-style: bold;
-}
-
-/* Home / Campaign Button */
-#HomeLink {
-    flex-direction: row;
-    align-items: center;
-    background-color: rgba(0, 0, 0, 0);
-    border-width: 1px;
-    border-color: rgba(0, 0, 0, 0);
-    border-radius: 6px;
-    margin: 0;
-    padding: 6px 12px;
-    transition-property: background-color, border-color;
-    transition-duration: 0.2s;
-    cursor: link;
-}
-
-#HomeLink:hover {
-    background-color: rgb(45, 45, 50);
-    border-color: rgb(70, 70, 70);
-}
-
-#HomeLink:active {
-    background-color: rgb(35, 35, 40);
-}
-
-#HomeIcon {
-    width: 20px;
-    height: 20px;
-    margin-right: 8px;
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-#HomeText {
-    color: rgb(200, 200, 200);
-    font-size: 16px;
-    -unity-font-style: bold;
-}
-
-#CurrentWorldContainer {
-    flex-direction: row;
-    align-items: center;
-}
-
-#CurrentWorldIcon {
-    width: 24px;
-    height: 24px;
-    margin-right: 8px;
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-#CurrentViewLabel {
-    color: white;
-    font-size: 18px;
-    -unity-font-style: bold;
-}
-
-#TotalStars {
-    color: rgb(255, 215, 0);
-    font-size: 14px;
-    -unity-font-style: bold;
-}
-
-/* ============================================================
-   LEVEL MAP SIDEBAR CONTENT
-   ============================================================ */
-#LevelName {
-    font-size: 18px;
-    color: white;
-    -unity-font-style: bold;
-    white-space: normal;
-}
-
-#LevelStatus {
-    font-size: 12px;
-    -unity-font-style: bold;
-    color: rgb(148, 163, 184);
-    margin-top: 2px;
-}
-
-#LevelDesc {
-    font-size: 13px;
-    color: rgb(200, 200, 200);
-    white-space: normal;
-    margin-bottom: 10px;
-    padding: 10px;
-    background-color: rgb(40, 40, 40);
-    border-radius: 5px;
-}
-
-/* ============================================================
-   PLAY BUTTON & STARS
-   ============================================================ */
-#PlayButton {
-    height: 20px;
-    border-radius: 8px;
-    background-color: rgb(37, 99, 235);
-    color: white;
-    font-size: 12px;
-    -unity-font-style: bold;
-    border-width: 0;
-    margin-top: 10px;
-    transition-property: background-color;
-    transition-duration: 0.15s;
-}
-
-#PlayButton:hover {
-    background-color: rgb(59, 130, 246);
-}
-
-#PlayButton:active {
-    background-color: rgb(30, 64, 175);
-}
-
-#PlayButton:disabled {
-    background-color: rgb(51, 65, 85);
-    color: rgb(100, 116, 139);
-}
-
-.stars-container {
-    flex-direction: row;
-    margin-bottom: 10px;
-    margin-top: 5px;
-}
-
-#Star1, #Star2, #Star3 {
-    width: 25px;
-    height: 25px;
-    background-color: grey;
-    border-radius: 50%;
-    margin-right: 5px;
 }
