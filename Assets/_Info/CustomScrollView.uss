@@ -1,4 +1,7 @@
-.root-container {
+/* ========================================
+   GLOBAL LAYOUT
+   ======================================== */
+   .root-container {
     flex-grow: 1;
     /* 0.5 = 50% opacity */
     background-color: rgba(30, 30, 35, 0.5); 
