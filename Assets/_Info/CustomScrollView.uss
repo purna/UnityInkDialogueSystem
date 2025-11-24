@@ -29,9 +29,62 @@
 
 .header-separator {
     width: 80%;
-    height: 2px;
-    background-color: rgba(255, 255, 255, 0.3);
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0);
     -unity-background-scale-mode: scale-to-fit;
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.footer-container {
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.footer-separator {
+    width: 80%;
+    height: 30px;
+    background-color: rgba(255, 255, 255, 0);
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.footer-button-container {
+    flex-direction: row; 
+    margin-top: 10px;
+    align-items: center;
+    justify-content: center;
+    width: 80%;
+}
+
+.footer-decoration {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.footer-button {
+    width: 150px;
+    height: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    border-radius: 8px;
+    border-width: 0;
+    font-size: 12px;
+    -unity-font-style: bold;
+    color: white;
+    background-color: rgb(37, 99, 235);
+}
+
+.footer-button:hover {
+    background-color: rgb(59, 130, 246);
+}
+
+.footer-button:active {
+    background-color: rgb(30, 64, 175);
 }
 
 /* ========================================
@@ -158,7 +211,7 @@
 .content-item {
     background-color: rgba(255, 255, 255, 0.05);
     border-radius: 6px;
-    padding: 15px; /* Syntax fixed */
+    padding: 8px; /* Syntax fixed */
     margin-bottom: 10px;
     transition-property: background-color;
     transition-duration: 0.2s;
@@ -173,8 +226,8 @@
 }
 
 .item-image-container {
-    width: 120px;
-    height: 120px;
+    width: 60px;
+    height: 60px;
     margin-right: 15px;
     flex-shrink: 0;
     background-color: rgba(0, 0, 0, 0.3);
@@ -185,58 +238,8 @@
 
 .item-text {
     color: white;
-    font-size: 14px;
+    font-size: 10px;
     white-space: normal;
     flex-grow: 1;
 }
 
-/* ========================================
-   FOOTER
-   ======================================== */
-.footer-container {
-    flex-shrink: 0;
-    align-items: center;
-    justify-content: center;
-}
-
-.footer-separator {
-    width: 100%;
-    height: 2px;
-    background-color: rgba(255, 255, 255, 0.1);
-    margin-bottom: 15px;
-}
-
-.footer-button-container {
-    flex-direction: row; 
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-}
-
-.footer-decoration {
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    -unity-background-scale-mode: scale-to-fit;
-}
-
-.footer-button {
-    width: 150px;
-    height: 20px;
-    margin-left: 20px;
-    margin-right: 20px;
-    border-radius: 8px;
-    border-width: 0;
-    font-size: 12px;
-    -unity-font-style: bold;
-    color: white;
-    background-color: rgb(37, 99, 235);
-}
-
-.footer-button:hover {
-    background-color: rgb(59, 130, 246);
-}
-
-.footer-button:active {
-    background-color: rgb(30, 64, 175);
-}

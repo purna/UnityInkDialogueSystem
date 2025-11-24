@@ -310,7 +310,7 @@ MonoBehaviour:
     X: 50
     Y: 40.5
     Icon: {fileID: 21300000, guid: 6e50b717ea48c08418fff124f6b20f5d, type: 3}
-    Unlocked: 0
+    Unlocked: 1
     ConnectedToWorlds: 03000000
   - WorldIndex: 3
     Name: Lava Core
@@ -318,7 +318,7 @@ MonoBehaviour:
     X: 80
     Y: 50.1
     Icon: {fileID: 21300000, guid: 126ab8abe0ad94e4bb462edf16a5d9d7, type: 3}
-    Unlocked: 0
+    Unlocked: 1
     ConnectedToWorlds: 
   _levels:
   - Id: 1-1
@@ -327,8 +327,8 @@ MonoBehaviour:
     Description: description of the level
     Icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
     IsSecret: 0
-    X: 20
-    Y: 80
+    X: 22
+    Y: 30
     Prerequisites: []
     Unlocked: 1
     StarsEarned: 0
@@ -339,7 +339,7 @@ MonoBehaviour:
     Icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
     IsSecret: 0
     X: 40
-    Y: 60
+    Y: 40
     Prerequisites:
     - 1-1
     Unlocked: 0
@@ -351,7 +351,7 @@ MonoBehaviour:
     Icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
     IsSecret: 0
     X: 60
-    Y: 80
+    Y: 27
     Prerequisites:
     - 1-2
     Unlocked: 0
@@ -362,8 +362,8 @@ MonoBehaviour:
     Description: description of the level
     Icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
     IsSecret: 0
-    X: 50
-    Y: 20
+    X: 16
+    Y: 39
     Prerequisites: []
     Unlocked: 1
     StarsEarned: 0
@@ -373,8 +373,8 @@ MonoBehaviour:
     Description: description of the level
     Icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
     IsSecret: 0
-    X: 50
-    Y: 50
+    X: 42
+    Y: 35
     Prerequisites:
     - 2-1
     Unlocked: 0
@@ -385,8 +385,8 @@ MonoBehaviour:
     Description: description of the level
     Icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
     IsSecret: 0
-    X: 50
-    Y: 80
+    X: 62
+    Y: 38
     Prerequisites:
     - 2-2
     Unlocked: 0
@@ -397,8 +397,8 @@ MonoBehaviour:
     Description: description of the level
     Icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
     IsSecret: 1
-    X: 80
-    Y: 50
+    X: 71
+    Y: 64
     Prerequisites:
     - 2-2
     Unlocked: 0
@@ -409,8 +409,8 @@ MonoBehaviour:
     Description: description of the level
     Icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
     IsSecret: 1
-    X: 14.3
-    Y: 74.2
+    X: 58
+    Y: 12
     Prerequisites:
     - 2-2
     Unlocked: 0

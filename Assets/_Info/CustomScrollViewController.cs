@@ -17,6 +17,8 @@ public class CustomScrollViewController : MonoBehaviour
 
     [Header("Footer Settings")]
     [SerializeField] private string _footerText = "Close";
+
+    [SerializeField] private Sprite _footerSeparator;
     [SerializeField] private bool _showFooterSeparator = true;
     [SerializeField] private Sprite _footerLeftDecoration;
     [SerializeField] private Sprite _footerRightDecoration;
@@ -149,10 +151,17 @@ public class CustomScrollViewController : MonoBehaviour
             ApplyFooterButtonColors();
         }
 
+
         if (_footerSeparatorImage != null)
         {
             _footerSeparatorImage.style.display = _showFooterSeparator ? DisplayStyle.Flex : DisplayStyle.None;
+
+            if (_footerSeparator != null)
+                _footerSeparatorImage.style.backgroundImage = new StyleBackground(_footerSeparator);
+            else
+                _footerSeparatorImage.style.display = DisplayStyle.None;
         }
+
 
         if (_footerLeftDecorationImage != null)
         {
@@ -595,7 +604,7 @@ public class CustomScrollViewController : MonoBehaviour
         
         for (int i = 4; i <= 10; i++)
         {
-            _items.Add(new ScrollItemData { text = $"<size=16><b>Item {i}</b></size>\nSample content for scrolling test." });
+            _items.Add(new ScrollItemData { text = $"<size=12><b>Item {i}</b></size>\nSample content for scrolling test." });
         }
         
         if (Application.isPlaying) PopulateContent();

@@ -279,73 +279,74 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _uiDocument: {fileID: 1491282098}
   _headerText: Scroll Menu
-  _headerSeparator: {fileID: 21300000, guid: a73cdacb0110849488e2499e5f3b3b49, type: 3}
+  _headerSeparator: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerText: Close
+  _footerSeparator: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _showFooterSeparator: 1
-  _footerLeftDecoration: {fileID: 21300000, guid: 4db9fcafccd951143839fb60d36ed944, type: 3}
-  _footerRightDecoration: {fileID: 21300000, guid: 4f5ca2b5d1f0d704b957cd27df7f48df, type: 3}
+  _footerLeftDecoration: {fileID: 21300000, guid: 90e76a918eecd4fb0a5971495907ac7a, type: 3}
+  _footerRightDecoration: {fileID: 21300000, guid: ed19f62c4f43149ecaf06778a638797f, type: 3}
   _layoutMode: 1
   _items:
   - text: '<b>Bold Item 1</b>
 
       This is a description with <i>italic text</i>.'
-    image: {fileID: 0}
+    image: {fileID: 21300000, guid: a27ebbd47c81fb84a999ec380221a9e6, type: 3}
   - text: <color=#FF0000>Red text</color> and <color=#00FF00>green text</color>.
-    image: {fileID: 0}
+    image: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
   - text: Regular text item without formatting.
     image: {fileID: 0}
-  - text: '<size=16><b>Item 4</b></size>
+  - text: '<size=12><b>Item 4</b></size>
+
+      Sample content for scrolling test.'
+    image: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
+  - text: '<size=12><b>Item 5</b></size>
+
+      Sample content for scrolling test.'
+    image: {fileID: 21300000, guid: 126ab8abe0ad94e4bb462edf16a5d9d7, type: 3}
+  - text: '<size=12><b>Item 6</b></size>
+
+      Sample content for scrolling test.'
+    image: {fileID: 21300000, guid: a27ebbd47c81fb84a999ec380221a9e6, type: 3}
+  - text: '<size=12><b>Item 7</b></size>
 
       Sample content for scrolling test.'
     image: {fileID: 0}
-  - text: '<size=16><b>Item 5</b></size>
+  - text: '<size=12><b>Item 8</b></size>
 
       Sample content for scrolling test.'
     image: {fileID: 0}
-  - text: '<size=16><b>Item 6</b></size>
+  - text: '<size=12><b>Item 9</b></size>
 
       Sample content for scrolling test.'
     image: {fileID: 0}
-  - text: '<size=16><b>Item 7</b></size>
-
-      Sample content for scrolling test.'
-    image: {fileID: 0}
-  - text: '<size=16><b>Item 8</b></size>
-
-      Sample content for scrolling test.'
-    image: {fileID: 0}
-  - text: '<size=16><b>Item 9</b></size>
-
-      Sample content for scrolling test.'
-    image: {fileID: 0}
-  - text: '<size=16><b>Item 10</b></size>
+  - text: '<size=12><b>Item 10</b></size>
 
       Sample content for scrolling test.'
     image: {fileID: 0}
   _useSliderInsteadOfScrollbar: 1
-  _scrollbarHandle: {fileID: 21300000, guid: 38f0b4811be7cda469d8899b3f951697, type: 3}
-  _scrollUpArrow: {fileID: 21300000, guid: 38f0b4811be7cda469d8899b3f951697, type: 3}
-  _scrollDownArrow: {fileID: 21300000, guid: 38f0b4811be7cda469d8899b3f951697, type: 3}
+  _scrollbarHandle: {fileID: 1724127994, guid: 677b1a8fb23d34498b136c8c17dd5ba5, type: 3}
+  _scrollUpArrow: {fileID: 21300000, guid: ed19f62c4f43149ecaf06778a638797f, type: 3}
+  _scrollDownArrow: {fileID: 21300000, guid: bf2d14fb505e543b7aa7975755bf9df6, type: 3}
   _scrollbarTrackColor: {r: 0.05882353, g: 0.09019608, b: 0.16862746, a: 1}
-  _scrollbarHandleColor: {r: 1, g: 1, b: 1, a: 1}
+  _scrollbarHandleColor: {r: 0.05882353, g: 0.09019608, b: 0.16862746, a: 1}
   _showScrollbarHandleBackground: 1
   _showScrollbarHandleBorder: 1
   _scrollbarHandleBackgroundColor: {r: 0.05882353, g: 0.09019608, b: 0.16862746, a: 1}
-  _scrollbarHandleBorderColor: {r: 1, g: 1, b: 1, a: 0.2}
+  _scrollbarHandleBorderColor: {r: 0.05882353, g: 0.09019608, b: 0.16862746, a: 1}
   _scrollbarHandleBorderWidth: 0
   _showScrollbarTrackBorder: 0
-  _scrollbarTrackBorderColor: {r: 1, g: 1, b: 1, a: 0.2}
+  _scrollbarTrackBorderColor: {r: 0.05882353, g: 0.09019608, b: 0.16862746, a: 1}
   _scrollbarTrackBorderWidth: 1
   _sliderTrackColor: {r: 0.05882353, g: 0.09019608, b: 0.16862746, a: 1}
-  _sliderHandleColor: {r: 1, g: 1, b: 1, a: 1}
-  _sliderHandleSprite: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+  _sliderHandleColor: {r: 0.05882353, g: 0.09019608, b: 0.16862746, a: 1}
+  _sliderHandleSprite: {fileID: 1749534538, guid: 677b1a8fb23d34498b136c8c17dd5ba5, type: 3}
   _sliderHandleHeight: 60
-  _showSliderTrackBorder: 1
-  _sliderTrackBorderColor: {r: 1, g: 1, b: 1, a: 0.2}
+  _showSliderTrackBorder: 0
+  _sliderTrackBorderColor: {r: 0.05882353, g: 0.09019608, b: 0.16862746, a: 1}
   _sliderTrackBorderWidth: 1
   _headerTextColor: {r: 1, g: 1, b: 1, a: 1}
   _footerButtonTextColor: {r: 1, g: 1, b: 1, a: 1}
-  _footerButtonBackgroundColor: {r: 0.145, g: 0.388, b: 0.922, a: 1}
+  _footerButtonBackgroundColor: {r: 0.05882353, g: 0.09019608, b: 0.16862746, a: 1}
   _footerButtonHoverColor: {r: 0.231, g: 0.51, b: 0.965, a: 1}
   _footerButtonActiveColor: {r: 0.118, g: 0.251, b: 0.686, a: 1}
 --- !u!1 &2094355302
@@ -383,8 +384,8 @@ Camera:
   m_GameObject: {fileID: 2094355302}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
