@@ -11,11 +11,11 @@
 // 1. CREATE EMPTY GAMEOBJECTS IN YOUR SCENE:
 // - Right-click in Hierarchy → Create Empty
 // - Name them:
-//   ✓ "SkillTreeManager"
+//   ✓ "SkillsTreeManager"
 //   ✓ "CollectableDetectionSystem"
 
 // 2. ADD COMPONENTS:
-// - Select "SkillTreeManager" → Add Component → SkillTreeManager script
+// - Select "SkillsTreeManager" → Add Component → SkillsTreeManager script
 // - Select "CollectableDetectionSystem" → Add Component → CollectableDetectionSystem script
 
 // Note: InventoryManager should already exist in your scene

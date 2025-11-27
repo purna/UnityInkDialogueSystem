@@ -1,15 +1,17 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerBomb : MonoBehaviour
+// ==================== PLAYER BOMB ====================
+public class PlayerBomb : MonoBehaviour, IPlayerUpgrade
 {
+    public string UpgradeName => "Bomb";
+    public bool IsActive { get; set; }
+
     [Header("Bomb Configuration")]
     [SerializeField] private GameObject bombObject;
     [SerializeField] private Transform bombSpawnPosition;
     [SerializeField] private PlayerUpgrades playerUpgrades;
-    [SerializeField] public bool IsActive = false;
     
     [Header("Bomb Settings")]
     [SerializeField] private int maxBombs = 10;
@@ -24,7 +26,6 @@ public class PlayerBomb : MonoBehaviour
     {
         currentBombCount = maxBombs;
         
-        // Create and initialize the countdown system
         GameObject countdownObj = new GameObject("BombCountdown");
         countdownObj.transform.SetParent(this.transform);
         bombCountdown = countdownObj.AddComponent<PlayerBombCountdown>();
@@ -33,43 +34,47 @@ public class PlayerBomb : MonoBehaviour
 
     private void Update()
     {
-        if (playerUpgrades.BombUpgradeUnlocked == true)
+        if (!IsActive) return;
+
+        if (Keyboard.current.eKey.wasPressedThisFrame)
         {
-            // Check if the E key was pressed this frame
-            if (Keyboard.current.eKey.wasPressedThisFrame)
+            if (bombCountdown.IsCountdownActive)
             {
-                if (bombCountdown.IsCountdownActive)
-                {
-                    TryDropBomb();
-                }
-                else
-                {
-                    // Start countdown on first bomb drop
-                    bombCountdown.StartCountdown();
-                    TryDropBomb();
-                }
+                TryDropBomb();
             }
-            
-            // Check if the F key was pressed this frame
-            if (Keyboard.current.fKey.wasPressedThisFrame)
+            else
             {
-                playerUpgrades.LockBomb();
+                bombCountdown.StartCountdown();
+                TryDropBomb();
             }
         }
+        
+        if (Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            playerUpgrades.LockUpgrade(UpgradeName);
+        }
+    }
+
+    public void Activate()
+    {
+        IsActive = true;
+        enabled = true;
+    }
+
+    public void Deactivate()
+    {
+        IsActive = false;
+        enabled = false;
     }
 
     private void TryDropBomb()
     {
-        // Check if we can drop a bomb (have bombs left, not on cooldown, countdown not finished)
         if (currentBombCount > 0 && canDropBomb && !bombCountdown.IsCountdownFinished)
         {
             SpawnBomb();
             currentBombCount--;
-            
-            // Start cooldown
             StartCoroutine(BombDropCooldown());
             
-            // Check if we've used all bombs
             if (currentBombCount <= 0)
             {
                 OnBombsExhausted();
@@ -79,15 +84,10 @@ public class PlayerBomb : MonoBehaviour
 
     private void SpawnBomb()
     {
-        // Instantiate the bomb prefab at the spawn position
         if (bombObject != null && bombSpawnPosition != null)
         {
             Instantiate(bombObject, bombSpawnPosition.position, bombSpawnPosition.rotation);
             Debug.Log($"Bomb dropped! Remaining bombs: {currentBombCount - 1}");
-        }
-        else
-        {
-            Debug.LogWarning("Bomb prefab or spawn position is not assigned.");
         }
     }
 
@@ -100,34 +100,18 @@ public class PlayerBomb : MonoBehaviour
 
     private void OnCountdownFinished()
     {
-        Debug.Log("Bomb countdown finished! No more bombs can be dropped.");
-        playerUpgrades.LockBomb();
+        Debug.Log("Bomb countdown finished!");
+        playerUpgrades.LockUpgrade(UpgradeName);
     }
 
     private void OnBombsExhausted()
     {
-        Debug.Log("All bombs used! No more bombs can be dropped.");
-        playerUpgrades.LockBomb();
+        Debug.Log("All bombs used!");
+        playerUpgrades.LockUpgrade(UpgradeName);
     }
 
     public void SetBombObject(GameObject collectedObject)
     {
         bombObject = collectedObject;
-    }
-
-    // Public methods to get current status
-    public int GetRemainingBombs()
-    {
-        return currentBombCount;
-    }
-
-    public float GetRemainingTime()
-    {
-        return bombCountdown != null ? bombCountdown.GetRemainingTime() : 0f;
-    }
-
-    public bool CanDropBombs()
-    {
-        return currentBombCount > 0 && !bombCountdown.IsCountdownFinished && canDropBomb;
     }
 }

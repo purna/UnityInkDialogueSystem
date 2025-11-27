@@ -62,7 +62,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -194,6 +194,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   UIText: {fileID: 0}
+  maxActiveUpgrades: 1
 --- !u!114 &2991229378266398934
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -209,7 +210,6 @@ MonoBehaviour:
   bombObject: {fileID: 0}
   bombSpawnPosition: {fileID: 0}
   playerUpgrades: {fileID: 7305356267902708276}
-  IsActive: 0
   maxBombs: 10
   bombDropDelay: 0.5
   countdownTime: 30
@@ -228,7 +228,6 @@ MonoBehaviour:
   invisibilityObject: {fileID: 0}
   timeForInvisibility: 0.5
   playerUpgrades: {fileID: 7305356267902708276}
-  IsActive: 0
 --- !u!114 &8920748616729439365
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -245,7 +244,6 @@ MonoBehaviour:
   shieldSpawnPosition: {fileID: 0}
   timeForShield: 2
   playerUpgrades: {fileID: 7305356267902708276}
-  IsActive: 0
 --- !u!114 &456295189067976683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -261,7 +259,6 @@ MonoBehaviour:
   staffObject: {fileID: 0}
   staffSpawnPosition: {fileID: 0}
   playerUpgrades: {fileID: 7305356267902708276}
-  IsActive: 0
 --- !u!114 &873962620586309210
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -276,7 +273,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   prayerObject: {fileID: 0}
   playerUpgrades: {fileID: 7305356267902708276}
-  IsActive: 0
 --- !u!114 &4574274279723314412
 MonoBehaviour:
   m_ObjectHideFlags: 0

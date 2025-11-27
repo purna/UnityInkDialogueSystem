@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: CollectableBonusFunction
   m_EditorClassIdentifier: 
   _functionName: CollectableBonusFunction
-  _description: CollectableBonusFunction Description
+  _description: Collectable Bonus Function Description
   bonusType: 0
   bonusAmount: 1.5

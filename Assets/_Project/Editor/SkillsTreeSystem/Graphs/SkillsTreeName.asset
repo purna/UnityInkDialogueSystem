@@ -16,29 +16,65 @@ MonoBehaviour:
   _groups:
   - _ID: 0bbe6da3-eb0d-406b-959b-c114ef76368d
     _name: Skills
-    _position: {x: 64.5, y: -350.5}
+    _position: {x: 147.5, y: -1815}
   _nodes:
-  - _ID: 311ee39e-b9e1-4fea-bea7-09e728222561
-    _name: LOVE
-    _text: Love
+  - _ID: f574bc43-8bcc-4c93-be08-46884c8ba407
+    _name: JOY
+    _text: Joy
     _choices:
-    - _text: Next Tier
-      _nodeID: f574bc43-8bcc-4c93-be08-46884c8ba407
+    - _text: New Choice
+      _nodeID: b41c4f36-a87e-475c-8512-91cb391db93e
+    - _text: New Choice
+      _nodeID: 061096f4-65cf-4245-af96-74280d4261d9
+    - _text: New Tier
+      _nodeID: 
     _groupID: 0bbe6da3-eb0d-406b-959b-c114ef76368d
-    _skillstreeType: 0
-    _position: {x: 89.5, y: -292}
-    _skillAssetPath: Assets/_Project/ScriptableObjects/SkillsTree/SkillsTreeName/Groups/Skills/SkillsTree/LOVE.asset
-    _icon: {fileID: 21300000, guid: eae4cb8078363d7449ed775f5c8b08d5, type: 3}
-    _lockedIcon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
-    _unlockedIcon: {fileID: 21300000, guid: 492d2693e83ae44d7bbdd169f9d34323, type: 3}
-    _description: Love
-    _tier: 1
+    _skillstreeType: 1
+    _position: {x: 561, y: -1756.5}
+    _skillAssetPath: Assets/_Project/ScriptableObjects/SkillsTree/SkillsTreeName/Groups/Skills/SkillsTree/JOY.asset
+    _icon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+    _lockedIcon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+    _unlockedIcon: {fileID: 21300000, guid: 7225b7bb6ac02ad4dbc0f4815c6f883e, type: 3}
+    _description: Joy
+    _tier: 2
     _unlockCost: 0
     _value: 0
     _maxLevel: 1
-    _prerequisiteIDs: []
+    _unlockFunctions:
+    - {fileID: 11400000, guid: 76166bb3cb38a45be9a3146de92cb0ae, type: 2}
+    - {fileID: 11400000, guid: 7c27980661bd64b61b66c85fe46c1fae, type: 2}
+    _prerequisiteIDs:
+    - LOVE
     _childIDs:
+    - PEACE
+    - HOPE
+    _variableName: 
+    _variableType: 0
+    _modificationType: 0
+    _conditionType: 0
+  - _ID: 061096f4-65cf-4245-af96-74280d4261d9
+    _name: HOPE
+    _text: Hope
+    _choices:
+    - _text: Next Tier
+      _nodeID: 
+    _groupID: 0bbe6da3-eb0d-406b-959b-c114ef76368d
+    _skillstreeType: 0
+    _position: {x: 965, y: -1562.5}
+    _skillAssetPath: Assets/_Project/ScriptableObjects/SkillsTree/SkillsTreeName/Groups/Skills/SkillsTree/HOPE.asset
+    _icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
+    _lockedIcon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+    _unlockedIcon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
+    _description: Hope
+    _tier: 0
+    _unlockCost: 3
+    _value: 0
+    _maxLevel: 1
+    _unlockFunctions:
+    - {fileID: 11400000, guid: 76166bb3cb38a45be9a3146de92cb0ae, type: 2}
+    _prerequisiteIDs:
     - JOY
+    _childIDs: []
     _variableName: 
     _variableType: 0
     _modificationType: 0
@@ -49,11 +85,9 @@ MonoBehaviour:
     _choices:
     - _text: New Choice
       _nodeID: 
-    - _text: New Choice
-      _nodeID: 
     _groupID: 0bbe6da3-eb0d-406b-959b-c114ef76368d
     _skillstreeType: 1
-    _position: {x: 938, y: -278.5}
+    _position: {x: 330.5, y: -1494}
     _skillAssetPath: Assets/_Project/ScriptableObjects/SkillsTree/SkillsTreeName/Groups/Skills/SkillsTree/PEACE.asset
     _icon: {fileID: 21300000, guid: 126ab8abe0ad94e4bb462edf16a5d9d7, type: 3}
     _lockedIcon: {fileID: 21300000, guid: 126ab8abe0ad94e4bb462edf16a5d9d7, type: 3}
@@ -63,6 +97,8 @@ MonoBehaviour:
     _unlockCost: 10
     _value: 10
     _maxLevel: 1
+    _unlockFunctions:
+    - {fileID: 11400000, guid: 7caf0a5c1b13d4c449114d0b5caf4219, type: 2}
     _prerequisiteIDs:
     - JOY
     _childIDs: []
@@ -70,32 +106,30 @@ MonoBehaviour:
     _variableType: 0
     _modificationType: 0
     _conditionType: 0
-  - _ID: f574bc43-8bcc-4c93-be08-46884c8ba407
-    _name: JOY
-    _text: Joy
+  - _ID: 311ee39e-b9e1-4fea-bea7-09e728222561
+    _name: LOVE
+    _text: Love
     _choices:
-    - _text: New Choice
-      _nodeID: b41c4f36-a87e-475c-8512-91cb391db93e
-    - _text: New Choice
-      _nodeID: b41c4f36-a87e-475c-8512-91cb391db93e
-    - _text: New Tier
-      _nodeID: 
+    - _text: Next Tier
+      _nodeID: f574bc43-8bcc-4c93-be08-46884c8ba407
     _groupID: 0bbe6da3-eb0d-406b-959b-c114ef76368d
-    _skillstreeType: 1
-    _position: {x: 449, y: -246}
-    _skillAssetPath: Assets/_Project/ScriptableObjects/SkillsTree/SkillsTreeName/Groups/Skills/SkillsTree/JOY.asset
-    _icon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
-    _lockedIcon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
-    _unlockedIcon: {fileID: 21300000, guid: 7225b7bb6ac02ad4dbc0f4815c6f883e, type: 3}
-    _description: Joy
-    _tier: 2
+    _skillstreeType: 0
+    _position: {x: 172.5, y: -1756.5}
+    _skillAssetPath: Assets/_Project/ScriptableObjects/SkillsTree/SkillsTreeName/Groups/Skills/SkillsTree/LOVE.asset
+    _icon: {fileID: 21300000, guid: eae4cb8078363d7449ed775f5c8b08d5, type: 3}
+    _lockedIcon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
+    _unlockedIcon: {fileID: 21300000, guid: 492d2693e83ae44d7bbdd169f9d34323, type: 3}
+    _description: Love
+    _tier: 1
     _unlockCost: 0
     _value: 0
     _maxLevel: 1
-    _prerequisiteIDs:
-    - LOVE
+    _unlockFunctions:
+    - {fileID: 11400000, guid: 4366251fff441483096b93b2ff524506, type: 2}
+    - {fileID: 11400000, guid: 7caf0a5c1b13d4c449114d0b5caf4219, type: 2}
+    _prerequisiteIDs: []
     _childIDs:
-    - PEACE
+    - JOY
     _variableName: 
     _variableType: 0
     _modificationType: 0
@@ -107,6 +141,7 @@ MonoBehaviour:
     list:
     - Key: 0bbe6da3-eb0d-406b-959b-c114ef76368d
       Value:
-      - LOVE
-      - PEACE
       - JOY
+      - HOPE
+      - PEACE
+      - LOVE

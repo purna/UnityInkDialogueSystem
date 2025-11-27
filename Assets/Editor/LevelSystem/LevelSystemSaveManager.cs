@@ -16,6 +16,8 @@ public static class LevelSystemSaveManager {
     private static Dictionary<string, Level> _createdLevels;
 
     private static Dictionary<string, LevelSystemGroup> _loadedGroups;
+    // Map from LevelSystemGroup ID to LevelGroup ScriptableObject for loading
+    private static Dictionary<string, LevelGroup> _loadedLevelGroups;
     private static Dictionary<string, LevelBaseNode> _loadedNodes;
 
     public static void Initialize(LevelSystemGraphView graphView, string graphName) {
@@ -28,6 +30,7 @@ public static class LevelSystemSaveManager {
         _createdLevelGroups = new();
         _createdLevels = new();
         _loadedGroups = new();
+        _loadedLevelGroups = new();
         _loadedNodes = new();
     }
 
@@ -39,14 +42,39 @@ public static class LevelSystemSaveManager {
         LevelSystemGraphSaveData graphData = AssetsUtility.CreateAsset<LevelSystemGraphSaveData>("Assets/_Project/Editor/LevelSystem/Graphs", _graphFileName);
         graphData.Initialize(_graphFileName);
 
+        
         LevelContainer levelContainer = AssetsUtility.CreateAsset<LevelContainer>(_graphFolderPath, _graphFileName);
-        levelContainer.Initialize(_graphFileName);
+
+        // CRITICAL FIX: Always clear and rebuild the container to ensure consistency
+        if (levelContainer.Groups == null || levelContainer.UngroupedLevels == null)
+        {
+            levelContainer.Initialize(_graphFileName, null);
+        }
+        
+        // Clear existing entries to rebuild them fresh
+        levelContainer.Groups.Clear();
+        levelContainer.UngroupedLevels.Clear();
+
 
         SaveGroups(graphData, levelContainer);
         SaveNodes(graphData, levelContainer);
 
         graphData.Save();
         levelContainer.Save();
+        
+        // FIX: Force save the container after all levels are added
+        EditorUtility.SetDirty(levelContainer);
+        AssetDatabase.SaveAssets();
+        
+        // Debug summary to verify the fix
+        Debug.Log($"[LevelSystemSaveManager] Saved {_nodes.Count} nodes to container");
+        Debug.Log($"[LevelSystemSaveManager] Container groups: {levelContainer.Groups.Count}");
+        Debug.Log($"[LevelSystemSaveManager] Container ungrouped levels: {levelContainer.UngroupedLevels.Count}");
+        
+        foreach (var group in levelContainer.Groups)
+        {
+            Debug.Log($"[LevelSystemSaveManager] Group '{group.Key.GroupName}' contains {group.Value.Count} levels");
+        }
     }
 
     #region Groups
@@ -97,11 +125,15 @@ public static class LevelSystemSaveManager {
         }
 
         LevelGroup levelGroup = AssetsUtility.CreateAsset<LevelGroup>($"{_graphFolderPath}/Groups/{groupName}", groupName);
-        levelGroup.Initialize(groupName);
+        levelGroup.Initialize(groupName, null);
+        
+        // FIX: Add the group to the container BEFORE adding levels to it
         levelContainer.AddGroup(levelGroup);
         _createdLevelGroups.Add(group.ID, levelGroup);
 
         levelGroup.Save();
+        
+        Debug.Log($"[LevelSystemSaveManager] Created group '{groupName}' and added to container");
     }
 
     private static string FindOldGroupName(string groupID, LevelSystemGraphSaveData graphData)
@@ -150,6 +182,10 @@ public static class LevelSystemSaveManager {
         UpdateLevelChoicesConnections();
         UpdateOldGroupedNodes(groupedNodeNames, graphData);
         UpdateOldUngroupedNodes(nodeNames, graphData);
+        
+        // FIX: Save the container after all nodes are processed
+        EditorUtility.SetDirty(levelContainer);
+        AssetDatabase.SaveAssets();
     }
 
     private static void SaveNodeToGraph(LevelBaseNode node, LevelSystemGraphSaveData graphData)
@@ -211,10 +247,22 @@ public static class LevelSystemSaveManager {
             // --- CREATE NEW LEVEL ---
             if (node.Group != null) {
                 level = AssetsUtility.CreateAsset<Level>($"{_graphFolderPath}/Groups/{node.Group.title}/Level", node.LevelName);
-                levelContainer.AddLevelToGroup(_createdLevelGroups[node.Group.ID], level);
+                
+                // FIX: Ensure the group exists in the dictionary before adding the level
+                if (_createdLevelGroups.ContainsKey(node.Group.ID))
+                {
+                    LevelGroup levelGroup = _createdLevelGroups[node.Group.ID];
+                    levelContainer.AddLevelToGroup(levelGroup, level);
+                    Debug.Log($"[LevelSystemSaveManager] Added level '{levelName}' to group '{levelGroup.GroupName}'");
+                }
+                else
+                {
+                    Debug.LogError($"[LevelSystemSaveManager] Group ID '{node.Group.ID}' not found in created groups!");
+                }
             } else {
                 level = AssetsUtility.CreateAsset<Level>($"{_graphFolderPath}/Global/Level", node.LevelName);
                 levelContainer.AddUngroupedLevel(level);
+                Debug.Log($"[LevelSystemSaveManager] Added ungrouped level '{levelName}'");
             }
 
             level.Initialize(
@@ -259,8 +307,9 @@ public static class LevelSystemSaveManager {
             // Handle group change (move to different folder)
             string currentAssetPath = AssetDatabase.GetAssetPath(level);
             string expectedPath = $"{path}/{levelName}.asset";
+            bool pathChanged = currentAssetPath != expectedPath;
             
-            if (currentAssetPath != expectedPath)
+            if (pathChanged)
             {
                 Debug.Log($"Moving level asset from '{currentAssetPath}' to '{expectedPath}'");
                 string error = AssetDatabase.MoveAsset(currentAssetPath, expectedPath);
@@ -268,6 +317,26 @@ public static class LevelSystemSaveManager {
                 {
                     Debug.LogError($"Failed to move asset: {error}");
                 }
+            }
+            
+            // CRITICAL FIX: Always ensure levels are added to their groups in the container
+            if (node.Group != null)
+            {
+                if (_createdLevelGroups.ContainsKey(node.Group.ID))
+                {
+                    LevelGroup levelGroup = _createdLevelGroups[node.Group.ID];
+                    levelContainer.AddLevelToGroup(levelGroup, level);
+                    Debug.Log($"[LevelSystemSaveManager] Ensured level '{levelName}' is in group '{levelGroup.GroupName}'");
+                }
+                else
+                {
+                    Debug.LogError($"[LevelSystemSaveManager] Group ID '{node.Group.ID}' not found in created groups for level '{levelName}'!");
+                }
+            }
+            else
+            {
+                levelContainer.AddUngroupedLevel(level);
+                Debug.Log($"[LevelSystemSaveManager] Added ungrouped level '{levelName}'");
             }
             
             level.UpdateName(node.LevelName);
@@ -389,8 +458,18 @@ public static class LevelSystemSaveManager {
     #endregion
 
     #region Load
+    private static void ResetLoadedData()
+    {
+        _loadedGroups.Clear();
+        _loadedLevelGroups.Clear();
+        _loadedNodes.Clear();
+    }
+    
     public static void Load()
     {
+        // Clear any existing loaded data
+        ResetLoadedData();
+        
         LevelSystemGraphSaveData graphData = AssetsUtility.LoadAsset<LevelSystemGraphSaveData>("Assets/_Project/Editor/LevelSystem/Graphs", _graphFileName);
         if (graphData == null)
         {
@@ -415,7 +494,7 @@ public static class LevelSystemSaveManager {
 
         LevelSystemEditorWindow.UpdateFileName(graphData.FileName);
 
-        LoadGroups(graphData);
+        LoadGroups(graphData, levelContainer);
         LoadNodes(graphData, levelContainer);
         LoadNodesConnections();
     }
@@ -431,9 +510,20 @@ public static class LevelSystemSaveManager {
             Level level = null;
             if (!string.IsNullOrEmpty(nodeData.GroupID))
             {
-                if (_loadedGroups.ContainsKey(nodeData.GroupID))
+                // Use the mapped LevelGroup instead of trying to find by name
+                if (_loadedLevelGroups.ContainsKey(nodeData.GroupID))
                 {
-                    level = levelContainer.GetGroupLevel(_loadedGroups[nodeData.GroupID].title, nodeData.Name);
+                    LevelGroup levelGroup = _loadedLevelGroups[nodeData.GroupID];
+                    level = levelContainer.GetLevelsInGroup(levelGroup).FirstOrDefault(l => l.LevelName == nodeData.Name);
+                    
+                    if (level == null)
+                    {
+                        Debug.LogWarning($"[LevelSystemSaveManager] Could not find level '{nodeData.Name}' in group '{levelGroup.GroupName}'");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[LevelSystemSaveManager] Could not find mapped LevelGroup for group ID '{nodeData.GroupID}'");
                 }
             }
             else
@@ -444,8 +534,6 @@ public static class LevelSystemSaveManager {
             if (level != null)
             {
                 node.Level = level;
-                // Setting node.Level property should automatically refresh the node
-                // If there's a specific refresh method, use it here
                 _graphView.RegisterNodeLevelMapping(node.ID, level);
                 LevelChangeMonitor.TrackLevel(level);
             }
@@ -462,11 +550,23 @@ public static class LevelSystemSaveManager {
         }
     }
 
-    private static void LoadGroups(LevelSystemGraphSaveData graphData) {
+    private static void LoadGroups(LevelSystemGraphSaveData graphData, LevelContainer levelContainer) {
         foreach (var groupData in graphData.Groups) {
             LevelSystemGroup group = _graphView.CreateGroup(groupData.Name, groupData.Position);
             group.SetID(groupData.ID);
             _loadedGroups.Add(groupData.ID, group);
+            
+            // Find the corresponding LevelGroup ScriptableObject in the container
+            LevelGroup levelGroup = levelContainer.Groups.Keys.FirstOrDefault(g => g.GroupName == groupData.Name);
+            if (levelGroup != null)
+            {
+                _loadedLevelGroups.Add(groupData.ID, levelGroup);
+                Debug.Log($"[LevelSystemSaveManager] Mapped LevelSystemGroup '{groupData.Name}' to LevelGroup ScriptableObject");
+            }
+            else
+            {
+                Debug.LogWarning($"[LevelSystemSaveManager] Could not find LevelGroup ScriptableObject for group '{groupData.Name}'");
+            }
         }
     }
 

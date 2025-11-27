@@ -19,7 +19,7 @@ MonoBehaviour:
   _unlockedIcon: {fileID: 0}
   _completedIcon: {fileID: 0}
   _tier: 0
-  _levelIndex: 0
+  _levelIndex: 4
   _levelSceneType: 0
   _gameScene:
     m_SceneAsset: {fileID: 0}
@@ -29,4 +29,4 @@ MonoBehaviour:
   _prerequisiteLevels:
   - {fileID: 11400000, guid: 70ad203c6e8df42edb011f23907712b8, type: 2}
   _nextLevels: []
-  _position: {x: 1080, y: 79}
+  _position: {x: 1385.5, y: -199.5}

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: LevelOne
   m_EditorClassIdentifier: 
   _groupName: LevelOne
+  _groupImage: {fileID: 0}
   _description: 
   _tierLevel: 0
   _groupColor: {r: 1, g: 1, b: 1, a: 1}

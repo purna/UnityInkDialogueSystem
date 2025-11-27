@@ -527,7 +527,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -613,10 +614,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 49804029867685999, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d, type: 2}
     - target: {fileID: 1288722694187023723, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
       propertyPath: m_Name
       value: Unlock - Skill Gated Chest
       objectReference: {fileID: 0}
+    - target: {fileID: 1651247055088329537, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 5436299365060017517, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
       propertyPath: unlockSound
       value: 
@@ -673,6 +682,14 @@ PrefabInstance:
       propertyPath: collectableRewards.Array.data[3]
       value: 
       objectReference: {fileID: 5787051480251074141, guid: 8357c06ef291cec43bad99b6eab1e1ff, type: 3}
+    - target: {fileID: 6620307341076991372, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+    - target: {fileID: 6952655567604704843, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 8877483779841121387, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
       propertyPath: m_LocalPosition.x
       value: 20.31
@@ -951,6 +968,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1129322935282465108, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 1807938764199549705, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.25
@@ -1007,10 +1028,22 @@ PrefabInstance:
       propertyPath: skillsTreeController
       value: 
       objectReference: {fileID: 1186241830}
+    - target: {fileID: 2975840426454919245, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+    - target: {fileID: 5122441291900819829, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d, type: 2}
     - target: {fileID: 5718822987209562633, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_Name
       value: NPC - Skill Tree (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 5929896331937135201, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1155,6 +1188,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 7
       objectReference: {fileID: 0}
+    - target: {fileID: 4969465417606286374, guid: 4bb44f27e29554367a720a9de0bec7be, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 6334075457699076836, guid: 4bb44f27e29554367a720a9de0bec7be, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -1261,7 +1298,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -1397,7 +1435,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -1612,7 +1651,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -1766,7 +1806,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_Material: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_Color: {r: 0, g: 0, b: 0, a: 0.80784315}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -1920,7 +1960,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -2032,7 +2073,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2212,7 +2253,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -2298,6 +2340,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1129322935282465108, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 1807938764199549705, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3.25
@@ -2350,10 +2396,22 @@ PrefabInstance:
       propertyPath: skillsTreeController
       value: 
       objectReference: {fileID: 1186241830}
+    - target: {fileID: 2975840426454919245, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+    - target: {fileID: 5122441291900819829, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d, type: 2}
     - target: {fileID: 5718822987209562633, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_Name
       value: NPC - Skill Tree (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 5929896331937135201, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3116,7 +3174,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -3452,7 +3511,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -3555,7 +3615,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_Material: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_Color: {r: 0.76862746, g: 0.76862746, b: 0.76862746, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -4309,6 +4369,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1129322935282465108, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 1807938764199549705, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_LocalPosition.x
       value: 5.5
@@ -4353,10 +4417,22 @@ PrefabInstance:
       propertyPath: skillsTreeController
       value: 
       objectReference: {fileID: 1186241830}
+    - target: {fileID: 2975840426454919245, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+    - target: {fileID: 5122441291900819829, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d, type: 2}
     - target: {fileID: 5718822987209562633, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
       propertyPath: m_Name
       value: NPC - Skill Tree (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 5929896331937135201, guid: 6e5d9e4488dd74347afc5c861045c151, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -4370,10 +4446,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 49804029867685999, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: e823cd5b5d27c0f4b8256e7c12ee3e6d, type: 2}
     - target: {fileID: 1288722694187023723, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
       propertyPath: m_Name
       value: Unlock - Skill Tree (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 1651247055088329537, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 5013749464271968648, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
       propertyPath: m_text
       value: Press E to Claim Reward
@@ -4446,10 +4530,18 @@ PrefabInstance:
       propertyPath: collectableRewards.Array.data[1]
       value: 
       objectReference: {fileID: 5787051480251074141, guid: 8357c06ef291cec43bad99b6eab1e1ff, type: 3}
+    - target: {fileID: 6620307341076991372, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 6952655567604704843, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
       propertyPath: m_SortingOrder
       value: 5
       objectReference: {fileID: 0}
+    - target: {fileID: 6952655567604704843, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 8877483779841121387, guid: 20fb4dc7b05ba43f8a2b73477dcaadda, type: 3}
       propertyPath: m_LocalPosition.x
       value: 13.73
@@ -4527,6 +4619,10 @@ PrefabInstance:
       propertyPath: _descriptionText
       value: 
       objectReference: {fileID: 1260535277}
+    - target: {fileID: 5842674566904621454, guid: 6104613891ecc4db3a229854fca66a86, type: 3}
+      propertyPath: skillstree
+      value: 
+      objectReference: {fileID: 11400000, guid: f20ac823a5fc0432bafc81a6aa627044, type: 2}
     - target: {fileID: 5842674566904621454, guid: 6104613891ecc4db3a229854fca66a86, type: 3}
       propertyPath: _detailsCost
       value: 

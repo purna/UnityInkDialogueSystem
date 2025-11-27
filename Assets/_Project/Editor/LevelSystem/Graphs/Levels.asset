@@ -16,47 +16,24 @@ MonoBehaviour:
   _groups:
   - _ID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
     _name: LevelOne
-    _position: {x: 48, y: -10}
+    _position: {x: 290, y: -288.5}
   _nodes:
-  - _id: 27230658-7a27-46f7-9702-df524db6bbc8
-    _name: Level3
-    _text: Level description.
-    _choices:
-    - _text: New Tier
-      _nodeID: cc06336f-dacc-422b-a266-3c781ec973aa
-    - _text: New Tier
-      _nodeID: 
-    _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
-    _levelType: 1
-    _position: {x: 710, y: 59}
-    _icon: {fileID: 0}
-    _lockedIcon: {fileID: 0}
-    _unlockedIcon: {fileID: 0}
-    _completedIcon: {fileID: 0}
-    _description: 
-    _tier: 0
-    _levelIndex: 0
-    _completionThreshold: 100
-    _maxAttempts: -1
-    _levelSceneType: 0
-    _gameScenePath: 
-    _gameSceneName: 
-  - _id: cc06336f-dacc-422b-a266-3c781ec973aa
-    _name: Level4
+  - _id: 2d603934-1b13-49fe-8b43-7c1a9af06f07
+    _name: Level1
     _text: Level description.
     _choices:
     - _text: Next Tier
-      _nodeID: 
+      _nodeID: bced0ba3-83c6-42b3-b07f-f31140f33f11
     _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
     _levelType: 0
-    _position: {x: 1080, y: 79}
-    _icon: {fileID: 0}
+    _position: {x: 315, y: -212.5}
+    _icon: {fileID: 21300000, guid: 993fdaccc10c240f8b8f87207edd8a21, type: 3}
     _lockedIcon: {fileID: 0}
     _unlockedIcon: {fileID: 0}
     _completedIcon: {fileID: 0}
-    _description: 
+    _description: Level description.
     _tier: 0
-    _levelIndex: 0
+    _levelIndex: 1
     _completionThreshold: 100
     _maxAttempts: -1
     _levelSceneType: 0
@@ -70,35 +47,79 @@ MonoBehaviour:
       _nodeID: 27230658-7a27-46f7-9702-df524db6bbc8
     _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
     _levelType: 0
-    _position: {x: 390, y: 48.5}
-    _icon: {fileID: 0}
+    _position: {x: 632, y: -230}
+    _icon: {fileID: 21300000, guid: eae4cb8078363d7449ed775f5c8b08d5, type: 3}
     _lockedIcon: {fileID: 0}
     _unlockedIcon: {fileID: 0}
     _completedIcon: {fileID: 0}
-    _description: 
+    _description: Level description.
     _tier: 0
-    _levelIndex: 0
+    _levelIndex: 2
     _completionThreshold: 100
     _maxAttempts: -1
     _levelSceneType: 0
     _gameScenePath: 
     _gameSceneName: 
-  - _id: 2d603934-1b13-49fe-8b43-7c1a9af06f07
-    _name: Level1
+  - _id: cc06336f-dacc-422b-a266-3c781ec973aa
+    _name: Level4
     _text: Level description.
     _choices:
     - _text: Next Tier
-      _nodeID: bced0ba3-83c6-42b3-b07f-f31140f33f11
+      _nodeID: 
     _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
     _levelType: 0
-    _position: {x: 73, y: 66}
-    _icon: {fileID: 0}
+    _position: {x: 1385.5, y: -199.5}
+    _icon: {fileID: 21300000, guid: f7e5b2708886e184d821ad0782547ee2, type: 3}
     _lockedIcon: {fileID: 0}
     _unlockedIcon: {fileID: 0}
     _completedIcon: {fileID: 0}
-    _description: 
+    _description: Level description.
     _tier: 0
-    _levelIndex: 0
+    _levelIndex: 4
+    _completionThreshold: 100
+    _maxAttempts: -1
+    _levelSceneType: 0
+    _gameScenePath: 
+    _gameSceneName: 
+  - _id: a04640b0-5f0c-44a1-9a70-30e6c16ad16b
+    _name: Bonus
+    _text: Level description.
+    _choices:
+    - _text: Next Tier
+      _nodeID: 
+    _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
+    _levelType: 0
+    _position: {x: 1322, y: -62.5}
+    _icon: {fileID: 21300000, guid: 92bb09ce53b008c41bb0418644f77daa, type: 3}
+    _lockedIcon: {fileID: 0}
+    _unlockedIcon: {fileID: 0}
+    _completedIcon: {fileID: 0}
+    _description: Level description.
+    _tier: 0
+    _levelIndex: 5
+    _completionThreshold: 100
+    _maxAttempts: -1
+    _levelSceneType: 3
+    _gameScenePath: 
+    _gameSceneName: 
+  - _id: 27230658-7a27-46f7-9702-df524db6bbc8
+    _name: Level3
+    _text: Level description.
+    _choices:
+    - _text: New Tier
+      _nodeID: cc06336f-dacc-422b-a266-3c781ec973aa
+    - _text: New Tier
+      _nodeID: a04640b0-5f0c-44a1-9a70-30e6c16ad16b
+    _groupID: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
+    _levelType: 1
+    _position: {x: 952, y: -212.5}
+    _icon: {fileID: 21300000, guid: 126ab8abe0ad94e4bb462edf16a5d9d7, type: 3}
+    _lockedIcon: {fileID: 0}
+    _unlockedIcon: {fileID: 0}
+    _completedIcon: {fileID: 0}
+    _description: Level description.
+    _tier: 0
+    _levelIndex: 3
     _completionThreshold: 100
     _maxAttempts: -1
     _levelSceneType: 0
@@ -111,7 +132,8 @@ MonoBehaviour:
     list:
     - Key: e7394cb1-2e28-43ab-8133-e10ff26d9ff4
       Value:
-      - Level3
-      - Level4
-      - Level2
       - Level1
+      - Level2
+      - Level4
+      - Bonus
+      - Level3

@@ -1,5 +1,11 @@
+// ============================================================================
+// SKILLS TREE SYSTEM GRAPH SAVE DATA
+// ============================================================================
 using System.Collections.Generic;
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class SkillsTreeSystemGraphSaveData : ScriptableObject {
     [SerializeField] private string _fileName;
@@ -43,5 +49,13 @@ public class SkillsTreeSystemGraphSaveData : ScriptableObject {
 
     public void UpdateOldGroupedNodeNames(SerializableDictionary<string, List<string>> newNames) {
         _oldGroupedNodeNames = newNames;
+    }
+    
+    // FIX: Add the missing Save() method
+    public void Save() {
+#if UNITY_EDITOR
+        EditorUtility.SetDirty(this);
+        AssetDatabase.SaveAssets();
+#endif
     }
 }

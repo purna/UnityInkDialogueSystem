@@ -16,10 +16,8 @@ public class DialogueControllerEditor : Editor
     private SerializedProperty selectedDialogueGroupIndexProp;
     private SerializedProperty selectedDialogueIndexProp;
     private SerializedProperty dialogueManagerProp;
-    private SerializedProperty screenSpaceDialogueUIProp;
-    private SerializedProperty worldSpaceDialogueUIProp;
-    private SerializedProperty screenSpaceTypewriterProp;
-    private SerializedProperty worldSpaceTypewriterProp;
+    private SerializedProperty dialogueUIProp;
+    private SerializedProperty typewriterProp;
     private SerializedProperty initializeOnStartProp;
     private SerializedProperty startDelayProp;
     private SerializedProperty allowCloseWithKeyProp;
@@ -44,10 +42,8 @@ public class DialogueControllerEditor : Editor
         selectedDialogueGroupIndexProp = serializedObject.FindProperty("selectedDialogueGroupIndex");
         selectedDialogueIndexProp = serializedObject.FindProperty("selectedDialogueIndex");
         dialogueManagerProp = serializedObject.FindProperty("dialogueManager");
-        screenSpaceDialogueUIProp = serializedObject.FindProperty("screenSpaceDialogueUI");
-        worldSpaceDialogueUIProp = serializedObject.FindProperty("worldSpaceDialogueUI");
-        screenSpaceTypewriterProp = serializedObject.FindProperty("screenSpaceTypewriter");
-        worldSpaceTypewriterProp = serializedObject.FindProperty("worldSpaceTypewriter");
+        dialogueUIProp = serializedObject.FindProperty("dialogueUI");
+        typewriterProp = serializedObject.FindProperty("typewriter");
         initializeOnStartProp = serializedObject.FindProperty("initializeOnStart");
         startDelayProp = serializedObject.FindProperty("startDelay");
         allowCloseWithKeyProp = serializedObject.FindProperty("_allowCloseWithKey");
@@ -134,25 +130,20 @@ public class DialogueControllerEditor : Editor
         
         EditorGUILayout.Space(5);
         
-        // Screen Space UI References
-        EditorGUILayout.LabelField("Screen Space UI", EditorStyles.boldLabel);
+        // Unified UI References
+        EditorGUILayout.LabelField("Unified Dialogue UI", EditorStyles.boldLabel);
         EditorGUI.indentLevel++;
-        EditorGUILayout.PropertyField(screenSpaceDialogueUIProp, new GUIContent("Dialogue UI"));
-        EditorGUILayout.PropertyField(screenSpaceTypewriterProp, new GUIContent("Typewriter Effect"));
+        EditorGUILayout.PropertyField(dialogueUIProp, new GUIContent("Dialogue UI"));
+        EditorGUILayout.PropertyField(typewriterProp, new GUIContent("Typewriter Effect"));
         EditorGUI.indentLevel--;
         
-        EditorGUILayout.Space(3);
-        
-        // World Space UI References
-        EditorGUILayout.LabelField("World Space UI", EditorStyles.boldLabel);
-        EditorGUI.indentLevel++;
-        EditorGUILayout.PropertyField(worldSpaceDialogueUIProp, new GUIContent("Dialogue UI"));
-        EditorGUILayout.PropertyField(worldSpaceTypewriterProp, new GUIContent("Typewriter Effect"));
-        EditorGUI.indentLevel--;
+        EditorGUILayout.HelpBox(
+            "The Dialogue UI automatically switches between ScreenSpace and WorldSpace modes based on Setup Mode.",
+            MessageType.Info);
         
         // Validation warnings
         EditorGUILayout.Space(5);
-        ValidateUIReferences(currentMode);
+        ValidateUIReferences();
 
         EditorGUILayout.Space(10);
 
@@ -230,58 +221,30 @@ public class DialogueControllerEditor : Editor
         serializedObject.ApplyModifiedProperties();
     }
 
-    private void ValidateUIReferences(DialogueSetupMode currentMode)
+    private void ValidateUIReferences()
     {
-        bool hasScreenSpaceUI = screenSpaceDialogueUIProp.objectReferenceValue != null;
-        bool hasWorldSpaceUI = worldSpaceDialogueUIProp.objectReferenceValue != null;
-        bool hasScreenSpaceTypewriter = screenSpaceTypewriterProp.objectReferenceValue != null;
-        bool hasWorldSpaceTypewriter = worldSpaceTypewriterProp.objectReferenceValue != null;
+        bool hasDialogueUI = dialogueUIProp.objectReferenceValue != null;
+        bool hasTypewriter = typewriterProp.objectReferenceValue != null;
 
-        if (currentMode == DialogueSetupMode.ScreenSpace)
+        if (!hasDialogueUI)
         {
-            if (!hasScreenSpaceUI)
-            {
-                EditorGUILayout.HelpBox(
-                    "⚠️ Screen Space mode is active but no Screen Space UI is assigned!\n" +
-                    "The system will search for one at runtime.",
-                    MessageType.Warning);
-            }
-            else if (!hasScreenSpaceTypewriter)
-            {
-                EditorGUILayout.HelpBox(
-                    "⚠️ Screen Space UI assigned but no Typewriter Effect!\n" +
-                    "The system will search for one at runtime.",
-                    MessageType.Warning);
-            }
-            else
-            {
-                EditorGUILayout.HelpBox(
-                    "✓ Screen Space UI properly configured!",
-                    MessageType.Info);
-            }
+            EditorGUILayout.HelpBox(
+                "⚠️ No Dialogue UI assigned!\n" +
+                "The system will search for one at runtime.",
+                MessageType.Warning);
         }
-        else // WorldSpace
+        else if (!hasTypewriter)
         {
-            if (!hasWorldSpaceUI)
-            {
-                EditorGUILayout.HelpBox(
-                    "⚠️ World Space mode is active but no World Space UI is assigned!\n" +
-                    "The system will search for one at runtime.",
-                    MessageType.Warning);
-            }
-            else if (!hasWorldSpaceTypewriter)
-            {
-                EditorGUILayout.HelpBox(
-                    "⚠️ World Space UI assigned but no Typewriter Effect!\n" +
-                    "The system will search for one at runtime.",
-                    MessageType.Warning);
-            }
-            else
-            {
-                EditorGUILayout.HelpBox(
-                    "✓ World Space UI properly configured!",
-                    MessageType.Info);
-            }
+            EditorGUILayout.HelpBox(
+                "⚠️ Dialogue UI assigned but no Typewriter Effect!\n" +
+                "The system will search for one at runtime.",
+                MessageType.Warning);
+        }
+        else
+        {
+            EditorGUILayout.HelpBox(
+                "✓ Dialogue UI properly configured!",
+                MessageType.Info);
         }
     }
 
@@ -596,14 +559,10 @@ public class DialogueControllerEditor : Editor
                 MessageType.Info);
             
             bool hasManager = dialogueManagerProp.objectReferenceValue != null;
-            bool hasScreenSpaceUI = screenSpaceDialogueUIProp.objectReferenceValue != null;
-            bool hasWorldSpaceUI = worldSpaceDialogueUIProp.objectReferenceValue != null;
+            bool hasDialogueUI = dialogueUIProp.objectReferenceValue != null;
             bool hasContainer = dialogueContainerProp.objectReferenceValue != null;
             
-            DialogueSetupMode currentMode = (DialogueSetupMode)setupModeProp.enumValueIndex;
-            bool hasActiveUI = currentMode == DialogueSetupMode.ScreenSpace ? hasScreenSpaceUI : hasWorldSpaceUI;
-            
-            if (!hasManager || !hasActiveUI)
+            if (!hasManager || !hasDialogueUI)
             {
                 EditorGUILayout.Space(5);
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
@@ -613,9 +572,9 @@ public class DialogueControllerEditor : Editor
                 {
                     EditorGUILayout.LabelField("• DialogueManager not assigned - will search at runtime");
                 }
-                if (!hasActiveUI)
+                if (!hasDialogueUI)
                 {
-                    EditorGUILayout.LabelField($"• {currentMode} DialogueUI not assigned - will search at runtime");
+                    EditorGUILayout.LabelField("• DialogueUI not assigned - will search at runtime");
                 }
                 
                 EditorGUILayout.EndVertical();
@@ -624,6 +583,8 @@ public class DialogueControllerEditor : Editor
             {
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 EditorGUILayout.LabelField("✓ Setup Complete!", EditorStyles.boldLabel);
+                
+                DialogueSetupMode currentMode = (DialogueSetupMode)setupModeProp.enumValueIndex;
                 EditorGUILayout.LabelField($"Ready to use in {currentMode} mode");
                 EditorGUILayout.EndVertical();
             }

@@ -489,4 +489,56 @@ public class SkillTreeController : MonoBehaviour
         _unlockButton.SetEnabled(status == "available");
         _unlockButton.text = status == "unlocked" ? "Mastered" : "Unlock Skill";
     }
+
+
+    #if UNITY_EDITOR
+    [ContextMenu("Auto-Populate Skills")]
+    private void PopulateDefaultData()
+    {
+        UnityEditor.Undo.RecordObject(this, "Populate Skills");
+        _skills = new List<SkillNodeData>();
+        
+        // Helper to find sprites safely
+        Sprite TryFindSprite(string id) => Resources.Load<Sprite>($"SkillIcons/{id}");
+
+        _skills.Add(new SkillNodeData { Id = "root", Name = "Novice", Description = "The beginning.", X = 50, Y = 10, Cost = 0, Icon = TryFindSprite("root"), Parents = new List<string>() });
+        _skills.Add(new SkillNodeData { Id = "warrior_1", Name = "Strength", Description = "+10% Phys Dmg", X = 20, Y = 35, Cost = 1, Icon = TryFindSprite("warrior_1"), Parents = new List<string> { "root" } });
+        _skills.Add(new SkillNodeData { Id = "warrior_2", Name = "Iron Skin", Description = "-15% Dmg Taken", X = 10, Y = 60, Cost = 2, Icon = TryFindSprite("warrior_2"), Parents = new List<string> { "warrior_1" } });
+        _skills.Add(new SkillNodeData { Id = "warrior_3", Name = "Execute", Description = "Crit Low HP", X = 30, Y = 60, Cost = 3, Icon = TryFindSprite("warrior_3"), Parents = new List<string> { "warrior_1" } });
+        _skills.Add(new SkillNodeData { Id = "rogue_1", Name = "Agility", Description = "+Speed", X = 50, Y = 35, Cost = 1, Icon = TryFindSprite("rogue_1"), Parents = new List<string> { "root" } });
+        _skills.Add(new SkillNodeData { Id = "rogue_2", Name = "Precision", Description = "+20% Crit", X = 40, Y = 60, Cost = 2, Icon = TryFindSprite("rogue_2"), Parents = new List<string> { "rogue_1" } });
+        _skills.Add(new SkillNodeData { Id = "rogue_3", Name = "Shadow", Description = "Invisibility", X = 60, Y = 60, Cost = 3, Icon = TryFindSprite("rogue_3"), Parents = new List<string> { "rogue_1" } });
+        _skills.Add(new SkillNodeData { Id = "mage_1", Name = "Intellect", Description = "+Mana", X = 80, Y = 35, Cost = 1, Icon = TryFindSprite("mage_1"), Parents = new List<string> { "root" } });
+        _skills.Add(new SkillNodeData { Id = "mage_2", Name = "Fireball", Description = "Boom.", X = 70, Y = 60, Cost = 2, Icon = TryFindSprite("mage_2"), Parents = new List<string> { "mage_1" } });
+        _skills.Add(new SkillNodeData { Id = "mage_3", Name = "Frost", Description = "Freeze.", X = 90, Y = 60, Cost = 3, Icon = TryFindSprite("mage_3"), Parents = new List<string> { "mage_1" } });
+        _skills.Add(new SkillNodeData { Id = "ultimate", Name = "Heroic Will", Description = "The ultimate power.", X = 50, Y = 85, Cost = 5, Icon = TryFindSprite("ultimate"), Parents = new List<string> { "warrior_3", "rogue_3", "mage_3" } });
+        
+        // Also ensure theme is set to prevent null errors
+        ResetThemeDefaults();
+        
+        Debug.Log("Skills populated!");
+    }
+
+      [ContextMenu("Reset Theme Colors")]
+    private void ResetThemeDefaults()
+    {
+        UnityEditor.Undo.RecordObject(this, "Reset Theme Colors");
+
+        if (_theme == null) _theme = new SkillTreeTheme();
+        _theme.NodeBackground = new Color(0.06f, 0.09f, 0.16f);
+        _theme.NodeBorderLocked = new Color(0.2f, 0.25f, 0.33f);
+        _theme.StateAvailable = Color.white;
+        _theme.StateUnlocked = new Color(0.91f, 0.7f, 0.03f);
+        _theme.StateSelected = new Color(0.23f, 0.51f, 0.96f);
+        _theme.IconLocked = new Color(0.5f, 0.5f, 0.5f);
+        _theme.IconAvailable = Color.white;
+        _theme.IconUnlocked = new Color(0.91f, 0.7f, 0.03f);
+        _theme.LineInactive = new Color(0.11f, 0.16f, 0.23f);
+        _theme.LineActive = new Color(0.98f, 0.75f, 0.14f);
+        _theme.CostBadgeBackground = new Color(0.14f, 0.38f, 0.92f);
+        _theme.CostBadgeText = Color.white;
+        _theme.TextGreen = new Color(0.13f, 0.77f, 0.36f);
+        _theme.TextGrey = new Color(0.58f, 0.64f, 0.72f);
+    }
+#endif
 }

@@ -1,41 +1,41 @@
-/* ========================================
-   GLOBAL LAYOUT
-   ======================================== */
 .root-container {
     flex-grow: 1;
-    background-color: rgb(30, 30, 35);
-    padding: 20px 40px;
-    justify-content: space-between; /* Pushes header top, footer bottom */
+    background-color: rgba(30, 30, 35, 0.30);
+    padding: 10px 40px;
+    justify-content: space-between;
 }
 
-/* ========================================
-   HEADER
-   ======================================== */
 .header-container {
     flex-shrink: 0;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .header-text {
-    font-size: 32px;
+    font-size: 24px;
     color: white;
     -unity-font-style: bold;
     -unity-text-align: middle-center;
     margin-bottom: 10px;
 }
 
+.header-logo {
+    height: 120px;
+    width: auto;
+    -unity-background-scale-mode: scale-to-fit;
+    align-self: center;
+    margin-bottom: 10px;
+    max-width: 80%;
+}
+
 .separator {
     width: 100%;
-    height: 2px;
-    background-color: rgba(255, 255, 255, 0.1);
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0);
     -unity-background-scale-mode: scale-to-fit;
     margin-bottom: 10px;
 }
 
-/* ========================================
-   CONTENT / SLIDERS
-   ======================================== */
 .content-container {
     flex-grow: 1;
     justify-content: center;
@@ -44,7 +44,7 @@
 }
 
 .slider-row {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
 }
 
 .slider-label {
@@ -54,45 +54,159 @@
     margin-bottom: 5px;
 }
 
-/* Slider Base Styling */
 .settings-slider {
     margin-top: 5px;
 }
 
-/* The Track (Background Line) */
 .settings-slider .unity-base-slider__tracker {
     background-color: rgb(50, 50, 50);
     border-radius: 4px;
     height: 8px;
     border-width: 0;
-    margin-top: -4px; /* Vertically center */
+    margin-top: -4px;
 }
 
-/* The Handle (Dragger) */
 .settings-slider .unity-base-slider__dragger {
     width: 24px;
     height: 24px;
-    border-radius: 12px; /* Circle */
+    border-radius: 12px;
     background-color: white;
     border-width: 0;
-    margin-top: -12px; /* Vertically center relative to tracker */
+    margin-top: -12px;
 }
 
-/* Hover State */
 .settings-slider .unity-base-slider__dragger:hover {
     scale: 1.1;
 }
 
-/* Focus State (For Keyboard/Gamepad Navigation) */
 .settings-slider:focus .unity-base-slider__dragger {
     border-width: 2px;
-    border-color: yellow; /* distinct focus ring */
+    border-color: yellow;
     scale: 1.2;
 }
 
-/* ========================================
-   FOOTER
-   ======================================== */
+.content-button-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+}
+
+.content-decoration {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.2s;
+}
+
+.content-button-container:hover .content-decoration {
+    opacity: 1;
+}
+
+.content-button {
+    width: 200px;
+    height: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+    border-radius: 8px;
+    border-width: 0;
+    font-size: 13px;
+    -unity-font-style: bold;
+    color: white;
+    transition-duration: 0.1s;
+    align-items: center;
+}
+
+.content-button:hover {
+    scale: 1.05;
+}
+
+.content-button:active {
+    scale: 0.95;
+}
+
+.content-button:focus {
+    border-width: 2px;
+    border-color: yellow;
+}
+
+.input-item {
+    width: 100%;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.input-item-header {
+    font-size: 18px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 10px;
+    color: white;
+}
+
+.input-item-description {
+    font-size: 11px;
+    -unity-text-align: middle-center;
+    margin-bottom: 15px;
+    white-space: normal;
+    color: rgb(200, 200, 200);
+}
+
+.input-item-image {
+    width: 100%;
+    height: 400px;
+    -unity-background-scale-mode: scale-to-fit;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.content-container ScrollView {
+    flex-grow: 1;
+}
+
+.content-container .unity-scroll-view__content-container {
+    padding: 20px;
+}
+
+.unity-scroller--vertical .unity-base-slider__tracker {
+    background-color: rgb(50, 50, 50);
+    border-radius: 4px;
+    width: 12px;
+}
+
+.unity-scroller--vertical .unity-base-slider__dragger {
+    background-color: white;
+    border-radius: 6px;
+    width: 12px;
+    min-height: 40px;
+}
+
+.unity-scroller--vertical .unity-base-slider__dragger:hover {
+    background-color: rgb(220, 220, 220);
+}
+
+.unity-scroller--vertical .unity-low-button {
+    height: 20px;
+    width: 12px;
+    background-color: rgb(80, 80, 80);
+}
+
+.unity-scroller--vertical .unity-high-button {
+    height: 20px;
+    width: 12px;
+    background-color: rgb(80, 80, 80);
+}
+
+.unity-scroller--vertical .unity-low-button:hover {
+    background-color: rgb(100, 100, 100);
+}
+
+.unity-scroller--vertical .unity-high-button:hover {
+    background-color: rgb(100, 100, 100);
+}
+
 .footer-container {
     flex-shrink: 0;
     align-items: center;
@@ -115,28 +229,27 @@
 }
 
 .footer-button {
-    width: 140px;
-    height: 45px;
+    width: 120px;
+    height: 20px;
     margin-left: 10px;
     margin-right: 10px;
     border-radius: 8px;
     border-width: 0;
-    font-size: 18px;
+    font-size: 11px;
     -unity-font-style: bold;
     color: white;
     transition-duration: 0.1s;
 }
 
-/* Specific Button Colors (Defaults, can be overridden by C#) */
-.close-button {
-    background-color: rgb(37, 99, 235);
+.back-button {
 }
 
 .reset-button {
-    background-color: rgb(80, 80, 80);
 }
 
-/* Button Interaction States */
+.close-button {
+}
+
 .footer-button:hover {
     scale: 1.05;
 }

@@ -2,17 +2,17 @@
     <Style src="project://database/Assets/Editor%20Default%20Resources/SkillsTreeSystem/SkillTreeStyles.uss?fileID=7433441132597879392&amp;guid=32db2b953dcead8438c1a5c36d67e7cf&amp;type=3#SkillTreeStyles" />
     <ui:VisualElement name="Root" style="flex-grow: 1; flex-direction: column; background-color: rgb(20, 20, 20); -unity-font: url(&quot;project://database/Assets/Fonts/backissuesbb_ot/BackIssuesBB_reg.otf?fileID=12800000&amp;guid=c9a8d7eef139e40ee91619aa459860ca&amp;type=3#BackIssuesBB_reg&quot;); -unity-font-definition: resource(&apos;Fonts &amp; Materials/BackIssuesBB_reg SDF&apos;);">
         <ui:VisualElement name="Header">
-            <ui:Label name="HeaderTitle" text="Skill Tree System" />
+            <ui:Label name="HeaderTitle" text="Skill Tree System" style="-unity-font-style: normal;" />
             <ui:Label name="PointsDisplay" text="0 PTS" />
         </ui:VisualElement>
         <ui:VisualElement name="MainContent" style="flex-grow: 1; flex-shrink: 1; position: relative; overflow: hidden;">
             <ui:VisualElement name="CanvasArea" class="canvas-area" style="flex-grow: 1; position: absolute; top: 0; bottom: 0; left: 0; right: 0;">
                 <ui:VisualElement name="ConnectionsLayer" picking-mode="Ignore" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;" />
                 <ui:VisualElement name="NodesContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0;" />
-                <ui:Label name="InstructionLabel" text="Select a skill to view details"  />
+                <ui:Label name="InstructionLabel" text="Select a skill to view details" />
             </ui:VisualElement>
             <ui:VisualElement name="SidebarBackdrop" />
-            <ui:VisualElement name="Sidebar" class="sidebar-popup" >
+            <ui:VisualElement name="Sidebar" class="sidebar-popup">
                 <ui:Button name="SidebarCloseButton" text="✕" />
                 <ui:VisualElement name="InspectorContent">
                     <ui:VisualElement name="SidebarHeader">

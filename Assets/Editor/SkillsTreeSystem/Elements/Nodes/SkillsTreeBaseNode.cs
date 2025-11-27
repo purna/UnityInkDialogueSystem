@@ -31,6 +31,9 @@ public abstract class SkillsTreeBaseNode : Node
     private int _unlockCost;
     private float _value;
     private int _maxLevel;
+    
+    // FIX: Store multiple unlock functions
+    private List<SkillFunction> _unlockFunctions;
 
     public string Text
     {
@@ -58,7 +61,10 @@ public abstract class SkillsTreeBaseNode : Node
                 _unlockCost = _skill.UnlockCost;
                 _value = _skill.Value;
                 _maxLevel = _skill.MaxLevel;
-                _text = _skill.Description; // Keep text in sync
+                _text = _skill.Description;
+                
+                // FIX: Copy unlock functions list
+                _unlockFunctions = new List<SkillFunction>(_skill.UnlockFunctions);
             }
             UpdateVisualDisplay();
         }
@@ -86,6 +92,9 @@ public abstract class SkillsTreeBaseNode : Node
     public int UnlockCost => _unlockCost;
     public float Value => _value;
     public int MaxLevel => _maxLevel;
+    
+    // FIX: Expose unlock functions list
+    public List<SkillFunction> UnlockFunctions => _unlockFunctions;
 
     public virtual void Initialize(string nodeName, SkillsTreeSystemGraphView graphView, Vector2 position)
     {
@@ -102,6 +111,9 @@ public abstract class SkillsTreeBaseNode : Node
         _unlockCost = 1;
         _value = 0f;
         _maxLevel = 1;
+        
+        // FIX: Initialize unlock functions list
+        _unlockFunctions = new List<SkillFunction>();
 
         SetPosition(new(position, Vector2.zero));
 
@@ -317,6 +329,15 @@ public abstract class SkillsTreeBaseNode : Node
     }
     
     /// <summary>
+    /// FIX: Update unlock functions list
+    /// </summary>
+    public void UpdateUnlockFunctions(List<SkillFunction> functions)
+    {
+        _unlockFunctions = functions != null ? new List<SkillFunction>(functions) : new List<SkillFunction>();
+        NotifyDataChanged();
+    }
+    
+    /// <summary>
     /// Notify the graph that this node's data has changed
     /// </summary>
     private void NotifyDataChanged()
@@ -343,6 +364,9 @@ public abstract class SkillsTreeBaseNode : Node
         _value = data.Value;
         _maxLevel = data.MaxLevel;
         
+        // FIX: Load unlock functions list
+        _unlockFunctions = data.UnlockFunctions != null ? new List<SkillFunction>(data.UnlockFunctions) : new List<SkillFunction>();
+        
         // Update visual display with loaded data
         UpdateVisualDisplay();
     }
@@ -367,6 +391,9 @@ public abstract class SkillsTreeBaseNode : Node
         // Update with current skill properties
         saveData.UpdateVisualData(_icon, _lockedIcon, _unlockedIcon, _description);
         saveData.UpdateSkillProperties(_tier, _unlockCost, _value, _maxLevel);
+        
+        // FIX: Update with unlock functions
+        saveData.UpdateUnlockFunctions(_unlockFunctions);
         
         return saveData;
     }

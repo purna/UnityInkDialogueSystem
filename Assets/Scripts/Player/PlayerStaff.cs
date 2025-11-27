@@ -3,39 +3,45 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerStaff : MonoBehaviour
+// ==================== PLAYER STAFF ====================
+public class PlayerStaff : MonoBehaviour, IPlayerUpgrade
 {
+    public string UpgradeName => "Staff";
+    public bool IsActive { get; set; }
+
     [SerializeField] private GameObject staffObject;
     [SerializeField] private Transform staffSpawnPosition;
+    [SerializeField] private PlayerUpgrades playerUpgrades;
 
-    [SerializeField] private  PlayerUpgrades playerUpgrades;
-
-    [SerializeField] public  bool  IsActive = false;
-
-   
-     private void Update()
+    private void Update()
     {
-       
-        if (playerUpgrades.StaffUpgradeUnlocked == true)
-        {
-             // Check if the E key was pressed this frame
-            if  (Keyboard.current.eKey.wasPressedThisFrame)
-            {
-                SpawnStaff();
-            }
+        if (!IsActive) return;
 
-            // Check if the F key was pressed this frame
-            if (Keyboard.current.fKey.wasPressedThisFrame)
-            {
-                playerUpgrades.LockStaff();
-            }
+        if (Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            SpawnStaff();
         }
 
+        if (Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            playerUpgrades.LockUpgrade(UpgradeName);
+        }
+    }
+
+    public void Activate()
+    {
+        IsActive = true;
+        enabled = true;
+    }
+
+    public void Deactivate()
+    {
+        IsActive = false;
+        enabled = false;
     }
 
     private void SpawnStaff()
     {
-        // Instantiate the staff prefab at the spawn position
         if (staffObject != null && staffSpawnPosition != null)
         {
             Instantiate(staffObject, staffSpawnPosition.position, staffSpawnPosition.rotation);
@@ -46,10 +52,8 @@ public class PlayerStaff : MonoBehaviour
         }
     }
 
-
     public void SetStaffObject(GameObject collectedObject)
     {
         staffObject = collectedObject;
     }
-
 }

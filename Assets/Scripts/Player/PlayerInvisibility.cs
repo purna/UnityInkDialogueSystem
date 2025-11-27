@@ -3,35 +3,42 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerInvisibility : MonoBehaviour
+// ==================== PLAYER INVISIBILITY ====================
+public class PlayerInvisibility : MonoBehaviour, IPlayerUpgrade
 {
+    public string UpgradeName => "Invisibility";
+    public bool IsActive { get; set; }
+
     [SerializeField] private GameObject invisibilityObject;
     [SerializeField] private float timeForInvisibility = .5f;
-
-    [SerializeField] private  PlayerUpgrades playerUpgrades;
-    
-    [SerializeField] public  bool  IsActive = false;
+    [SerializeField] private PlayerUpgrades playerUpgrades;
 
     private void Update()
     {
-        if (playerUpgrades.InvisibilityUpgradeUnlocked == true)
-           {
+        if (!IsActive) return;
 
-                // Check if the E key was pressed this frame
-                if  (Keyboard.current.eKey.wasPressedThisFrame)
-                {
-                playerUpgrades.UnlockInvisibility();
-                }
+        if (Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            // Activate invisibility logic here
+        }
 
-                // Check if the F key was pressed this frame
-                if (Keyboard.current.fKey.wasPressedThisFrame)
-                {
-                    playerUpgrades.LockInvisibility();
-                }
-            }
- 
+        if (Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            playerUpgrades.LockUpgrade(UpgradeName);
+        }
     }
-    
+
+    public void Activate()
+    {
+        IsActive = true;
+        enabled = true;
+    }
+
+    public void Deactivate()
+    {
+        IsActive = false;
+        enabled = false;
+    }
 
     public void SetInvisibilityObject(GameObject collectedObject)
     {

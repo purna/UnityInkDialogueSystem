@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: SkillsTreeName
   m_EditorClassIdentifier: 
   _treeName: SkillsTreeName
-  _description: 
+  _description: Level 1 Skill Tree
   _groups:
     list:
     - Key: {fileID: 11400000, guid: 34cfa31e7ec8541838b58f3cf23fb7a9, type: 2}
       Value:
-      - {fileID: 11400000, guid: d03fe3ffb654d46889ff649df61c5e42, type: 2}
-      - {fileID: 11400000, guid: 2db39a681629d434a9d7bfb492ecae1b, type: 2}
       - {fileID: 11400000, guid: f20ac823a5fc0432bafc81a6aa627044, type: 2}
+      - {fileID: 11400000, guid: 7e5f17df0d3664979b1cbbef279ab0cf, type: 2}
+      - {fileID: 11400000, guid: 2db39a681629d434a9d7bfb492ecae1b, type: 2}
+      - {fileID: 11400000, guid: d03fe3ffb654d46889ff649df61c5e42, type: 2}
   _ungroupedSkills: []

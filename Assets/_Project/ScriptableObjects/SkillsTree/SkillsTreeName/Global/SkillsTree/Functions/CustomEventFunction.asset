@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _functionName: 
   _description: 
-  _eventName: OnLevelUp
+  _eventName: OnEnemyKilled
   _eventParameter: 2
   _eventParameter2: 

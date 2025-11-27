@@ -25,9 +25,8 @@ MonoBehaviour:
   _prerequisites:
   - {fileID: 11400000, guid: f20ac823a5fc0432bafc81a6aa627044, type: 2}
   _children: []
-  _unlockFunctions: []
-  _position: {x: 938, y: -278.5}
+  _unlockFunctions:
+  - {fileID: 11400000, guid: 7caf0a5c1b13d4c449114d0b5caf4219, type: 2}
+  _position: {x: 330.5, y: -1494}
   _requiresSpecialKey: 0
   _requiredKeyName: 
-  requiresSpecialKey: 0
-  requiredKeyName: 

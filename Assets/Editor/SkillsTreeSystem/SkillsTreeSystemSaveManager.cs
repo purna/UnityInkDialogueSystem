@@ -16,6 +16,8 @@ public static class SkillsTreeSystemSaveManager {
     private static Dictionary<string, Skill> _createdSkillsTree;
 
     private static Dictionary<string, SkillsTreeSystemGroup> _loadedGroups;
+    // Map from SkillsTreeSystemGroup ID to SkillsTreeGroup ScriptableObject for loading
+    private static Dictionary<string, SkillsTreeGroup> _loadedSkillsTreeGroups;
     private static Dictionary<string, SkillsTreeBaseNode> _loadedNodes;
 
     public static void Initialize(SkillsTreeSystemGraphView graphView, string graphName) {
@@ -28,6 +30,7 @@ public static class SkillsTreeSystemSaveManager {
         _createdSkillsTreeGroups = new();
         _createdSkillsTree = new();
         _loadedGroups = new();
+        _loadedSkillsTreeGroups = new();
         _loadedNodes = new();
     }
 
@@ -41,23 +44,35 @@ public static class SkillsTreeSystemSaveManager {
 
         SkillsTreeContainer skillstreeContainer = AssetsUtility.CreateAsset<SkillsTreeContainer>(_graphFolderPath, _graphFileName);
         
-        // CRITICAL FIX: Don't reinitialize if it already exists, just update the name
+        // CRITICAL FIX: Always clear and rebuild the container to ensure consistency
         if (skillstreeContainer.Groups == null || skillstreeContainer.UngroupedSkills == null)
         {
             skillstreeContainer.Initialize(_graphFileName);
         }
-        else
-        {
-            // Clear existing entries to rebuild them
-            skillstreeContainer.Groups.Clear();
-            skillstreeContainer.UngroupedSkills.Clear();
-        }
+        
+        // Clear existing entries to rebuild them fresh
+        skillstreeContainer.Groups.Clear();
+        skillstreeContainer.UngroupedSkills.Clear();
 
         SaveGroups(graphData, skillstreeContainer);
         SaveNodes(graphData, skillstreeContainer);
 
         graphData.Save();
         skillstreeContainer.Save();
+        
+        // FIX: Force save the container after all skills are added
+        EditorUtility.SetDirty(skillstreeContainer);
+        AssetDatabase.SaveAssets();
+        
+        // Debug summary to verify the fix
+        Debug.Log($"[SkillsTreeSystemSaveManager] Saved {_nodes.Count} nodes to container");
+        Debug.Log($"[SkillsTreeSystemSaveManager] Container groups: {skillstreeContainer.Groups.Count}");
+        Debug.Log($"[SkillsTreeSystemSaveManager] Container ungrouped skills: {skillstreeContainer.UngroupedSkills.Count}");
+        
+        foreach (var group in skillstreeContainer.Groups)
+        {
+            Debug.Log($"[SkillsTreeSystemSaveManager] Group '{group.Key.GroupName}' contains {group.Value.Count} skills");
+        }
     }
 
     #region Groups
@@ -268,8 +283,9 @@ public static class SkillsTreeSystemSaveManager {
             // Handle group change (move to different folder)
             string currentAssetPath = AssetDatabase.GetAssetPath(skillstree);
             string expectedPath = $"{path}/{skillName}.asset";
+            bool pathChanged = currentAssetPath != expectedPath;
             
-            if (currentAssetPath != expectedPath)
+            if (pathChanged)
             {
                 Debug.Log($"Moving skill asset from '{currentAssetPath}' to '{expectedPath}'");
                 string error = AssetDatabase.MoveAsset(currentAssetPath, expectedPath);
@@ -279,14 +295,24 @@ public static class SkillsTreeSystemSaveManager {
                 }
             }
             
-            // CRITICAL FIX: Re-add skill to container in correct location
-            if (node.Group != null) {
+            // CRITICAL FIX: Always ensure skills are added to their groups in the container
+            if (node.Group != null)
+            {
                 if (_createdSkillsTreeGroups.ContainsKey(node.Group.ID))
                 {
-                    skillstreeContainer.AddSkillToGroup(_createdSkillsTreeGroups[node.Group.ID], skillstree);
+                    SkillsTreeGroup skillsTreeGroup = _createdSkillsTreeGroups[node.Group.ID];
+                    skillstreeContainer.AddSkillToGroup(skillsTreeGroup, skillstree);
+                    Debug.Log($"[SkillsTreeSystemSaveManager] Ensured skill '{skillName}' is in group '{skillsTreeGroup.GroupName}'");
                 }
-            } else {
+                else
+                {
+                    Debug.LogError($"[SkillsTreeSystemSaveManager] Group ID '{node.Group.ID}' not found in created groups for skill '{skillName}'!");
+                }
+            }
+            else
+            {
                 skillstreeContainer.AddUngroupedSkill(skillstree);
+                Debug.Log($"[SkillsTreeSystemSaveManager] Added ungrouped skill '{skillName}'");
             }
             
             skillstree.UpdateName(node.SkillsTreeName);
@@ -387,8 +413,18 @@ public static class SkillsTreeSystemSaveManager {
     #endregion
 
     #region Load
+    private static void ResetLoadedData()
+    {
+        _loadedGroups.Clear();
+        _loadedSkillsTreeGroups.Clear();
+        _loadedNodes.Clear();
+    }
+    
     public static void Load()
     {
+        // Clear any existing loaded data
+        ResetLoadedData();
+        
         SkillsTreeSystemGraphSaveData graphData = AssetsUtility.LoadAsset<SkillsTreeSystemGraphSaveData>("Assets/_Project/Editor/SkillsTreeSystem/Graphs", _graphFileName);
         if (graphData == null)
         {
@@ -413,7 +449,7 @@ public static class SkillsTreeSystemSaveManager {
 
         SkillsTreeSystemEditorWindow.UpdateFileName(graphData.FileName);
 
-        LoadGroups(graphData);
+        LoadGroups(graphData, skillstreeContainer);
         LoadNodes(graphData, skillstreeContainer);
         LoadNodesConnections();
     }
@@ -429,9 +465,20 @@ public static class SkillsTreeSystemSaveManager {
             Skill skillstree = null;
             if (!string.IsNullOrEmpty(nodeData.GroupID))
             {
-                if (_loadedGroups.ContainsKey(nodeData.GroupID))
+                // Use the mapped SkillsTreeGroup instead of trying to find by name
+                if (_loadedSkillsTreeGroups.ContainsKey(nodeData.GroupID))
                 {
-                    skillstree = skillstreeContainer.GetGroupSkill(_loadedGroups[nodeData.GroupID].title, nodeData.Name);
+                    SkillsTreeGroup skillsTreeGroup = _loadedSkillsTreeGroups[nodeData.GroupID];
+                    skillstree = skillstreeContainer.GetSkillsInGroup(skillsTreeGroup).FirstOrDefault(l => l.SkillName == nodeData.Name);
+                    
+                    if (skillstree == null)
+                    {
+                        Debug.LogWarning($"[SkillsTreeSystemSaveManager] Could not find skill '{nodeData.Name}' in group '{skillsTreeGroup.GroupName}'");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[SkillsTreeSystemSaveManager] Could not find mapped SkillsTreeGroup for group ID '{nodeData.GroupID}'");
                 }
             }
             else
@@ -459,11 +506,23 @@ public static class SkillsTreeSystemSaveManager {
         }
     }
 
-    private static void LoadGroups(SkillsTreeSystemGraphSaveData graphData) {
+    private static void LoadGroups(SkillsTreeSystemGraphSaveData graphData, SkillsTreeContainer skillstreeContainer) {
         foreach (var groupData in graphData.Groups) {
             SkillsTreeSystemGroup group = _graphView.CreateGroup(groupData.Name, groupData.Position);
             group.SetID(groupData.ID);
             _loadedGroups.Add(groupData.ID, group);
+            
+            // Find the corresponding SkillsTreeGroup ScriptableObject in the container
+            SkillsTreeGroup skillsTreeGroup = skillstreeContainer.Groups.Keys.FirstOrDefault(g => g.GroupName == groupData.Name);
+            if (skillsTreeGroup != null)
+            {
+                _loadedSkillsTreeGroups.Add(groupData.ID, skillsTreeGroup);
+                Debug.Log($"[SkillsTreeSystemSaveManager] Mapped SkillsTreeSystemGroup '{groupData.Name}' to SkillsTreeGroup ScriptableObject");
+            }
+            else
+            {
+                Debug.LogWarning($"[SkillsTreeSystemSaveManager] Could not find SkillsTreeGroup ScriptableObject for group '{groupData.Name}'");
+            }
         }
     }
 

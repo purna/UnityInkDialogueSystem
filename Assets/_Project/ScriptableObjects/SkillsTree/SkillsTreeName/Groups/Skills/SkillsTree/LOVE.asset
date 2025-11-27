@@ -26,9 +26,8 @@ MonoBehaviour:
   _children:
   - {fileID: 11400000, guid: f20ac823a5fc0432bafc81a6aa627044, type: 2}
   _unlockFunctions:
-  - {fileID: 11400000, guid: 88bc7059a8a034c89865a0bd502f5fc0, type: 2}
-  _position: {x: 89.5, y: -292}
+  - {fileID: 11400000, guid: 4366251fff441483096b93b2ff524506, type: 2}
+  - {fileID: 11400000, guid: 7caf0a5c1b13d4c449114d0b5caf4219, type: 2}
+  _position: {x: 172.5, y: -1756.5}
   _requiresSpecialKey: 0
   _requiredKeyName: 
-  requiresSpecialKey: 0
-  requiredKeyName: 

@@ -4,6 +4,7 @@ using System;
 /// <summary>
 /// Generic trigger for unlocking player upgrades/collectables
 /// Supports multiple collectable types via dropdown selection
+/// Works with the refactored PlayerUpgrades system
 /// </summary>
 public class GenericCollectableTrigger : MonoBehaviour
 {
@@ -97,7 +98,14 @@ public class GenericCollectableTrigger : MonoBehaviour
         }
         
         // Unlock the collectable
-        UnlockCollectable();
+        bool success = UnlockCollectable();
+        
+        if (!success)
+        {
+            if (showDebugLogs)
+                Debug.LogWarning($"[GenericCollectableTrigger:{gameObject.name}] Failed to unlock {collectableType}");
+            return;
+        }
         
         // Mark as triggered
         hasTriggered = true;
@@ -121,52 +129,22 @@ public class GenericCollectableTrigger : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Check if a collectable is already unlocked using the new system
+    /// </summary>
     private bool IsCollectableUnlocked()
     {
-        switch (collectableType)
-        {
-            case CollectableType.Bomb:
-                return playerUpgrades.BombUpgradeUnlocked;
-            
-            case CollectableType.Invisibility:
-                return playerUpgrades.InvisibilityUpgradeUnlocked;
-            
-            case CollectableType.Shield:
-                return playerUpgrades.ShieldUpgradeUnlocked;
-            
-            case CollectableType.Staff:
-                return playerUpgrades.StaffUpgradeUnlocked;
-            
-            default:
-                Debug.LogWarning($"[GenericCollectableTrigger:{gameObject.name}] Unknown collectable type: {collectableType}");
-                return false;
-        }
+        string upgradeName = collectableType.ToString();
+        return playerUpgrades.IsUpgradeActive(upgradeName);
     }
 
-    private void UnlockCollectable()
+    /// <summary>
+    /// Unlock a collectable using the new centralized system
+    /// </summary>
+    private bool UnlockCollectable()
     {
-        switch (collectableType)
-        {
-            case CollectableType.Bomb:
-                playerUpgrades.UnlockBomb();
-                break;
-            
-            case CollectableType.Invisibility:
-                playerUpgrades.UnlockInvisibility();
-                break;
-            
-            case CollectableType.Shield:
-                playerUpgrades.UnlockShield();
-                break;
-            
-            case CollectableType.Staff:
-                playerUpgrades.UnlockStaff();
-                break;
-            
-            default:
-                Debug.LogError($"[GenericCollectableTrigger:{gameObject.name}] Cannot unlock unknown collectable type: {collectableType}");
-                break;
-        }
+        string upgradeName = collectableType.ToString();
+        return playerUpgrades.UnlockUpgrade(upgradeName);
     }
 
     private void PlayVisualEffects()
@@ -204,10 +182,13 @@ public class GenericCollectableTrigger : MonoBehaviour
     {
         if (!oneTimeUse || !hasTriggered)
         {
-            UnlockCollectable();
-            hasTriggered = true;
-            PlayVisualEffects();
-            PlayAudio();
+            bool success = UnlockCollectable();
+            if (success)
+            {
+                hasTriggered = true;
+                PlayVisualEffects();
+                PlayAudio();
+            }
         }
     }
 
@@ -290,8 +271,11 @@ public class GenericCollectableTrigger : MonoBehaviour
             case CollectableType.Staff:
                 return new Color(0.8f, 0f, 1f); // Purple
             
+            case CollectableType.Prayer:
+                return new Color(1f, 1f, 0f); // Yellow
+            
             default:
-                return Color.yellow;
+                return Color.white;
         }
     }
 
@@ -301,6 +285,7 @@ public class GenericCollectableTrigger : MonoBehaviour
 /// <summary>
 /// Enum for different types of collectables/upgrades
 /// Add new types here as needed
+/// IMPORTANT: Enum names must match upgrade names in IPlayerUpgrade implementations
 /// </summary>
 [Serializable]
 public enum CollectableType
@@ -309,6 +294,7 @@ public enum CollectableType
     Invisibility,
     Shield,
     Staff,
+    Prayer,
     // Add more types as needed:
     // DoubleJump,
     // Dash,

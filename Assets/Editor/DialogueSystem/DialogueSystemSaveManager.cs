@@ -15,6 +15,8 @@ public static class DialogueSystemSaveManager {
     private static Dictionary<string, Dialogue> _createdDialogues;
 
     private static Dictionary<string, DialogueSystemGroup> _loadedGroups;
+    // Map from DialogueSystemGroup ID to DialogueGroup ScriptableObject for loading
+    private static Dictionary<string, DialogueGroup> _loadedDialogueGroups;
     private static Dictionary<string, DialogueBaseNode> _loadedNodes;
 
     public static void Initialize(DialogueSystemGraphView graphView, string graphName) {
@@ -27,6 +29,7 @@ public static class DialogueSystemSaveManager {
         _createdDialogueGroups = new();
         _createdDialogues = new();
         _loadedGroups = new();
+        _loadedDialogueGroups = new();
         _loadedNodes = new();
     }
 
@@ -39,7 +42,16 @@ public static class DialogueSystemSaveManager {
         graphData.Initialize(_graphFileName);
 
         DialogueContainer dialogueContainer = AssetsUtility.CreateAsset<DialogueContainer>(_graphFolderPath, _graphFileName);
-        dialogueContainer.Initialize(_graphFileName);
+
+        // CRITICAL FIX: Always clear and rebuild the container to ensure consistency
+        if (dialogueContainer.Groups == null || dialogueContainer.UngroupedDialogues == null)
+        {
+            dialogueContainer.Initialize(_graphFileName);
+        }
+        
+        // Clear existing entries to rebuild them fresh
+        dialogueContainer.Groups.Clear();
+        dialogueContainer.UngroupedDialogues.Clear();
 
         SaveGroups(graphData, dialogueContainer);
         SaveNodes(graphData, dialogueContainer);

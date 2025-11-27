@@ -3,39 +3,44 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerPrayer : MonoBehaviour
+// ==================== PLAYER PRAYER ====================
+public class PlayerPrayer : MonoBehaviour, IPlayerUpgrade
 {
+    public string UpgradeName => "Prayer";
+    public bool IsActive { get; set; }
+
     [SerializeField] private GameObject prayerObject;
+    [SerializeField] private PlayerUpgrades playerUpgrades;
 
-    [SerializeField] private  PlayerUpgrades playerUpgrades;
-
-    [SerializeField] public  bool IsActive = false;
-
-     private void Update()
+    private void Update()
     {
-       
-        if (playerUpgrades.PrayerUpgradeUnlocked == true)
-        {
-             // Check if the E key was pressed this frame
-            if  (Keyboard.current.eKey.wasPressedThisFrame)
-            {
-                
-            }
+        if (!IsActive) return;
 
-            // Check if the F key was pressed this frame
-            if (Keyboard.current.fKey.wasPressedThisFrame)
-            {
-                playerUpgrades.LockPrayer();
-            }
+        if (Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            // Prayer activation logic
         }
 
+        if (Keyboard.current.fKey.wasPressedThisFrame)
+        {
+            playerUpgrades.LockUpgrade(UpgradeName);
+        }
     }
 
+    public void Activate()
+    {
+        IsActive = true;
+        enabled = true;
+    }
 
+    public void Deactivate()
+    {
+        IsActive = false;
+        enabled = false;
+    }
 
     public void SetPrayerObject(GameObject collectedObject)
     {
         prayerObject = collectedObject;
     }
-
 }

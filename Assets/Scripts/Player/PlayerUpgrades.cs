@@ -1,225 +1,225 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Build.Reporting;
+using System.Linq;
 using UnityEngine;
 using TMPro;
 
 /// <summary>
-/// *SUMMARY:
-/// The PlayerUpgrades script manages the unlocking of player abilities in a Unity game. It allows the player to gain new upgrades, such as bombs and invisibility, which are initially disabled. The script includes:
-/// Upgrade Tracking: Stores whether the bomb and invisibility upgrades are unlocked.
-/// Component Management: Retrieves PlayerBomb and PlayerInvisibility components and disables them initially.
-/// Upgrade Unlocking: Enables the respective components when the upgrades are unlocked.
+/// Base interface for all player upgrade abilities
 /// </summary>
-/// *EXAMPLE USAGE:
-/*
-using UnityEngine;
-
-public class GameProgress : MonoBehaviour
+public interface IPlayerUpgrade
 {
-    public PlayerUpgrades playerUpgrades;
+    /// <summary>
+    /// The unique ID/Name of this upgrade (e.g., "Bomb", "DoubleJump").
+    /// Matches the string used in Skill ScriptableObjects.
+    /// </summary>
+    string UpgradeName { get; }
 
-    /// Example function to unlock bomb upgrade after defeating a boss
-    public void DefeatBoss()
-    {
-        /// Unlock the bomb ability when the boss is defeated
-        playerUpgrades.UnlockBomb();
-        Debug.Log("Bomb upgrade unlocked!");
-    }
+    /// <summary>
+    /// Tracks if the upgrade is currently enabled for the player.
+    /// </summary>
+    bool IsActive { get; set; }
 
-    /// Example function to unlock invisibility upgrade after reaching a checkpoint
-    public void ReachCheckpoint()
-    {
-        /// Unlock the invisibility ability when the player reaches a checkpoint
-        playerUpgrades.UnlockInvisibility();
-        Debug.Log("Invisibility upgrade unlocked!");
-    }
+    /// <summary>
+    /// Logic to run when this upgrade is unlocked or equipped.
+    /// </summary>
+    void Activate();
+
+    /// <summary>
+    /// Logic to run when this upgrade is removed or disabled.
+    /// </summary>
+    void Deactivate();
 }
 
-*/
+/// <summary>
+/// Centralized upgrade management system
+/// Manages active and inactive upgrades with easy activation/deactivation
+/// </summary>
 public class PlayerUpgrades : MonoBehaviour
 {
-    public bool BombUpgradeUnlocked { get; private set; }
-    public bool InvisibilityUpgradeUnlocked { get; private set; }
-    public bool ShieldUpgradeUnlocked { get; private set; }
-    public bool StaffUpgradeUnlocked { get; private set; }
-    public bool PrayerUpgradeUnlocked { get; private set; }
+    [Header("UI")]
+    [SerializeField] private TMP_Text UIText;
 
-    private PlayerBomb _playerBomb;
-    private PlayerInvisibility _playerInvisibility;
-    private PlayerShield _playerShield;
-    private PlayerStaff _playerStaff;
-    private PlayerPrayer _playerPrayer;
+    // Lists to track upgrade states
+    private List<IPlayerUpgrade> activeUpgrades = new List<IPlayerUpgrade>();
+    private List<IPlayerUpgrade> inactiveUpgrades = new List<IPlayerUpgrade>();
+    private Dictionary<string, IPlayerUpgrade> allUpgrades = new Dictionary<string, IPlayerUpgrade>();
 
-    [SerializeField] TMP_Text UIText;
-
-    private string inventryText;
+    [Header("Upgrade Limit")]
+    [SerializeField] private int maxActiveUpgrades = 1; // Set to 1 for single active upgrade, or higher for multiple
 
     private void Awake()
     {
-        _playerBomb = GetComponent<PlayerBomb>();
-        _playerInvisibility = GetComponent<PlayerInvisibility>();
-        _playerShield = GetComponent<PlayerShield>();
-        _playerStaff = GetComponent<PlayerStaff>();
-        _playerPrayer = GetComponent<PlayerPrayer>();
-
-        _playerBomb.enabled = false;
-        _playerInvisibility.enabled = false;
-        _playerShield.enabled = false;
-        _playerStaff.enabled = false;
-        _playerPrayer.enabled = false;
+        // Discover all upgrade components on this GameObject
+        RegisterUpgrade(GetComponent<PlayerBomb>());
+        RegisterUpgrade(GetComponent<PlayerInvisibility>());
+        RegisterUpgrade(GetComponent<PlayerShield>());
+        RegisterUpgrade(GetComponent<PlayerStaff>());
+        RegisterUpgrade(GetComponent<PlayerPrayer>());
     }
 
     private void Update()
     {
-
-        if (BombUpgradeUnlocked == true)
-        {
-            inventryText = "Bomb";
-        } 
-        else if (InvisibilityUpgradeUnlocked == true) 
-        {
-            inventryText = "Invisibility";
-        } 
-        else if (ShieldUpgradeUnlocked == true) 
-        {
-            inventryText = "Shield";
-        } 
-         else if (StaffUpgradeUnlocked == true) 
-        {
-            inventryText = "Staff";
-        }
-         else if (PrayerUpgradeUnlocked == true) 
-        {
-            inventryText = "Prayer";
-        }
-        else 
-        {
-            inventryText = "";
-        }
-
-       // UIText.text = "Inventory " + inventryText;
-
-
+        UpdateUI();
     }
 
-    public void UnlockUpgrade(string upgradeName)
+    /// <summary>
+    /// Register an upgrade component with the manager
+    /// </summary>
+    private void RegisterUpgrade(IPlayerUpgrade upgrade)
     {
-        switch (upgradeName)
+        if (upgrade != null)
         {
-            case "Bomb":
-                UnlockBomb();
-                break;
-            case "Invisibility":
-                UnlockInvisibility();
-                break;
-            case "Shield":
-                UnlockShield();
-                break;
-            case "Staff":
-                UnlockStaff();
-                break;
-            case "Prayer":
-                UnlockPrayer();
-                break;
-            default:
-                Debug.LogWarning($"Upgrade '{upgradeName}' not found.");
-                break;
+            allUpgrades[upgrade.UpgradeName] = upgrade;
+            inactiveUpgrades.Add(upgrade);
+            upgrade.Deactivate(); // Start all upgrades as inactive
         }
     }
 
-    public void UnlockBomb()
+    /// <summary>
+    /// Unlock and activate an upgrade by name
+    /// </summary>
+    public bool UnlockUpgrade(string upgradeName)
     {
-        BombUpgradeUnlocked = true;
-        _playerBomb.enabled = true;
-        _playerBomb.IsActive = true;
-        //Lock over upgrades
-        LockPrayer();
-        LockInvisibility();
-        LockShield();
-        LockStaff();
+        if (!allUpgrades.ContainsKey(upgradeName))
+        {
+            Debug.LogWarning($"Upgrade '{upgradeName}' not found.");
+            return false;
+        }
 
-    }
-    public void UnlockInvisibility()
-    {
-        InvisibilityUpgradeUnlocked = true;
-        _playerInvisibility.enabled = true;
-        _playerInvisibility.IsActive = true;
-        //Lock over upgrades
-        LockBomb();
-        LockPrayer();
-        LockShield();
-        LockStaff();
+        IPlayerUpgrade upgrade = allUpgrades[upgradeName];
+
+        // Check if already active
+        if (activeUpgrades.Contains(upgrade))
+        {
+            Debug.Log($"Upgrade '{upgradeName}' is already active.");
+            return false;
+        }
+
+        // Check if we've reached the max active upgrades limit
+        if (activeUpgrades.Count >= maxActiveUpgrades)
+        {
+            // Deactivate the oldest active upgrade to make room
+            DeactivateOldestUpgrade();
+        }
+
+        // Move from inactive to active
+        if (inactiveUpgrades.Contains(upgrade))
+        {
+            inactiveUpgrades.Remove(upgrade);
+        }
         
-
-    }
-    public void UnlockShield()
-    {
-        ShieldUpgradeUnlocked = true;
-        _playerShield.enabled = true;
-        _playerShield.IsActive = true;
-        //Lock over upgrades
-        LockBomb();
-        LockPrayer();
-        LockInvisibility();
-        LockStaff();
-    }
-    public void UnlockStaff()
-    {
-        StaffUpgradeUnlocked = true;
-        _playerStaff.enabled = true;
-        _playerStaff.IsActive = true;
-        //Lock over upgrades
-        LockBomb();
-        LockPrayer();
-        LockInvisibility();
-        LockShield();  
+        activeUpgrades.Add(upgrade);
+        upgrade.Activate();
+        
+        Debug.Log($"Upgrade '{upgradeName}' activated!");
+        return true;
     }
 
-      public void UnlockPrayer()
+    /// <summary>
+    /// Lock/deactivate an upgrade by name
+    /// </summary>
+    public bool LockUpgrade(string upgradeName)
     {
-        PrayerUpgradeUnlocked = true;
-        _playerPrayer.enabled = true;
-        _playerPrayer.IsActive = true;
-        //Lock over upgrades
-        LockBomb();
-        LockInvisibility();
-        LockShield(); 
-        LockStaff(); 
+        if (!allUpgrades.ContainsKey(upgradeName))
+        {
+            Debug.LogWarning($"Upgrade '{upgradeName}' not found.");
+            return false;
+        }
+
+        IPlayerUpgrade upgrade = allUpgrades[upgradeName];
+
+        // Check if it's active
+        if (!activeUpgrades.Contains(upgrade))
+        {
+            Debug.Log($"Upgrade '{upgradeName}' is not currently active.");
+            return false;
+        }
+
+        // Move from active to inactive
+        activeUpgrades.Remove(upgrade);
+        if (!inactiveUpgrades.Contains(upgrade))
+        {
+            inactiveUpgrades.Add(upgrade);
+        }
+        
+        upgrade.Deactivate();
+        
+        Debug.Log($"Upgrade '{upgradeName}' deactivated!");
+        return true;
     }
 
-     public void LockBomb()
+    /// <summary>
+    /// Deactivate the oldest active upgrade (used when hitting max limit)
+    /// </summary>
+    private void DeactivateOldestUpgrade()
     {
-        BombUpgradeUnlocked = false;
-        _playerBomb.enabled = false;
-        _playerBomb.IsActive = false;
+        if (activeUpgrades.Count > 0)
+        {
+            IPlayerUpgrade oldestUpgrade = activeUpgrades[0];
+            LockUpgrade(oldestUpgrade.UpgradeName);
+        }
     }
-    public void LockInvisibility()
+
+    /// <summary>
+    /// Check if a specific upgrade is currently active
+    /// </summary>
+    public bool IsUpgradeActive(string upgradeName)
     {
-        InvisibilityUpgradeUnlocked = false;
-        _playerInvisibility.enabled = false;
-        _playerInvisibility.IsActive = false;
-        
+        if (allUpgrades.ContainsKey(upgradeName))
+        {
+            return activeUpgrades.Contains(allUpgrades[upgradeName]);
+        }
+        return false;
     }
-    public void LockShield()
+
+    /// <summary>
+    /// Get all currently active upgrade names
+    /// </summary>
+    public List<string> GetActiveUpgradeNames()
     {
-        ShieldUpgradeUnlocked = false;
-        _playerShield.enabled = false;
-        _playerShield.IsActive = false;
-        
+        return activeUpgrades.Select(u => u.UpgradeName).ToList();
     }
-    public void LockStaff()
+
+    /// <summary>
+    /// Get all inactive upgrade names
+    /// </summary>
+    public List<string> GetInactiveUpgradeNames()
     {
-        StaffUpgradeUnlocked = false;
-        _playerStaff.enabled = false;
-        _playerStaff.IsActive = false;
-        
+        return inactiveUpgrades.Select(u => u.UpgradeName).ToList();
     }
-      public void LockPrayer()
+
+    /// <summary>
+    /// Update UI to show active upgrades
+    /// </summary>
+    private void UpdateUI()
     {
-        PrayerUpgradeUnlocked = false;
-        _playerPrayer.enabled = false;
-        _playerPrayer.IsActive = false;
-        
+        if (UIText != null)
+        {
+            if (activeUpgrades.Count > 0)
+            {
+                string upgradeNames = string.Join(", ", GetActiveUpgradeNames());
+                UIText.text = $"Active: {upgradeNames}";
+            }
+            else
+            {
+                UIText.text = "No active upgrades";
+            }
+        }
     }
+
+    /// <summary>
+    /// Get the currently active upgrade (if only one is allowed)
+    /// </summary>
+    public IPlayerUpgrade GetActiveUpgrade()
+    {
+        return activeUpgrades.Count > 0 ? activeUpgrades[0] : null;
+    }
+
+    // Public properties for backward compatibility (optional)
+    public bool BombUpgradeUnlocked => IsUpgradeActive("Bomb");
+    public bool InvisibilityUpgradeUnlocked => IsUpgradeActive("Invisibility");
+    public bool ShieldUpgradeUnlocked => IsUpgradeActive("Shield");
+    public bool StaffUpgradeUnlocked => IsUpgradeActive("Staff");
+    public bool PrayerUpgradeUnlocked => IsUpgradeActive("Prayer");
 }

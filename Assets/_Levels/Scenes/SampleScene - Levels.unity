@@ -529,6 +529,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Player
       objectReference: {fileID: 0}
+    - target: {fileID: 4969465417606286374, guid: 4bb44f27e29554367a720a9de0bec7be, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 6334075457699076836, guid: 4bb44f27e29554367a720a9de0bec7be, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -688,6 +692,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC - Levels (2)
       objectReference: {fileID: 0}
+    - target: {fileID: 1680148849277949282, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 3727212412152572983, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
       propertyPath: m_LocalPosition.x
       value: 1.25
@@ -732,6 +740,14 @@ PrefabInstance:
       propertyPath: levelController
       value: 
       objectReference: {fileID: 1186241830}
+    - target: {fileID: 7602376077178949907, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+    - target: {fileID: 9000631510345768123, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -998,7 +1014,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1591,7 +1607,8 @@ MonoBehaviour:
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_fontSharedMaterials: []
+  m_fontSharedMaterials:
+  - {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
@@ -2382,6 +2399,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC - Levels (3)
       objectReference: {fileID: 0}
+    - target: {fileID: 1680148849277949282, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 2083501073986733607, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
       propertyPath: m_SizeDelta.x
       value: 200
@@ -2434,6 +2455,14 @@ PrefabInstance:
       propertyPath: levelController
       value: 
       objectReference: {fileID: 1186241830}
+    - target: {fileID: 7602376077178949907, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+    - target: {fileID: 9000631510345768123, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -2636,6 +2665,10 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 837595682}
     - target: {fileID: 7398925400379578718, guid: 8e1519dca550441bcad2e6d641888e20, type: 3}
+      propertyPath: _setupMode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7398925400379578718, guid: 8e1519dca550441bcad2e6d641888e20, type: 3}
       propertyPath: _gridLayout
       value: 
       objectReference: {fileID: 837595686}
@@ -2643,6 +2676,10 @@ PrefabInstance:
       propertyPath: _detailsPanel
       value: 
       objectReference: {fileID: 2165922181699990270}
+    - target: {fileID: 7398925400379578718, guid: 8e1519dca550441bcad2e6d641888e20, type: 3}
+      propertyPath: startingLevel
+      value: 
+      objectReference: {fileID: 11400000, guid: 26aa162ab26484dbe86c74d4a3665b09, type: 2}
     - target: {fileID: 7398925400379578718, guid: 8e1519dca550441bcad2e6d641888e20, type: 3}
       propertyPath: _levelNodesParent
       value: 
@@ -2831,7 +2868,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_Material: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_Color: {r: 0, g: 0, b: 0, a: 0.80784315}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -3034,6 +3071,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: NPC - Levels (1)
       objectReference: {fileID: 0}
+    - target: {fileID: 1680148849277949282, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     - target: {fileID: 3727212412152572983, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
       propertyPath: m_LocalPosition.x
       value: -3.25
@@ -3078,6 +3119,14 @@ PrefabInstance:
       propertyPath: levelController
       value: 
       objectReference: {fileID: 1186241830}
+    - target: {fileID: 7602376077178949907, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
+    - target: {fileID: 9000631510345768123, guid: eeb7ef2b138cf4f1094944ebd49456b2, type: 3}
+      propertyPath: m_Materials.Array.data[0]
+      value: 
+      objectReference: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3295,7 +3344,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Material: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  m_Material: {fileID: 2100000, guid: 9dfc825aed78fcd4ba02077103263b40, type: 2}
   m_Color: {r: 0.76862746, g: 0.76862746, b: 0.76862746, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}

@@ -21,16 +21,18 @@ public class SkillsTreeSystemSidebar
     private TextField _skillNameField;
     private TextField _descriptionField;
     private ObjectField _iconField;
-
     private ObjectField _lockedIconField;   
     private ObjectField _unlockedIconField; 
-
     private IntegerField _tierField;
     private IntegerField _unlockCostField;
     private EnumField _skillTypeField;
     private FloatField _valueField;
     private IntegerField _maxLevelField;
     private Vector2Field _positionField;
+    
+    // Unlock Functions UI
+    private VisualElement _unlockFunctionsContainer;
+    private Label _unlockFunctionsCountLabel;
     
     public float Width => SIDEBAR_WIDTH;
     public bool IsVisible => _rootElement != null && _rootElement.style.display == DisplayStyle.Flex;
@@ -49,10 +51,7 @@ public class SkillsTreeSystemSidebar
         Label header = new Label("Skill Properties");
         header.style.fontSize = 16;
         header.style.unityFontStyleAndWeight = FontStyle.Bold;
-        header.style.paddingTop = 10;
-        header.style.paddingBottom = 10;
-        header.style.paddingLeft = 10;
-        header.style.paddingRight = 10;
+        SetPadding(header, 10);
         header.style.backgroundColor = new Color(0.18f, 0.18f, 0.18f);
         header.style.borderBottomWidth = 1;
         header.style.borderBottomColor = new Color(0.1f, 0.1f, 0.1f);
@@ -64,10 +63,7 @@ public class SkillsTreeSystemSidebar
         _rootElement.Add(_scrollView);
         
         _contentContainer = new VisualElement();
-        _contentContainer.style.paddingTop = 10;
-        _contentContainer.style.paddingBottom = 10;
-        _contentContainer.style.paddingLeft = 10;
-        _contentContainer.style.paddingRight = 10;
+        SetPadding(_contentContainer, 10);
         _scrollView.Add(_contentContainer);
         
         BuildPropertyFields();
@@ -149,18 +145,32 @@ public class SkillsTreeSystemSidebar
 
         AddSpace();
 
-        ObjectField unlockFunctionsField = new ObjectField("Unlock Functions");
-        unlockFunctionsField.objectType = typeof(SkillFunction);
-        unlockFunctionsField.tooltip = "Functions that execute when this skill is unlocked. Add SkillFunction ScriptableObjects here.";
-        _contentContainer.Add(unlockFunctionsField);
-
-
-        Label unlockFunctionsCount = new Label($"Functions: {_selectedSkill?.UnlockFunctions?.Count ?? 0}");
-        unlockFunctionsCount.name = "unlock-functions-count";
-        unlockFunctionsCount.style.paddingLeft = 5;
-        unlockFunctionsCount.style.fontSize = 11;
-        unlockFunctionsCount.style.color = new Color(0.7f, 0.7f, 0.7f);
-        _contentContainer.Add(unlockFunctionsCount);
+        // Unlock Functions Section
+        AddSectionHeader("Unlock Functions");
+        
+        _unlockFunctionsCountLabel = new Label("Functions: 0");
+        _unlockFunctionsCountLabel.style.paddingLeft = 5;
+        _unlockFunctionsCountLabel.style.paddingBottom = 5;
+        _unlockFunctionsCountLabel.style.fontSize = 11;
+        _unlockFunctionsCountLabel.style.color = new Color(0.7f, 0.7f, 0.7f);
+        _contentContainer.Add(_unlockFunctionsCountLabel);
+        
+        _unlockFunctionsContainer = new VisualElement();
+        _unlockFunctionsContainer.name = "unlock-functions-container";
+        _unlockFunctionsContainer.style.maxWidth = SIDEBAR_WIDTH - 30; // Prevent content overflow
+        SetPadding(_unlockFunctionsContainer, 5, 5, 5, 5);
+        _unlockFunctionsContainer.style.backgroundColor = new Color(0.18f, 0.18f, 0.18f, 0.5f);
+        SetBorderRadius(_unlockFunctionsContainer, 4);
+        SetBorderWidth(_unlockFunctionsContainer, 1);
+        SetBorderColor(_unlockFunctionsContainer, new Color(0.1f, 0.1f, 0.1f));
+        _contentContainer.Add(_unlockFunctionsContainer);
+        
+        // Add button for new functions
+        Button addFunctionButton = new Button(() => OnAddUnlockFunction());
+        addFunctionButton.text = "+ Add Function";
+        addFunctionButton.style.marginTop = 5;
+        addFunctionButton.style.backgroundColor = new Color(0.3f, 0.5f, 0.3f);
+        _contentContainer.Add(addFunctionButton);
         
         AddSpace();
         
@@ -179,17 +189,13 @@ public class SkillsTreeSystemSidebar
         
         Label prerequisitesLabel = new Label("Prerequisites: 0");
         prerequisitesLabel.name = "prerequisites-label";
-        prerequisitesLabel.style.paddingLeft = 5;
-        prerequisitesLabel.style.paddingTop = 5;
-        prerequisitesLabel.style.paddingBottom = 5;
+        SetPadding(prerequisitesLabel, 5, 5, 5, 5);
         prerequisitesLabel.tooltip = "The number of skills that must be unlocked before this skill becomes available.\nConnect input ports from other skills to create prerequisites.";
         _contentContainer.Add(prerequisitesLabel);
         
         Label childrenLabel = new Label("Children: 0");
         childrenLabel.name = "children-label";
-        childrenLabel.style.paddingLeft = 5;
-        childrenLabel.style.paddingTop = 5;
-        childrenLabel.style.paddingBottom = 5;
+        SetPadding(childrenLabel, 5, 5, 5, 5);
         childrenLabel.tooltip = "The number of skills that require this skill as a prerequisite.\nConnect output ports to other skills to create child relationships.";
         _contentContainer.Add(childrenLabel);
         
@@ -197,6 +203,134 @@ public class SkillsTreeSystemSidebar
         
         // Add help text at the bottom
         AddHelpSection();
+    }
+    
+    private void BuildUnlockFunctionsList()
+    {
+        _unlockFunctionsContainer.Clear();
+        
+        if (_selectedSkill == null)
+            return;
+        
+        List<SkillFunction> functions = _selectedSkill.UnlockFunctions;
+        
+        if (functions == null || functions.Count == 0)
+        {
+            Label emptyLabel = new Label("No unlock functions assigned");
+            emptyLabel.style.paddingLeft = 5;
+            emptyLabel.style.paddingTop = 10;
+            emptyLabel.style.paddingBottom = 10;
+            emptyLabel.style.fontSize = 11;
+            emptyLabel.style.color = new Color(0.6f, 0.6f, 0.6f);
+            emptyLabel.style.unityFontStyleAndWeight = FontStyle.Italic;
+            _unlockFunctionsContainer.Add(emptyLabel);
+            return;
+        }
+        
+        // Display each function
+        for (int i = 0; i < functions.Count; i++)
+        {
+            int index = i; // Capture for closure
+            SkillFunction function = functions[i];
+            
+            VisualElement functionRow = new VisualElement();
+            functionRow.style.flexDirection = FlexDirection.Row;
+            functionRow.style.paddingTop = 3;
+            functionRow.style.paddingBottom = 3;
+            functionRow.style.paddingRight = 5;
+            
+            ObjectField functionField = new ObjectField();
+            functionField.objectType = typeof(SkillFunction);
+            functionField.value = function;
+            functionField.style.flexGrow = 1;
+            functionField.RegisterValueChangedCallback(evt => OnUnlockFunctionChanged(index, evt.newValue as SkillFunction));
+            functionRow.Add(functionField);
+            
+            Button removeButton = new Button(() => OnRemoveUnlockFunction(index));
+            removeButton.text = "X";
+            removeButton.style.width = 25;
+            removeButton.style.backgroundColor = new Color(0.6f, 0.2f, 0.2f);
+            removeButton.style.marginLeft = 5;
+            functionRow.Add(removeButton);
+            
+            _unlockFunctionsContainer.Add(functionRow);
+        }
+    }
+    
+    private void OnAddUnlockFunction()
+    {
+        if (_selectedSkill == null) return;
+        
+        SerializedObject so = new SerializedObject(_selectedSkill);
+        SerializedProperty functionsProperty = so.FindProperty("_unlockFunctions");
+        
+        functionsProperty.arraySize++;
+        so.ApplyModifiedProperties();
+        
+        // Update node's unlock functions list
+        if (_selectedNode != null)
+        {
+            _selectedNode.UpdateUnlockFunctions(_selectedSkill.UnlockFunctions);
+        }
+        
+        EditorUtility.SetDirty(_selectedSkill);
+        RefreshUnlockFunctionsList();
+    }
+    
+    private void OnRemoveUnlockFunction(int index)
+    {
+        if (_selectedSkill == null) return;
+        
+        SerializedObject so = new SerializedObject(_selectedSkill);
+        SerializedProperty functionsProperty = so.FindProperty("_unlockFunctions");
+        
+        if (index >= 0 && index < functionsProperty.arraySize)
+        {
+            functionsProperty.DeleteArrayElementAtIndex(index);
+            so.ApplyModifiedProperties();
+            
+            // Update node's unlock functions list
+            if (_selectedNode != null)
+            {
+                _selectedNode.UpdateUnlockFunctions(_selectedSkill.UnlockFunctions);
+            }
+            
+            EditorUtility.SetDirty(_selectedSkill);
+            RefreshUnlockFunctionsList();
+        }
+    }
+    
+    private void OnUnlockFunctionChanged(int index, SkillFunction newFunction)
+    {
+        if (_selectedSkill == null) return;
+        
+        SerializedObject so = new SerializedObject(_selectedSkill);
+        SerializedProperty functionsProperty = so.FindProperty("_unlockFunctions");
+        
+        if (index >= 0 && index < functionsProperty.arraySize)
+        {
+            functionsProperty.GetArrayElementAtIndex(index).objectReferenceValue = newFunction;
+            so.ApplyModifiedProperties();
+            
+            // Update node's unlock functions list
+            if (_selectedNode != null)
+            {
+                _selectedNode.UpdateUnlockFunctions(_selectedSkill.UnlockFunctions);
+            }
+            
+            EditorUtility.SetDirty(_selectedSkill);
+            RefreshUnlockFunctionsList();
+        }
+    }
+    
+    private void RefreshUnlockFunctionsList()
+    {
+        if (_selectedSkill == null) return;
+        
+        int count = _selectedSkill.UnlockFunctions?.Count ?? 0;
+        _unlockFunctionsCountLabel.text = $"Functions: {count}";
+        
+        BuildUnlockFunctionsList();
     }
     
     private void AddHelpSection()
@@ -207,12 +341,11 @@ public class SkillsTreeSystemSidebar
             "• Hover over any field to see its tooltip\n" +
             "• Drag nodes in the graph to reposition\n" +
             "• Connect output ports to create skill chains\n" +
+            "• Add multiple unlock functions per skill\n" +
             "• Use Ctrl+S to save your changes\n" +
             "• Right-click nodes for more options"
         );
-        helpText.style.paddingLeft = 5;
-        helpText.style.paddingTop = 5;
-        helpText.style.paddingBottom = 5;
+        SetPadding(helpText, 5, 5, 5, 5);
         helpText.style.fontSize = 11;
         helpText.style.color = new Color(0.7f, 0.7f, 0.7f);
         helpText.style.whiteSpace = WhiteSpace.Normal;
@@ -287,10 +420,8 @@ public class SkillsTreeSystemSidebar
         if (childrenLabel != null)
             childrenLabel.text = $"Children: {_selectedSkill.Children.Count}";
 
-        Label unlockFunctionsCount = _contentContainer.Q<Label>("unlock-functions-count");
-        if (unlockFunctionsCount != null)
-            unlockFunctionsCount.text = $"Functions: {_selectedSkill.UnlockFunctions.Count}";
-
+        // Update unlock functions
+        RefreshUnlockFunctionsList();
     }
     
     /// <summary>
@@ -465,5 +596,52 @@ public class SkillsTreeSystemSidebar
         so.FindProperty("_position").vector2Value = evt.newValue;
         so.ApplyModifiedProperties();
         EditorUtility.SetDirty(_selectedSkill);
+    }
+
+    // Helper Methods for Styling
+    
+    private void SetPadding(VisualElement element, int top, int right, int bottom, int left)
+    {
+        element.style.paddingTop = top;
+        element.style.paddingRight = right;
+        element.style.paddingBottom = bottom;
+        element.style.paddingLeft = left;
+    }
+    
+    private void SetPadding(VisualElement element, int all)
+    {
+        SetPadding(element, all, all, all, all);
+    }
+
+    private void SetBorderRadius(VisualElement element, int radius)
+    {
+        element.style.borderTopLeftRadius = radius;
+        element.style.borderTopRightRadius = radius;
+        element.style.borderBottomLeftRadius = radius;
+        element.style.borderBottomRightRadius = radius;
+    }
+    
+    private void SetBorderWidth(VisualElement element, int width)
+    {
+        element.style.borderTopWidth = width;
+        element.style.borderRightWidth = width;
+        element.style.borderBottomWidth = width;
+        element.style.borderLeftWidth = width;
+    }
+    
+    private void SetBorderColor(VisualElement element, Color color)
+    {
+        element.style.borderTopColor = color;
+        element.style.borderRightColor = color;
+        element.style.borderBottomColor = color;
+        element.style.borderLeftColor = color;
+    }
+    
+    private void SetMargin(VisualElement element, int top, int right, int bottom, int left)
+    {
+        element.style.marginTop = top;
+        element.style.marginRight = right;
+        element.style.marginBottom = bottom;
+        element.style.marginLeft = left;
     }
 }

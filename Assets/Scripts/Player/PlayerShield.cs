@@ -3,46 +3,48 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerShield : MonoBehaviour
+// ==================== PLAYER SHIELD ====================
+public class PlayerShield : MonoBehaviour, IPlayerUpgrade
 {
-    [SerializeField] private GameObject shieldObject;
-       [SerializeField] private Transform shieldSpawnPosition;
-    [SerializeField] private float timeForShield = 2f;
-    [SerializeField] private  PlayerUpgrades playerUpgrades;
+    public string UpgradeName => "Shield";
+    public bool IsActive { get; set; }
 
-    [SerializeField] public bool IsActive = false;
+    [SerializeField] private GameObject shieldObject;
+    [SerializeField] private Transform shieldSpawnPosition;
+    [SerializeField] private float timeForShield = 2f;
+    [SerializeField] private PlayerUpgrades playerUpgrades;
 
     public bool ShouldBeProtecting { get; private set; } = false;
 
-    
-
-
     private void Update()
     {
+        if (!IsActive) return;
 
-        if (playerUpgrades.ShieldUpgradeUnlocked == true)
+        if (Keyboard.current.eKey.wasPressedThisFrame)
         {
-             // Check if the E key was pressed this frame
-            if  (Keyboard.current.eKey.wasPressedThisFrame)
-            {
-               
-               playerUpgrades.UnlockShield();
-               SpawnShield();
-               playerUpgrades.LockShield();
-
-            }
-       
+            SpawnShield();
+            playerUpgrades.LockUpgrade(UpgradeName);
         }
     }
 
-        private void SpawnShield()
+    public void Activate()
     {
-        // Instantiate the bomb prefab at the spawn position
+        IsActive = true;
+        enabled = true;
+    }
+
+    public void Deactivate()
+    {
+        IsActive = false;
+        enabled = false;
+        ShouldBeProtecting = false;
+    }
+
+    private void SpawnShield()
+    {
         if (shieldObject != null && shieldSpawnPosition != null)
         {
-
             StartCoroutine(ProtectPlayer());
-            
         }
         else
         {
@@ -50,29 +52,25 @@ public class PlayerShield : MonoBehaviour
         }
     }
 
- public IEnumerator ProtectPlayer()
-{
-    GameObject spawnedShieldInstance = Instantiate(shieldObject, shieldSpawnPosition.position, shieldSpawnPosition.rotation);
-
-    ShouldBeProtecting = true;
-
-    float _elapsedTime = 0f;
-    while (_elapsedTime < timeForShield)
+    public IEnumerator ProtectPlayer()
     {
-        _elapsedTime += Time.fixedDeltaTime;
-        yield return new WaitForFixedUpdate();
+        GameObject spawnedShieldInstance = Instantiate(shieldObject, shieldSpawnPosition.position, shieldSpawnPosition.rotation);
+        ShouldBeProtecting = true;
+
+        float _elapsedTime = 0f;
+        while (_elapsedTime < timeForShield)
+        {
+            _elapsedTime += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+
+        ShouldBeProtecting = false;
+
+        if (spawnedShieldInstance != null)
+        {
+            Destroy(spawnedShieldInstance);
+        }
     }
-
-    ShouldBeProtecting = false;
-
-    if (spawnedShieldInstance != null)
-    {
-        Destroy(spawnedShieldInstance); // Destroy the instance, not the prefab
-    }
-
-    yield return null;
-}
-
 
     public void SetShieldObject(GameObject collectedObject)
     {

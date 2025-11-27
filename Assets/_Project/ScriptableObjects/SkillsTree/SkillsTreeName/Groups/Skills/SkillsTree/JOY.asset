@@ -26,9 +26,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d03fe3ffb654d46889ff649df61c5e42, type: 2}
   _children:
   - {fileID: 11400000, guid: 2db39a681629d434a9d7bfb492ecae1b, type: 2}
-  _unlockFunctions: []
-  _position: {x: 449, y: -246}
+  - {fileID: 11400000, guid: 7e5f17df0d3664979b1cbbef279ab0cf, type: 2}
+  _unlockFunctions:
+  - {fileID: 11400000, guid: 76166bb3cb38a45be9a3146de92cb0ae, type: 2}
+  - {fileID: 11400000, guid: 7c27980661bd64b61b66c85fe46c1fae, type: 2}
+  _position: {x: 561, y: -1756.5}
   _requiresSpecialKey: 0
   _requiredKeyName: 
-  requiresSpecialKey: 0
-  requiredKeyName: 
