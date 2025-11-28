@@ -122,6 +122,63 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &63662132
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1723464393}
+    m_Modifications:
+    - target: {fileID: 2353032315627015920, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_Name
+      value: '[SoundFXManager]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -45.59161
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
 --- !u!1001 &160419748
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -179,6 +236,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f1ef99888b156467da077b6a47e2dd38, type: 3}
+--- !u!4 &614277950 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3734448981741911570, guid: 94e4dd146158d4f3d8967eafea34f323, type: 3}
+  m_PrefabInstance: {fileID: 63662132}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &837262847
 GameObject:
   m_ObjectHideFlags: 0
@@ -226,6 +288,9 @@ MonoBehaviour:
   - name: Quit
     uiDocument: {fileID: 1551973718}
     visibleOnStart: 0
+  - name: Video
+    uiDocument: {fileID: 842929310}
+    visibleOnStart: 0
   _hideAllOnStart: 1
 --- !u!4 &837262849
 Transform:
@@ -235,12 +300,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 837262847}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 2, z: -45.59161}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 1723464393}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!82 &837262850
 AudioSource:
@@ -350,10 +415,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 097e0e661df8540509b8c88ee2e3709a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _cursorTexture: {fileID: 2800000, guid: 4db9fcafccd951143839fb60d36ed944, type: 3}
+  _cursorTexture: {fileID: 2800000, guid: 51f1435e372d04386965e56d918e6664, type: 3}
   _cursorHotspot: {x: 0, y: 0}
   _enableClickEffect: 1
-  _clickColor: {r: 1, g: 1, b: 1, a: 0.8}
+  _clickColor: {r: 0, g: 0.4814489, b: 1, a: 0.8}
   _clickEffectSize: 50
   _clickEffectDuration: 0.3
   _sizeCurve:
@@ -404,7 +469,155 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  _clickEffectTexture: {fileID: 2800000, guid: b50d71a6521424f3cafe92d46feeb5d8, type: 3}
+  _clickEffectTexture: {fileID: 2800000, guid: 51f1435e372d04386965e56d918e6664, type: 3}
+--- !u!1 &842929307
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 842929308}
+  - component: {fileID: 842929310}
+  - component: {fileID: 842929309}
+  m_Layer: 5
+  m_Name: VideoSettingsUI
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &842929308
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 842929307}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1952638352}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &842929309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 842929307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f14f7d28bb3c547b6a36841437dca0f3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _uiDocument: {fileID: 842929310}
+  _headerTextContent: Video
+  _headerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
+  _footerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
+  _footerLeftDecoration: {fileID: 21300000, guid: 90e76a918eecd4fb0a5971495907ac7a, type: 3}
+  _footerRightDecoration: {fileID: 21300000, guid: ed19f62c4f43149ecaf06778a638797f, type: 3}
+  _textColor: {r: 1, g: 1, b: 1, a: 1}
+  _footerBtnNormal: {r: 0.145, g: 0.388, b: 0.922, a: 1}
+  _footerBtnHover: {r: 0.231, g: 0.51, b: 0.965, a: 1}
+  _showBackButton: 1
+  _showResetButton: 0
+  _showCloseButton: 0
+  _enableAnimations: 1
+  _fadeInDuration: 0.3
+  _fadeOutDuration: 0.2
+  _fadeInCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _fadeOutCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  _scaleAnimation: 1
+  _scaleFrom: 0.95
+  _scaleTo: 1
+  _buttonClickSound: {fileID: 8300000, guid: b4cf8fac33dc747ed9d25d7520c938d2, type: 3}
+  _buttonHoverSound: {fileID: 8300000, guid: 600d27c87fa0e47dcac0f0d354bbea0b, type: 3}
+  _clickSoundVolume: 0.5
+  _hoverSoundVolume: 0.25
+  _toggleSettings:
+  - settingLabel: Effect
+    settingType: 3
+    defaultValue: 1
+    showStateInLabel: 1
+  - settingLabel: Full Screen
+    settingType: 0
+    defaultValue: 1
+    showStateInLabel: 1
+  _toggleLeftDecoration: {fileID: 21300000, guid: 22c71a6c10f9046bfa4ccd383f06b608, type: 3}
+  _toggleRightDecoration: {fileID: 21300000, guid: bf2d14fb505e543b7aa7975755bf9df6, type: 3}
+  _toggleOnColor: {r: 0.38679248, g: 0.38679248, b: 0.38679248, a: 1}
+  _toggleOffColor: {r: 0.4811321, g: 0.4811321, b: 0.4811321, a: 1}
+  _toggleHoverOnColor: {r: 0.3, g: 0.9, b: 0.3, a: 1}
+  _toggleHoverOffColor: {r: 0.9, g: 0.3, b: 0.3, a: 1}
+  _labelColor: {r: 0.78, g: 0.78, b: 0.78, a: 1}
+  _toggleTextColor: {r: 1, g: 1, b: 1, a: 1}
+--- !u!114 &842929310
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 842929307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 19102, guid: 0000000000000000e000000000000000, type: 0}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_PanelSettings: {fileID: 11400000, guid: f604917ced196489d960e7fb227f38c9, type: 2}
+  m_ParentUI: {fileID: 0}
+  sourceAsset: {fileID: 9197481963319205126, guid: 59e7012b82d2e49bf9732d2b99e1c4ca, type: 3}
+  m_SortingOrder: 100
 --- !u!4 &933898460 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2466368049362724948, guid: f1ef99888b156467da077b6a47e2dd38, type: 3}
@@ -472,6 +685,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _uiDocument: {fileID: 1056307207}
+  _headerTextContent: Game
   _headerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerLeftDecoration: {fileID: 21300000, guid: 90e76a918eecd4fb0a5971495907ac7a, type: 3}
@@ -536,14 +750,16 @@ MonoBehaviour:
   _scaleAnimation: 1
   _scaleFrom: 0.95
   _scaleTo: 1
-  _buttonClickSound: {fileID: 8300000, guid: a389a0d15ef004eda9e9fb8f089ccf4a, type: 3}
-  _uiAudioSource: {fileID: 837262850}
+  _buttonClickSound: {fileID: 8300000, guid: b4cf8fac33dc747ed9d25d7520c938d2, type: 3}
+  _buttonHoverSound: {fileID: 8300000, guid: 600d27c87fa0e47dcac0f0d354bbea0b, type: 3}
+  _clickSoundVolume: 1
+  _hoverSoundVolume: 0.5
   _logoImage: {fileID: 21300000, guid: 9e3a218de4be74df1bd3b05035a31249, type: 3}
   _logoAltText: GAME LOGO
   _logoHeight: 120
   _showLogoText: 0
   _contentButtons:
-  - buttonText: Plsy Game
+  - buttonText: Play Game
     targetUIDocument: {fileID: 1208862788}
     targetScene:
       m_SceneAsset: {fileID: 0}
@@ -745,6 +961,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _uiDocument: {fileID: 1208862788}
+  _headerTextContent: Options
   _headerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerLeftDecoration: {fileID: 21300000, guid: 90e76a918eecd4fb0a5971495907ac7a, type: 3}
@@ -809,23 +1026,31 @@ MonoBehaviour:
   _scaleAnimation: 1
   _scaleFrom: 0.95
   _scaleTo: 1
-  _buttonClickSound: {fileID: 8300000, guid: a389a0d15ef004eda9e9fb8f089ccf4a, type: 3}
-  _uiAudioSource: {fileID: 837262850}
+  _buttonClickSound: {fileID: 8300000, guid: b4cf8fac33dc747ed9d25d7520c938d2, type: 3}
+  _buttonHoverSound: {fileID: 8300000, guid: 600d27c87fa0e47dcac0f0d354bbea0b, type: 3}
+  _clickSoundVolume: 1
+  _hoverSoundVolume: 0.5
   _contentButtons:
-  - buttonText: GAME
+  - buttonText: Game
     targetUIDocument: {fileID: 1056307207}
     targetScene:
       m_SceneAsset: {fileID: 0}
       m_SceneName: 
     hideCurrentMenu: 1
-  - buttonText: AUDIO
+  - buttonText: Audio
     targetUIDocument: {fileID: 1509720652}
     targetScene:
       m_SceneAsset: {fileID: 0}
       m_SceneName: 
     hideCurrentMenu: 1
-  - buttonText: CONTROLLER
+  - buttonText: Controller
     targetUIDocument: {fileID: 1213814496}
+    targetScene:
+      m_SceneAsset: {fileID: 0}
+      m_SceneName: 
+    hideCurrentMenu: 1
+  - buttonText: Video
+    targetUIDocument: {fileID: 842929310}
     targetScene:
       m_SceneAsset: {fileID: 0}
       m_SceneName: 
@@ -896,6 +1121,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _uiDocument: {fileID: 1213814496}
+  _headerTextContent: input
   _headerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerLeftDecoration: {fileID: 21300000, guid: 22c71a6c10f9046bfa4ccd383f06b608, type: 3}
@@ -960,8 +1186,10 @@ MonoBehaviour:
   _scaleAnimation: 1
   _scaleFrom: 0.95
   _scaleTo: 1
-  _buttonClickSound: {fileID: 8300000, guid: a389a0d15ef004eda9e9fb8f089ccf4a, type: 3}
-  _uiAudioSource: {fileID: 837262850}
+  _buttonClickSound: {fileID: 8300000, guid: b4cf8fac33dc747ed9d25d7520c938d2, type: 3}
+  _buttonHoverSound: {fileID: 8300000, guid: 600d27c87fa0e47dcac0f0d354bbea0b, type: 3}
+  _clickSoundVolume: 1
+  _hoverSoundVolume: 0.5
   _inputItems:
   - header: Keyboard
     description: keyboard description
@@ -1041,6 +1269,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _uiDocument: {fileID: 1509720652}
+  _headerTextContent: Audio
   _headerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerLeftDecoration: {fileID: 21300000, guid: 90e76a918eecd4fb0a5971495907ac7a, type: 3}
@@ -1105,8 +1334,10 @@ MonoBehaviour:
   _scaleAnimation: 1
   _scaleFrom: 0.95
   _scaleTo: 1
-  _buttonClickSound: {fileID: 8300000, guid: a389a0d15ef004eda9e9fb8f089ccf4a, type: 3}
-  _uiAudioSource: {fileID: 837262850}
+  _buttonClickSound: {fileID: 8300000, guid: b4cf8fac33dc747ed9d25d7520c938d2, type: 3}
+  _buttonHoverSound: {fileID: 8300000, guid: 600d27c87fa0e47dcac0f0d354bbea0b, type: 3}
+  _clickSoundVolume: 1
+  _hoverSoundVolume: 0.5
   _sliderHandleSprite: {fileID: 21300000, guid: 92bb09ce53b008c41bb0418644f77daa, type: 3}
   _sliderTrackerColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   _sliderHandleColor: {r: 1, g: 1, b: 1, a: 1}
@@ -1156,6 +1387,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _uiDocument: {fileID: 1551973718}
+  _headerTextContent: Quit
   _headerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerSeparatorImage: {fileID: 21300000, guid: 5239955d9aadc4628b23b89f72c8390a, type: 3}
   _footerLeftDecoration: {fileID: 21300000, guid: 90e76a918eecd4fb0a5971495907ac7a, type: 3}
@@ -1220,8 +1452,10 @@ MonoBehaviour:
   _scaleAnimation: 1
   _scaleFrom: 0.95
   _scaleTo: 1
-  _buttonClickSound: {fileID: 8300000, guid: a389a0d15ef004eda9e9fb8f089ccf4a, type: 3}
-  _uiAudioSource: {fileID: 837262850}
+  _buttonClickSound: {fileID: 8300000, guid: b4cf8fac33dc747ed9d25d7520c938d2, type: 3}
+  _buttonHoverSound: {fileID: 8300000, guid: 600d27c87fa0e47dcac0f0d354bbea0b, type: 3}
+  _clickSoundVolume: 1
+  _hoverSoundVolume: 0.5
   _confirmationMessage: Are you sure you want to quit?
   _messageTextSize: 11
   _messageTextColor: {r: 1, g: 1, b: 1, a: 1}
@@ -1254,6 +1488,39 @@ MonoBehaviour:
   m_ParentUI: {fileID: 0}
   sourceAsset: {fileID: 9197481963319205126, guid: a83e99f3931334c27b766317ed2f1610, type: 3}
   m_SortingOrder: 100
+--- !u!1 &1723464392
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1723464393}
+  m_Layer: 0
+  m_Name: Managers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1723464393
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1723464392}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -2, z: 45.59161}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 614277950}
+  - {fileID: 837262849}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1952638351
 GameObject:
   m_ObjectHideFlags: 0
@@ -1288,6 +1555,7 @@ Transform:
   - {fileID: 1213814497}
   - {fileID: 1056307208}
   - {fileID: 1551973716}
+  - {fileID: 842929308}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2013294349
@@ -1433,6 +1701,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 2013294352}
-  - {fileID: 837262849}
   - {fileID: 1080524912}
   - {fileID: 1952638352}
+  - {fileID: 1723464393}

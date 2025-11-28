@@ -10,8 +10,11 @@ public abstract class BaseMenuController : MonoBehaviour
     [Header("UI Document")]
     [SerializeField] protected UIDocument _uiDocument;
 
-    [Header("Common Images")]
+    [Header("Header Settings")]
+    [SerializeField] protected string _headerTextContent = "Menu";
     [SerializeField] protected Sprite _headerSeparatorImage;
+
+    [Header("Common Images")]
     [SerializeField] protected Sprite _footerSeparatorImage;
     [SerializeField] protected Sprite _footerLeftDecoration;
     [SerializeField] protected Sprite _footerRightDecoration;
@@ -38,7 +41,9 @@ public abstract class BaseMenuController : MonoBehaviour
 
     [Header("Audio")]
     [SerializeField] protected AudioClip _buttonClickSound;
-    [SerializeField] protected AudioSource _uiAudioSource;
+    [SerializeField] protected AudioClip _buttonHoverSound;
+    [SerializeField] [Range(0f, 1f)] protected float _clickSoundVolume = 0.5f;
+    [SerializeField] [Range(0f, 1f)] protected float _hoverSoundVolume = 0.25f;
 
     // Common Visual Elements
     protected VisualElement _root;
@@ -59,8 +64,6 @@ public abstract class BaseMenuController : MonoBehaviour
     {
         if (_uiDocument == null) _uiDocument = GetComponent<UIDocument>();
         _root = _uiDocument.rootVisualElement;
-
-        if (_uiAudioSource == null) _uiAudioSource = GetComponent<AudioSource>();
 
         BindCommonElements();
         SetupCommonCallbacks();
@@ -126,7 +129,11 @@ public abstract class BaseMenuController : MonoBehaviour
         SetBg(_footerLeftDeco, _footerLeftDecoration);
         SetBg(_footerRightDeco, _footerRightDecoration);
 
-        if (_headerText != null) _headerText.style.color = _textColor;
+        if (_headerText != null)
+        {
+            _headerText.style.color = _textColor;
+            _headerText.text = _headerTextContent;
+        }
         
         if (_resetButton != null) 
         {
@@ -316,9 +323,17 @@ public abstract class BaseMenuController : MonoBehaviour
     // Helper Methods
     protected void PlayClickSound()
     {
-        if (_uiAudioSource != null && _buttonClickSound != null)
+        if (SoundFXManager.instance != null && _buttonClickSound != null)
         {
-            _uiAudioSource.PlayOneShot(_buttonClickSound);
+            SoundFXManager.instance.PlaySoundFXClip(_buttonClickSound, transform, _clickSoundVolume);
+        }
+    }
+
+    protected void PlayHoverSound()
+    {
+        if (SoundFXManager.instance != null && _buttonHoverSound != null)
+        {
+            SoundFXManager.instance.PlaySoundFXClip(_buttonHoverSound, transform, _hoverSoundVolume);
         }
     }
 
@@ -339,8 +354,56 @@ public abstract class BaseMenuController : MonoBehaviour
     protected void RegisterButtonHover(Button btn, Color normal, Color hover)
     {
         if (btn == null) return;
-        btn.RegisterCallback<MouseEnterEvent>(evt => btn.style.backgroundColor = hover);
-        btn.RegisterCallback<MouseLeaveEvent>(evt => btn.style.backgroundColor = normal);
+        
+        btn.RegisterCallback<MouseEnterEvent>(evt =>
+        {
+            btn.style.backgroundColor = hover;
+            PlayHoverSound();
+        });
+        
+        btn.RegisterCallback<MouseLeaveEvent>(evt =>
+        {
+            btn.style.backgroundColor = normal;
+        });
+    }
+
+    /// <summary>
+    /// Register hover callbacks for any button with custom colors
+    /// </summary>
+    protected void RegisterButtonHover(Button btn, Color normal, Color hover, bool playSound = true)
+    {
+        if (btn == null) return;
+        
+        btn.RegisterCallback<MouseEnterEvent>(evt =>
+        {
+            btn.style.backgroundColor = hover;
+            if (playSound) PlayHoverSound();
+        });
+        
+        btn.RegisterCallback<MouseLeaveEvent>(evt =>
+        {
+            btn.style.backgroundColor = normal;
+        });
+    }
+
+    /// <summary>
+    /// Register hover sound only (no color change)
+    /// </summary>
+    protected void RegisterButtonHoverSound(Button btn)
+    {
+        if (btn == null) return;
+        btn.RegisterCallback<MouseEnterEvent>(evt => PlayHoverSound());
+    }
+
+    /// <summary>
+    /// Register hover callbacks for multiple buttons at once
+    /// </summary>
+    protected void RegisterButtonsHover(Color normal, Color hover, params Button[] buttons)
+    {
+        foreach (var btn in buttons)
+        {
+            RegisterButtonHover(btn, normal, hover);
+        }
     }
 
     // Public methods for external control
@@ -352,6 +415,17 @@ public abstract class BaseMenuController : MonoBehaviour
     public void OpenWithAnimation()
     {
         gameObject.SetActive(true);
+    }
+
+    /// <summary>
+    /// Sets the header text dynamically
+    /// </summary>
+    public void SetHeaderText(string text)
+    {
+        if (_headerText != null)
+        {
+            _headerText.text = text;
+        }
     }
 
     private void OnDisable()

@@ -1,0 +1,249 @@
+/* ============================================================
+   TOGGLE SETTINGS MENU STYLES (Based on SettingsMenu.uss)
+   ============================================================ */
+
+/* Import base styles */
+.scale-container {
+    width: 100%;
+    height: 100%;
+    padding: 16px;
+    flex-direction: column;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.root-container {
+    flex-grow: 1;
+    background-color: rgba(30, 30, 35, 0.30);
+    padding: 10px 40px;
+    justify-content: space-between;
+    flex-direction: column;
+    display: flex;
+    width: 100%;
+    max-height: 100%;
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.header-container {
+    flex-shrink: 0;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.header-text {
+    font-size: 24px;
+    color: white;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 10px;
+}
+
+.separator {
+    width: 100%;
+    height: 20px;
+    background-color: rgba(255, 255, 255, 0);
+    -unity-background-scale-mode: scale-to-fit;
+    margin-bottom: 10px;
+}
+
+/* ========================================
+   CONTENT AREA
+   ======================================== */
+.content-container {
+    flex-grow: 1;
+    justify-content: flex-start;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 20px;
+}
+
+/* ========================================
+   TOGGLE ROWS & CONTAINERS
+   ======================================== */
+.toggle-row {
+    margin-bottom: 25px;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+}
+
+/* ========================================
+   TOGGLE DECORATIONS
+   ======================================== */
+.toggle-decoration {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.2s;
+}
+
+.toggle-container:hover .toggle-decoration {
+    opacity: 1;
+}
+
+/* ========================================
+   TOGGLE BUTTON (The clickable toggle)
+   ======================================== */
+.toggle-button {
+    width: 60px;
+    height: 30px;
+    margin-left: 10px;
+    margin-right: 15px;
+    border-radius: 15px;
+    border-width: 2px;
+    border-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(50, 50, 50, 0.8);
+    transition-duration: 0.1s;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-button:hover {
+    scale: 1.05;
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.toggle-button:active {
+    scale: 0.98;
+}
+
+.toggle-button:focus {
+    border-width: 3px;
+    border-color: yellow;
+}
+
+/* ========================================
+   TOGGLE INDICATOR (The colored circle inside)
+   ======================================== */
+.toggle-indicator {
+    width: 22px;
+    height: 22px;
+    border-radius: 11px;
+    background-color: rgb(200, 50, 50);
+    transition-property: background-color;
+    transition-duration: 0.3s;
+}
+
+/* ========================================
+   TOGGLE LABEL
+   ======================================== */
+.toggle-label {
+    color: rgb(200, 200, 200);
+    font-size: 18px;
+    -unity-font-style: bold;
+    margin-right: 10px;
+    min-width: 200px;
+    -unity-text-align: middle-left;
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.footer-container {
+    flex-shrink: 0;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.footer-button-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.footer-decoration {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.footer-button {
+    width: 120px;
+    height: 20px;
+    margin-left: 10px;
+    margin-right: 10px;
+    border-radius: 8px;
+    border-width: 0;
+    font-size: 11px;
+    -unity-font-style: bold;
+    color: white;
+    transition-duration: 0.1s;
+}
+
+.footer-button:hover {
+    scale: 1.05;
+}
+
+.footer-button:active {
+    scale: 0.95;
+}
+
+.footer-button:focus {
+    border-width: 2px;
+    border-color: yellow;
+}
+
+/* ========================================
+   SCROLLVIEW (if needed for many toggles)
+   ======================================== */
+.content-container ScrollView {
+    flex-grow: 1;
+}
+
+.content-container .unity-scroll-view__content-container {
+    padding: 20px;
+}
+
+.unity-scroller--vertical .unity-base-slider__tracker {
+    background-color: rgb(50, 50, 50);
+    border-radius: 4px;
+    width: 12px;
+}
+
+.unity-scroller--vertical .unity-base-slider__dragger {
+    background-color: white;
+    border-radius: 6px;
+    width: 12px;
+    min-height: 40px;
+}
+
+.unity-scroller--vertical .unity-base-slider__dragger:hover {
+    background-color: rgb(220, 220, 220);
+}
+
+.unity-scroller--vertical .unity-low-button {
+    height: 20px;
+    width: 12px;
+    background-color: rgb(80, 80, 80);
+}
+
+.unity-scroller--vertical .unity-high-button {
+    height: 20px;
+    width: 12px;
+    background-color: rgb(80, 80, 80);
+}
+
+.unity-scroller--vertical .unity-low-button:hover {
+    background-color: rgb(100, 100, 100);
+}
+
+.unity-scroller--vertical .unity-high-button:hover {
+    background-color: rgb(100, 100, 100);
+}

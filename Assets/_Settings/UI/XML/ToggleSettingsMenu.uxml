@@ -1,0 +1,24 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/_Settings/UI/SettingsMenu.uss?fileID=7433441132597879392&amp;guid=38491b788f8644bcda6b4f295245cac3&amp;type=3#SettingsMenu" />
+    <ui:VisualElement class="scale-container">
+        <ui:VisualElement name="Root" class="root-container" style="-unity-font: url(&quot;project://database/Assets/Fonts/backissuesbb_ot/BackIssuesBB_reg.otf?fileID=12800000&amp;guid=c9a8d7eef139e40ee91619aa459860ca&amp;type=3#BackIssuesBB_reg&quot;); -unity-font-definition: resource(&apos;Fonts &amp; Materials/BackIssuesBB_reg SDF&apos;);">
+            <ui:VisualElement name="Header" class="header-container">
+                <ui:Label name="HeaderText" text="SETTINGS" class="header-text" style="-unity-font-style: normal;" />
+                <ui:VisualElement name="HeaderSeparator" class="separator" />
+            </ui:VisualElement>
+            <ui:VisualElement name="ContentContainer" class="content-container">
+                <!-- Toggle settings will be created dynamically by code -->
+            </ui:VisualElement>
+            <ui:VisualElement name="Footer" class="footer-container">
+                <ui:VisualElement name="FooterSeparator" class="separator" />
+                <ui:VisualElement name="FooterButtonContainer" class="footer-button-container">
+                    <ui:VisualElement name="FooterLeftDecoration" class="footer-decoration" />
+                    <ui:Button name="BackButton" text="Back" class="footer-button back-button" style="-unity-font-style: normal;" />
+                    <ui:Button name="ResetButton" text="Reset" class="footer-button reset-button" style="-unity-font-style: normal;" />
+                    <ui:Button name="CloseButton" text="Close" class="footer-button close-button" style="-unity-font-style: normal;" />
+                    <ui:VisualElement name="FooterRightDecoration" class="footer-decoration" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

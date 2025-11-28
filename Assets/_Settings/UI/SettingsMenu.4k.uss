@@ -1,0 +1,297 @@
+/* ============================================================
+   4K COMPLETE USS (3840x2160+)
+   ============================================================ */
+
+/* ========================================
+   GLOBAL LAYOUT
+   ======================================== */
+
+
+.root-container {
+    flex-grow: 1;
+    background-color: rgba(30, 30, 35, 0.30);
+    padding: 220px 80px;
+    justify-content: space-between;
+    flex-direction: column;
+    display: flex;
+    height: 100%;
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+.header-container {
+    flex-shrink: 0;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-direction: column;
+}
+
+.header-text {
+    font-size: 48px;
+    color: white;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 20px;
+}
+
+.header-logo {
+    height: 240px;
+    width: auto;
+    -unity-background-scale-mode: scale-to-fit;
+    align-self: center;
+    margin-bottom: 20px;
+    max-width: 80%;
+}
+
+.separator {
+    width: 100%;
+    height: 40px;
+    background-color: rgba(255, 255, 255, 0);
+    -unity-background-scale-mode: scale-to-fit;
+    margin-bottom: 20px;
+}
+
+/* ========================================
+   CONTENT AREA
+   ======================================== */
+.content-container {
+    flex-grow: 1;
+    justify-content: center;
+    padding-left: 40px;
+    padding-right: 40px;
+    flex-direction: column;
+}
+
+/* ========================================
+   CUSTOM SLIDER
+   ======================================== */
+.slider-row {
+    margin-bottom: 40px;
+}
+
+.slider-label {
+    color: rgb(200, 200, 200);
+    font-size: 36px;
+    -unity-font-style: bold;
+    margin-bottom: 10px;
+}
+
+.settings-slider {
+    margin-top: 10px;
+}
+
+.settings-slider .unity-base-slider__tracker {
+    background-color: rgb(50, 50, 50);
+    border-radius: 8px;
+    height: 16px;
+    border-width: 0;
+    margin-top: -8px;
+}
+
+.settings-slider .unity-base-slider__dragger {
+    width: 48px;
+    height: 48px;
+    border-radius: 24px;
+    background-color: white;
+    border-width: 0;
+    margin-top: -24px;
+}
+
+.settings-slider .unity-base-slider__dragger:hover {
+    scale: 1.1;
+}
+
+.settings-slider:focus .unity-base-slider__dragger {
+    border-width: 2px;
+    border-color: yellow;
+    scale: 1.2;
+}
+
+/* ========================================
+   CONTENT ITEMS
+   ======================================== */
+.content-button-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+}
+
+.content-decoration {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+    opacity: 0;
+    transition-property: opacity;
+    transition-duration: 0.2s;
+}
+
+.content-button-container:hover .content-decoration {
+    opacity: 1;
+}
+
+.content-button {
+    width: 400px;
+    height: 40px;
+    margin-left: 20px;
+    margin-right: 20px;
+    border-radius: 16px;
+    border-width: 0;
+    font-size: 26px;
+    -unity-font-style: bold;
+    color: white;
+    transition-duration: 0.1s;
+    align-items: center;
+    justify-content: center;
+}
+
+.content-button:hover {
+    scale: 1.05;
+}
+
+.content-button:active {
+    scale: 0.95;
+}
+
+.content-button:focus {
+    border-width: 2px;
+    border-color: yellow;
+}
+
+.input-item {
+    width: 100%;
+    margin-bottom: 40px;
+    align-items: center;
+}
+
+.input-item-header {
+    font-size: 36px;
+    -unity-font-style: bold;
+    -unity-text-align: middle-center;
+    margin-bottom: 20px;
+    color: white;
+}
+
+.input-item-description {
+    font-size: 22px;
+    -unity-text-align: middle-center;
+    margin-bottom: 30px;
+    white-space: normal;
+    color: rgb(200, 200, 200);
+}
+
+.input-item-image {
+    width: 100%;
+    height: 800px;
+    -unity-background-scale-mode: scale-to-fit;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.content-container ScrollView {
+    flex-grow: 1;
+}
+
+.content-container .unity-scroll-view__content-container {
+    padding: 40px;
+}
+
+.unity-scroller--vertical .unity-base-slider__tracker {
+    background-color: rgb(50, 50, 50);
+    border-radius: 8px;
+    width: 24px;
+}
+
+.unity-scroller--vertical .unity-base-slider__dragger {
+    background-color: white;
+    border-radius: 12px;
+    width: 24px;
+    min-height: 80px;
+}
+
+.unity-scroller--vertical .unity-base-slider__dragger:hover {
+    background-color: rgb(220, 220, 220);
+}
+
+.unity-scroller--vertical .unity-low-button {
+    height: 40px;
+    width: 24px;
+    background-color: rgb(80, 80, 80);
+}
+
+.unity-scroller--vertical .unity-high-button {
+    height: 40px;
+    width: 24px;
+    background-color: rgb(80, 80, 80);
+}
+
+.unity-scroller--vertical .unity-low-button:hover {
+    background-color: rgb(100, 100, 100);
+}
+
+.unity-scroller--vertical .unity-high-button:hover {
+    background-color: rgb(100, 100, 100);
+}
+
+/* ========================================
+   FOOTER
+   ======================================== */
+.footer-container {
+    flex-shrink: 0;
+    align-items: center;
+    margin-top: 40px;
+    flex-direction: column;
+}
+
+.footer-button-container {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.footer-decoration {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    -unity-background-scale-mode: scale-to-fit;
+}
+
+.footer-button {
+    width: 240px;
+    height: 40px;
+    margin-left: 20px;
+    margin-right: 20px;
+    border-radius: 16px;
+    border-width: 0;
+    font-size: 22px;
+    -unity-font-style: bold;
+    color: white;
+    transition-duration: 0.1s;
+}
+
+.footer-button:hover {
+    scale: 1.05;
+}
+
+.footer-button:active {
+    scale: 0.95;
+}
+
+.footer-button:focus {
+    border-width: 2px;
+    border-color: yellow;
+}
+
+/* ========================================
+   SCALE CONTAINER
+   ======================================== */
+.scale-container {
+    width: 100%;
+    height: 100%;
+    padding: 32px;
+    flex-direction: column;
+    display: flex;
+}

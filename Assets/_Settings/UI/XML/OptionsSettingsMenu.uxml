@@ -1,14 +1,14 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
-    <Style src="project://database/Assets/_Settings/UI/SettingsMenu.uss?fileID=7433441132597879392&amp;guid=76ede0b387d0846b09f851a1c1414306&amp;type=3#SettingsMenu" />
+    <Style src="project://database/Assets/_Settings/UI/SettingsMenu.uss?fileID=7433441132597879392&amp;guid=38491b788f8644bcda6b4f295245cac3&amp;type=3#SettingsMenu" />
+    <ui:VisualElement class="scale-container">
     <ui:VisualElement name="Root" class="root-container" style="-unity-font: url(&quot;project://database/Assets/Fonts/backissuesbb_ot/BackIssuesBB_reg.otf?fileID=12800000&amp;guid=c9a8d7eef139e40ee91619aa459860ca&amp;type=3#BackIssuesBB_reg&quot;); -unity-font-definition: resource(&apos;Fonts &amp; Materials/BackIssuesBB_reg SDF&apos;);">
         <ui:VisualElement name="Header" class="header-container">
-            <ui:Label name="HeaderText" text="INPUT SETTINGS" class="header-text" style="-unity-font-style: normal;" />
+            <ui:Label name="HeaderText" text="OPTIONS" class="header-text" style="-unity-font-style: normal;" />
             <ui:VisualElement name="HeaderSeparator" class="separator" />
         </ui:VisualElement>
-        
-        <!-- Content Container (ScrollView created programmatically) -->
-        <ui:VisualElement name="ContentContainer" class="content-container" />
-        
+        <ui:VisualElement name="ContentContainer" class="content-container">
+            <!-- Content buttons will be created dynamically by code -->
+        </ui:VisualElement>
         <ui:VisualElement name="Footer" class="footer-container">
             <ui:VisualElement name="FooterSeparator" class="separator" />
             <ui:VisualElement name="FooterButtonContainer" class="footer-button-container">
@@ -19,5 +19,6 @@
                 <ui:VisualElement name="FooterRightDecoration" class="footer-decoration" />
             </ui:VisualElement>
         </ui:VisualElement>
+    </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>
